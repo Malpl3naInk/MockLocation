@@ -41,7 +41,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".MockLocationService"
+        <service
+            android:name=".MockLocationService"
             android:exported="false" />
     </application>
 

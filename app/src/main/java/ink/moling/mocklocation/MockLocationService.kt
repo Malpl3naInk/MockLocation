@@ -53,6 +53,8 @@ class MockLocationService : Service() {
 
         mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
 
+        initNotification()
+
         removeTestProviderNetwork()
         addTestProviderNetwork()
 
@@ -60,8 +62,6 @@ class MockLocationService : Service() {
         addTestProviderGPS()
 
         initMockLocation()
-
-        initNotification()
     }
 
     override fun onDestroy() {
@@ -90,7 +90,7 @@ class MockLocationService : Service() {
                         setLocationGPS()
 
                         sendEmptyMessage(HANDLER_MSG_ID)
-                        Log.d("MockLoc_Service", "Current Location - Lat${mCurLat} Lng${mCurLng} Alt${mCurAlt}")
+                        // Log.d("MockLoc_Service", "Current Location - Lat $mCurLat Lng $mCurLng Alt $mCurAlt")
                     }
                 } catch (e: InterruptedException) {
                     Log.e("MockLoc_Service", "initMockLocation ${e.message}")
@@ -196,7 +196,7 @@ class MockLocationService : Service() {
             loc.speed = mSpeed.toFloat()
             loc.elapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos()
             val bundle = Bundle()   // 卫星数量
-            bundle.putInt("satellites", 7)
+            bundle.putInt("satellites", 19)
             loc.extras = bundle
 
             mLocationManager.setTestProviderLocation(LocationManager.GPS_PROVIDER, loc)
