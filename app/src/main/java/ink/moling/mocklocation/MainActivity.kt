@@ -2,11 +2,9 @@ package ink.moling.mocklocation
 
 import android.Manifest
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
@@ -34,12 +32,16 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -54,15 +56,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.widgets.ExpandableCard
-
-const val MOCK_STATUS_DISABLED      = -1
-const val MOCK_STATUS_INITIALIZING  = 0
-const val MOCK_STATUS_ENABLED       = 1
+import ink.moling.mocklocation.widgets.LatLng
+import ink.moling.mocklocation.widgets.LatLonScatter
+import ink.moling.mocklocation.widgets.RectangleFloatingActionButton
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     lateinit var mServiceBinder: MockLocationService.MockLocationServiceBinder
+    lateinit var mService: MockLocationService
     lateinit var mConnection: ServiceConnection
     var mockStatus by mutableIntStateOf(MOCK_STATUS_DISABLED)
     var gpsLatitude by mutableDoubleStateOf(0.0)
@@ -83,7 +87,10 @@ class MainActivity : ComponentActivity() {
         mConnection = object: ServiceConnection {
             override fun onServiceConnected(name: ComponentName?,service: IBinder?) {
                 mServiceBinder = service as MockLocationService.MockLocationServiceBinder
-                mockStatus = MOCK_STATUS_ENABLED
+                mService = mServiceBinder.getService()
+                lifecycleScope.launch {
+                    mockStatus = mService.stateFlow.value
+                }
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
@@ -136,6 +143,22 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    if (mockStatus == MOCK_STATUS_ERR_NO_PERM) {
+                        AlertDialog(
+                            onDismissRequest = {
+                                stopMockLocation()
+                                mockStatus = MOCK_STATUS_DISABLED
+                            },
+                            title = { Text("Permission Not Granted") },
+                            text = { Text("Program is not allowed to perform MOCK_LOCATION") },
+                            confirmButton = {
+                                TextButton({
+                                    stopMockLocation()
+                                    mockStatus = MOCK_STATUS_DISABLED
+                                }) { Text("OK") }
+                            }
+                        )
+                    }
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -152,14 +175,35 @@ class MainActivity : ComponentActivity() {
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 20.sp
                             )
-                            Column {
-                                Text("Location Service")
+                            Column(
+                                modifier = Modifier.padding(all = 8.dp)
+                            ) {
+                                Text("Location Service ${if (mockStatus == MOCK_STATUS_ENABLED) "*" else ""}")
                                 Text(
-                                    "$gpsProvider@$gpsLatitude,$gpsLongitude,$gpsAltitude",
+                                    "$gpsProvider@$gpsLatitude,$gpsLongitude\n#$gpsAltitude",
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
-                            ExpandableCard(title = "type") {
+                            // Testing data
+                            val points = listOf(
+                                LatLng(30.31278782, 120.37452974, "A", listOf(1)),
+                                LatLng(30.31270001, 120.37486252, "B", listOf(0, 2)),
+                                LatLng(30.31255188, 120.37488464, "C", listOf(1, 3)),
+                                LatLng(30.31176745, 120.37448947, "D", listOf(2, 4)),
+                                LatLng(30.31151951, 120.37454468, "E", listOf(3))
+                            )
+                            Card(
+                                modifier = Modifier
+                                    .height(200.dp)
+                                    .fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                            ) {
+                                LatLonScatter(
+                                    points = points
+                                )
+                            }
+                            ExpandableCard(title = "Altitude noise") {
                                 Text(text = "ExpandableCard")
                             }
                         }
@@ -174,44 +218,35 @@ class MainActivity : ComponentActivity() {
                             verticalAlignment = Alignment.Bottom
                         ) {
                             // 开始/停止按钮
-                            Surface(
+                            RectangleFloatingActionButton(
+                                modifier = Modifier.weight(1f), // 关键：占满剩余空间
                                 onClick = {
-                                    if (mockStatus == MOCK_STATUS_ENABLED) {
+                                    if (mockStatus == MOCK_STATUS_ENABLED
+                                        ||
+                                        mockStatus == MOCK_STATUS_ERR_NO_PERM
+                                    ) {
                                         stopMockLocation()
                                         mockStatus = MOCK_STATUS_DISABLED
                                     } else if (mockStatus == MOCK_STATUS_DISABLED) {
                                         startMockLocation()
                                         mockStatus = MOCK_STATUS_INITIALIZING
                                     }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)                     // 关键：占满剩余空间
-                                    .height(56.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                shadowElevation = 6.dp,             // 悬浮阴影
-                                tonalElevation = 6.dp
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    val buttonLabel = when (mockStatus) {
-                                        MOCK_STATUS_ENABLED -> "Stop"
-                                        MOCK_STATUS_DISABLED -> "Start"
-                                        MOCK_STATUS_INITIALIZING -> "Initializing"
-                                        else -> "wtf"
-                                    }
-                                    val buttonIcon = when (mockStatus) {
-                                        MOCK_STATUS_ENABLED -> Icons.Filled.LocationOn
-                                        MOCK_STATUS_DISABLED -> Icons.Outlined.LocationOn
-                                        MOCK_STATUS_INITIALIZING -> Icons.Outlined.Build
-                                        else -> Icons.Filled.Warning
-                                    }
-                                    Icon(buttonIcon, contentDescription = buttonLabel)
-                                    Text(text = buttonLabel)
                                 }
+                            ) {
+                                val buttonLabel = when (mockStatus) {
+                                    MOCK_STATUS_ENABLED -> "Stop"
+                                    MOCK_STATUS_DISABLED -> "Start"
+                                    MOCK_STATUS_INITIALIZING -> "Initializing"
+                                    else -> "Error"
+                                }
+                                val buttonIcon = when (mockStatus) {
+                                    MOCK_STATUS_ENABLED -> Icons.Filled.LocationOn
+                                    MOCK_STATUS_DISABLED -> Icons.Outlined.LocationOn
+                                    MOCK_STATUS_INITIALIZING -> Icons.Outlined.Build
+                                    else -> Icons.Filled.Warning
+                                }
+                                Icon(buttonIcon, contentDescription = buttonLabel)
+                                Text(text = buttonLabel, modifier = Modifier.padding(start = 8.dp))
                             }
 
                             // 间隔

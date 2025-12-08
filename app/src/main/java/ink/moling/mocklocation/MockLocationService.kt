@@ -1,5 +1,6 @@
 package ink.moling.mocklocation
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -19,6 +20,7 @@ import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /* 定位相关 */
 const val DEFAULT_LAT = 51.476853
@@ -31,6 +33,11 @@ const val SERVICE_MOCK_LOC_HANDLER_NAME = "ServiceMockLocation"
 const val SERVICE_MOCK_LOC_NOTE_ID = 1
 const val SERVICE_MOCK_LOC_NOTE_CHANNEL_ID = "SERVICE_MOCK_LOC_NOTE"
 const val SERVICE_MOCK_LOC_NOTE_CHANNEL_NAME = "SERVICE_MOCK_LOC_NOTE"
+/* 状态相关 */
+const val MOCK_STATUS_DISABLED      = -1
+const val MOCK_STATUS_INITIALIZING  = 0
+const val MOCK_STATUS_ENABLED       = 1
+const val MOCK_STATUS_ERR_NO_PERM    = 2
 
 class MockLocationService : Service() {
     /* 定位相关 */
@@ -44,6 +51,8 @@ class MockLocationService : Service() {
     lateinit var mLocHandler: Handler
     var isMockEnabled = true
 
+    val stateFlow = MutableStateFlow(MOCK_STATUS_INITIALIZING)
+
     private val mBinder = MockLocationServiceBinder()
 
     override fun onBind(intent: Intent?): IBinder = mBinder
@@ -51,17 +60,25 @@ class MockLocationService : Service() {
     override fun onCreate() {
         super.onCreate()
 
+        var initStatus = 0
         mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
 
         initNotification()
 
-        removeTestProviderNetwork()
-        addTestProviderNetwork()
+        if (removeTestProviderNetwork() and addTestProviderNetwork()) {
+            Log.d("MockLoc_Service", "NETWORK_PROVIDER initialized")
+            initStatus++
+        }
 
-        removeTestProviderGPS()
-        addTestProviderGPS()
+        if (removeTestProviderGPS() and addTestProviderGPS()) {
+            Log.d("MockLoc_Service", "GPS_PROVIDER initialized")
+            initStatus++
+        }
 
         initMockLocation()
+
+        if (initStatus != 0)
+            updateState(MOCK_STATUS_ENABLED)
     }
 
     override fun onDestroy() {
@@ -105,6 +122,7 @@ class MockLocationService : Service() {
     // ----------------
     // 初始化保活通知
     // ----------------
+    @SuppressLint("ForegroundServiceType")
     private fun initNotification() {
         val mChannel = NotificationChannel(
             SERVICE_MOCK_LOC_NOTE_CHANNEL_ID,
@@ -113,9 +131,7 @@ class MockLocationService : Service() {
         )
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        if (notificationManager != null) {
-            notificationManager.createNotificationChannel(mChannel)
-        }
+        notificationManager.createNotificationChannel(mChannel)
 
         val notification = NotificationCompat.Builder(this, SERVICE_MOCK_LOC_NOTE_CHANNEL_ID)
             .setChannelId(SERVICE_MOCK_LOC_NOTE_CHANNEL_ID)
@@ -130,21 +146,25 @@ class MockLocationService : Service() {
     // ----------------
     // 移除当前 GPS Test Provider
     // ----------------
-    private fun removeTestProviderGPS() {
+    private fun removeTestProviderGPS(): Boolean {
         try {
             if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 mLocationManager.setTestProviderEnabled(LocationManager.GPS_PROVIDER, false)
                 mLocationManager.removeTestProvider(LocationManager.GPS_PROVIDER)
             }
+            return true
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "removeTestProviderGPS ${e.message}")
+            updateState(MOCK_STATUS_ERR_NO_PERM)
+            return false
         }
     }
 
     // ----------------
     // 添加 GPS Test Provider
     // ----------------
-    private fun addTestProviderGPS() {
+    @SuppressLint("WrongConstant")
+    private fun addTestProviderGPS(): Boolean {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 mLocationManager.addTestProvider(
@@ -176,8 +196,11 @@ class MockLocationService : Service() {
             if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 mLocationManager.setTestProviderEnabled(LocationManager.GPS_PROVIDER, true)
             }
+            return true
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "addTestProviderGPS ${e.message}")
+            updateState(MOCK_STATUS_ERR_NO_PERM)
+            return false
         }
     }
 
@@ -208,21 +231,25 @@ class MockLocationService : Service() {
     // ----------------
     // 移除当前 Network Test Provider
     // ----------------
-    private fun removeTestProviderNetwork() {
+    private fun removeTestProviderNetwork(): Boolean {
         try {
             if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 mLocationManager.setTestProviderEnabled(LocationManager.NETWORK_PROVIDER, false)
                 mLocationManager.removeTestProvider(LocationManager.NETWORK_PROVIDER)
             }
+            return true
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "removeTestProviderNetwork ${e.message}")
+            updateState(MOCK_STATUS_ERR_NO_PERM)
+            return false
         }
     }
 
     // ----------------
     // 添加 Network Test Provider
     // ----------------
-    private fun addTestProviderNetwork() {
+    @SuppressLint("WrongConstant")
+    private fun addTestProviderNetwork(): Boolean {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 mLocationManager.addTestProvider(
@@ -254,8 +281,11 @@ class MockLocationService : Service() {
             if (!mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 mLocationManager.setTestProviderEnabled(LocationManager.NETWORK_PROVIDER, true)
             }
+            return true
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "addTestProviderNetwork ${e.message}")
+            updateState(MOCK_STATUS_ERR_NO_PERM)
+            return false
         }
     }
 
@@ -281,6 +311,7 @@ class MockLocationService : Service() {
     }
 
     inner class MockLocationServiceBinder : Binder() {
+        fun getService() = this@MockLocationService
         fun setPosition(lat: Double, lng: Double, alt: Double) {
             mLocHandler.removeMessages(HANDLER_MSG_ID)
             mCurLng = lng
@@ -288,5 +319,9 @@ class MockLocationService : Service() {
             mCurAlt = alt
             mLocHandler.sendEmptyMessage(HANDLER_MSG_ID)
         }
+    }
+
+    fun updateState(newState: Int) {
+        stateFlow.value = newState
     }
 }
