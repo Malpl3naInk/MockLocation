@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ExpandableCard(
     title: String,
+    modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Default.KeyboardArrowDown,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -62,7 +63,6 @@ fun ExpandableCard(
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .size(28.dp)
-                        .animateContentSize()
                         .rotate(if (expanded) 180f else 0f)
                 )
             }
@@ -71,15 +71,18 @@ fun ExpandableCard(
             AnimatedVisibility(
                 visible = expanded,
                 enter = fadeIn() + expandVertically(
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = 200f)
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = 200f
+                    )
                 ),
                 exit = fadeOut() + shrinkVertically(
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = 200f)
+                    animationSpec = tween(durationMillis = 200)
                 )
             ) {
                 // 这里用 ColumnScope 直接调用传入的 content
                 Column(
-                    modifier = Modifier
+                    modifier = modifier
                         .background(Color.Transparent)
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 16.dp)

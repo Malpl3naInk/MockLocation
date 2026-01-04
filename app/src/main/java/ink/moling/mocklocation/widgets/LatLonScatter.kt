@@ -45,7 +45,6 @@ private fun latLngToMercator(lat: Double, lon: Double): MercatorPoint {
     return MercatorPoint(x, y)
 }
 
-
 /* ---------------- Bounds 以 Mercator 为单位 ---------------- */
 private data class Bounds(
     val minLat: Double, val maxLat: Double,
@@ -83,8 +82,6 @@ private fun computeBounds(points: List<LatLng>): Bounds {
         minLon = minX, maxLon = maxX
     )
 }
-
-
 
 /* ---------------- Mercator 映射至画布 ---------------- */
 private fun mapPointsToCanvasInternal(
