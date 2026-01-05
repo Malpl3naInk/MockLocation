@@ -70,15 +70,9 @@ fun ExpandableCard(
             // ==================== 可展开内容 ====================
             AnimatedVisibility(
                 visible = expanded,
-                enter = fadeIn() + expandVertically(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = 200f
-                    )
-                ),
-                exit = fadeOut() + shrinkVertically(
-                    animationSpec = tween(durationMillis = 200)
-                )
+                enter = fadeIn() + expandVertically(tween(250)),
+                exit  = fadeOut() + shrinkVertically(tween(200))
+
             ) {
                 // 这里用 ColumnScope 直接调用传入的 content
                 Column(

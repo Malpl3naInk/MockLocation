@@ -21,14 +21,44 @@ import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.*
 
 /**
+ * 点类型枚举，用于区分不同路径类型
+ */
+enum class PointType(val color: Color) {
+    RUNNING(Color(0xFF2196F3)),      // 蓝色 - 普通路径
+    WALKING(Color(0xFFFF9800)),      // 绿色 - 步行路径
+    LOOPING(Color(0xFF4CAF50))       // 橙色 - 场地路径
+}
+
+/**
+ * 根据 label 值推断点类型
+ * 可根据实际需求自定义映射规则
+ */
+fun labelToPointType(label: String?): PointType {
+    return when {
+        label == null -> PointType.RUNNING
+        // 根据 label 的值或特征判断类型：
+        label.startsWith("R") || label.startsWith("r") -> PointType.RUNNING
+        label.startsWith("W") || label.startsWith("w") -> PointType.WALKING
+        label.startsWith("L") || label.startsWith("l") -> PointType.LOOPING
+        else -> PointType.RUNNING
+    }
+}
+
+/**
  * connections: 要连接的点索引
+ * label: 点标签，用于标识和判断点类型
  */
 data class LatLng(
     val lat: Double,
     val lon: Double,
     val label: String? = null,
     val connections: List<Int> = emptyList()
-)
+) {
+    /**
+     * 根据 label 获取点类型
+     */
+    fun getPointType(): PointType = labelToPointType(label)
+}
 
 /* ---------------- Web Mercator 投影 ---------------- */
 
@@ -120,10 +150,10 @@ private fun mapPointsToCanvasInternal(
 /* ---------------- 主控件（名称保持 LatLonScatter 不变） ---------------- */
 @Composable
 fun LatLonScatter(
+    modifier: Modifier = Modifier,
     points: List<LatLng>,
     pointRadius: Dp = 6.dp,
     pointColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    strokeColor: Color = Color.Black,
     strokeWidthDp: Dp = 1.dp,
     paddingDp: Dp = 8.dp,            // 绘图 Padding
     cardPadding: Dp = 16.dp,         // Card 内部 Padding
@@ -137,7 +167,7 @@ fun LatLonScatter(
     val bounds = remember(points) { computeBounds(points) }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .padding(cardPadding)
             .clipToBounds()
             .pointerInput(points) {
@@ -169,18 +199,30 @@ fun LatLonScatter(
                 points, size.width, size.height, bounds, paddingPx
             )
 
-            // 连接线
+            // 连接线（只有两端点类型相同时才使用类型颜色，否则使用默认颜色）
             for (i in points.indices) {
-                val p = points[i]
+                val startPoint = points[i]
                 val start = mapped[i]
-                for (target in p.connections) {
+                val startType = startPoint.getPointType()
+                
+                for (target in startPoint.connections) {
                     if (target !in mapped.indices) continue
+                    val endPoint = points[target]
                     val end = mapped[target]
+                    val endType = endPoint.getPointType()
+                    
+                    // 只有两端点类型相同时使用类型颜色，否则使用默认颜色（RUNNING）
+                    val lineColor = if (startType == endType) {
+                        startType.color
+                    } else {
+                        PointType.RUNNING.color
+                    }
+                    
                     val path = Path().apply {
                         moveTo(start.x, start.y)
                         lineTo(end.x, end.y)
                     }
-                    drawPath(path, strokeColor, style = Stroke(strokePx))
+                    drawPath(path, lineColor, style = Stroke(strokePx))
                 }
             }
 
