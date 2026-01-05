@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.widgets
+package ink.moling.mocklocation.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures

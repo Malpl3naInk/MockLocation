@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.widgets
+package ink.moling.mocklocation.ui.components
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
