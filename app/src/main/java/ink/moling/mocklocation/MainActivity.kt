@@ -30,25 +30,36 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ImportExport
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -149,6 +160,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -264,63 +276,148 @@ class MainActivity : ComponentActivity() {
                             }
                             // Testing data
                             val points = listOf(
-                                LatLng(30.31278782, 120.37452974, "00", listOf(1, 36)),
-                                LatLng(30.31270001, 120.37486252, "01", listOf(0, 2)),
-                                LatLng(30.31255188, 120.37488464, "02", listOf(1, 3, 5)),
-                                LatLng(30.31176745, 120.37448947, "03", listOf(2, 4)),
-                                LatLng(30.31151951, 120.37454468, "04", listOf(3, 14, 37)),
-                                LatLng(30.31254331, 120.37556238, "05", listOf(2, 6, 28)),
-                                LatLng(30.31215474, 120.37559495, "06", listOf(5, 15)),
-                                LatLng(30.31089503, 120.37400104, "07", listOf(8, 29)),
-                                LatLng(30.31099922, 120.37415835, "08", listOf(7, 9)),
-                                LatLng(30.31107804, 120.37453341, "09", listOf(8, 10)),
-                                LatLng(30.31109505, 120.37481889, "10", listOf(9, 11)),
-                                LatLng(30.31099153, 120.37506155, "11", listOf(10, 12)),
-                                LatLng(30.31101573, 120.37525065, "12", listOf(11, 13)),
-                                LatLng(30.31107460, 120.37518060, "13", listOf(12, 14)),
-                                LatLng(30.31148371, 120.37516653, "14", listOf(4, 13, 15)),
-                                LatLng(30.31152987, 120.37561017, "15", listOf(6, 14, 16)),
-                                LatLng(30.31159333, 120.37585899, "16", listOf(15, 17, 28)),
-                                LatLng(30.31143965, 120.37597601, "17", listOf(16, 18)),
-                                LatLng(30.31133080, 120.37615380, "18", listOf(17, 19)),
-                                LatLng(30.31130983, 120.37634747, "19", listOf(18, 20)),
-                                LatLng(30.31135689, 120.37654047, "20", listOf(19, 21)),
-                                LatLng(30.31155897, 120.37677538, "21", listOf(20, 22)),
-                                LatLng(30.31258439, 120.37678427, "22", listOf(21, 23)),
-                                LatLng(30.31272915, 120.37669964, "23", listOf(22, 24)),
-                                LatLng(30.31282787, 120.37658566, "24", listOf(23, 25)),
-                                LatLng(30.31290106, 120.37630929, "25", listOf(24, 26)),
-                                LatLng(30.31281503, 120.37600992, "26", listOf(25, 27)),
-                                LatLng(30.31271835, 120.37591156, "27", listOf(26, 28)),
-                                LatLng(30.31262546, 120.37586177, "28", listOf(5, 16, 27)),
-                                LatLng(30.31101727, 120.37364696, "29", listOf(7, 30)),
-                                LatLng(30.31146107, 120.37361030, "30", listOf(29, 31, 37)),
-                                LatLng(30.31157536, 120.37357460, "31", listOf(30, 32, 38)),
-                                LatLng(30.31163393, 120.37349810, "32", listOf(31, 33)),
-                                LatLng(30.31195135, 120.37347551, "33", listOf(32, 34)),
-                                LatLng(30.31261212, 120.37348310, "34", listOf(33, 35)),
-                                LatLng(30.31272823, 120.37365519, "35", listOf(34, 36)),
-                                LatLng(30.31274091, 120.37431647, "36", listOf(0, 35, 44)),
-                                LatLng(30.31154134, 120.37368335, "37", listOf(4, 30, 38)),
-                                LatLng(30.31165234, 120.37367430, "38", listOf(31, 37, 39)),
-                                LatLng(30.31208896, 120.37388341, "39", listOf(38, 40)),
-                                LatLng(30.31215410, 120.37396471, "40", listOf(39, 41)),
-                                LatLng(30.31225064, 120.37398847, "41", listOf(40, 42)),
-                                LatLng(30.31235995, 120.37402515, "42", listOf(41, 43)),
-                                LatLng(30.31242018, 120.37407256, "43", listOf(42, 44)),
-                                LatLng(30.31250551, 120.37406562, "44", listOf(36, 43)),
+                                LatLng(30.31278782, 120.37452974, "R", listOf(1, 36)),
+                                LatLng(30.31270001, 120.37486252, "R", listOf(0, 2)),
+                                LatLng(30.31255188, 120.37488464, "R", listOf(1, 3, 5)),
+                                LatLng(30.31176745, 120.37448947, "R", listOf(2, 4)),
+                                LatLng(30.31151951, 120.37454468, "W", listOf(3, 9, 14, 37)),
+                                LatLng(30.31254331, 120.37556238, "R", listOf(2, 6, 28)),
+                                LatLng(30.31215474, 120.37559495, "R", listOf(5, 15)),
+                                LatLng(30.31089503, 120.37400104, "R", listOf(8, 29)),
+                                LatLng(30.31099922, 120.37415835, "R", listOf(7, 9)),
+                                LatLng(30.31107804, 120.37453341, "W", listOf(4, 8, 10)),
+                                LatLng(30.31109505, 120.37481889, "R", listOf(9, 11)),
+                                LatLng(30.31099153, 120.37506155, "R", listOf(10, 12)),
+                                LatLng(30.31101573, 120.37525065, "R", listOf(11, 13)),
+                                LatLng(30.31107460, 120.37518060, "R", listOf(12, 14)),
+                                LatLng(30.31148371, 120.37516653, "R", listOf(4, 13, 15)),
+                                LatLng(30.31152987, 120.37561017, "R", listOf(6, 14, 16)),
+                                LatLng(30.31159333, 120.37585899, "L", listOf(15, 17, 28)),
+                                LatLng(30.31143965, 120.37597601, "L", listOf(16, 18)),
+                                LatLng(30.31133080, 120.37615380, "L", listOf(17, 19)),
+                                LatLng(30.31130983, 120.37634747, "L", listOf(18, 20)),
+                                LatLng(30.31135689, 120.37654047, "L", listOf(19, 21)),
+                                LatLng(30.31155897, 120.37677538, "L", listOf(20, 22)),
+                                LatLng(30.31258439, 120.37678427, "L", listOf(21, 23)),
+                                LatLng(30.31272915, 120.37669964, "L", listOf(22, 24)),
+                                LatLng(30.31282787, 120.37658566, "L", listOf(23, 25)),
+                                LatLng(30.31290106, 120.37630929, "L", listOf(24, 26)),
+                                LatLng(30.31281503, 120.37600992, "L", listOf(25, 27)),
+                                LatLng(30.31271835, 120.37591156, "L", listOf(26, 28)),
+                                LatLng(30.31262546, 120.37586177, "L", listOf(5, 16, 27)),
+                                LatLng(30.31101727, 120.37364696, "R", listOf(7, 30)),
+                                LatLng(30.31146107, 120.37361030, "R", listOf(29, 31, 37)),
+                                LatLng(30.31157536, 120.37357460, "R", listOf(30, 32, 38)),
+                                LatLng(30.31163393, 120.37349810, "R", listOf(31, 33)),
+                                LatLng(30.31195135, 120.37347551, "R", listOf(32, 34)),
+                                LatLng(30.31261212, 120.37348310, "R", listOf(33, 35)),
+                                LatLng(30.31272823, 120.37365519, "R", listOf(34, 36)),
+                                LatLng(30.31274091, 120.37431647, "W", listOf(0, 35, 44)),
+                                LatLng(30.31154134, 120.37368335, "R", listOf(4, 30, 38)),
+                                LatLng(30.31165234, 120.37367430, "W", listOf(31, 37, 39)),
+                                LatLng(30.31208896, 120.37388341, "W", listOf(38, 40)),
+                                LatLng(30.31215410, 120.37396471, "W", listOf(39, 41)),
+                                LatLng(30.31225064, 120.37398847, "W", listOf(40, 42)),
+                                LatLng(30.31235995, 120.37402515, "W", listOf(41, 43)),
+                                LatLng(30.31242018, 120.37407256, "W", listOf(42, 44)),
+                                LatLng(30.31250551, 120.37406562, "W", listOf(36, 43)),
                             )
                             ExpandableCard(
                                 modifier = Modifier
-                                    .height(240.dp),
+                                    .height(260.dp),
                                 title = "Service mode [ Route ]"
                             ) {
-                                LatLonScatter(
-                                    points = points,
-                                    pointRadius = 2.dp
-                                )
+                                val options = listOf("Option A", "Option B", "Option C")
+                                var expanded by remember { mutableStateOf(false) }
+                                var selected by remember { mutableStateOf(options[0]) }
+                                ExposedDropdownMenuBox(
+                                    expanded = expanded,
+                                    onExpandedChange = { expanded = !expanded },
+                                    modifier = Modifier.padding(bottom = 10.dp)
+                                ) {
+                                    TextField(
+                                        value = selected,
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        label = { Text("Select route") },
+                                        trailingIcon = {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                                        },
+                                        modifier = Modifier
+                                            .menuAnchor()
+                                            .fillMaxWidth()
+                                    )
+
+                                    ExposedDropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false }
+                                    ) {
+                                        options.forEach { option ->
+                                            DropdownMenuItem(
+                                                text = { Text(option) },
+                                                onClick = {
+                                                    selected = option
+                                                    expanded = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                                Row {
+                                    LatLonScatter(
+                                        modifier = Modifier.weight(0.8f),
+                                        paddingDp = 0.dp,
+                                        cardPadding = 8.dp,
+                                        points = points,
+                                        pointRadius = 1.dp
+                                    )
+                                    Column {
+                                        IconButton(
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                                .padding(vertical = 5.dp),
+                                            onClick = {
+
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.ImportExport,
+                                                contentDescription = "ImportExport",
+                                                tint = Color.White
+                                            )
+                                        }
+                                        IconButton(
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                                .padding(vertical = 5.dp),
+                                            onClick = {
+
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.Edit,
+                                                contentDescription = "Edit",
+                                                tint = Color.White
+                                            )
+                                        }
+                                        IconButton(
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                                .padding(vertical = 5.dp),
+                                            onClick = {
+
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.Add,
+                                                contentDescription = "New",
+                                                tint = Color.White
+                                            )
+                                        }
+                                    }
+                                }
                             }
-                            ExpandableCard(title = "Altitude noise") {
+                            ExpandableCard(title = "Altitude noise [ Disabled ]") {
                                 Text(text = "ExpandableCard")
                             }
                         }
