@@ -1,5 +1,9 @@
 package ink.moling.mocklocation.ui
 
+import android.content.Context
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,17 +34,23 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,7 +64,10 @@ import ink.moling.mocklocation.ui.components.LatLng
 import ink.moling.mocklocation.ui.components.LatLonScatter
 import ink.moling.mocklocation.ui.components.PermissionDeniedDialog
 import ink.moling.mocklocation.ui.components.RectangleFloatingActionButton
+import ink.moling.mocklocation.utils.FileHelper
 import ink.moling.mocklocation.viewmodel.MainViewModel
+import org.json.JSONObject
+import java.io.File
 
 /**
  * 主屏幕 Composable
@@ -191,11 +204,23 @@ private fun RouteServiceCard(
     points: List<LatLng>,
     onImportExportClick: () -> Unit
 ) {
+    // 状态提升：在这里管理选中的路径，避免在折叠时丢失
+    var selectedRouteName by rememberSaveable { mutableStateOf("") }
+    
     ExpandableCard(
         modifier = Modifier.height(260.dp),
         title = "Service mode [ Route ]"
     ) {
-        RouteSelector()
+        RouteSelector(
+            selectedName = selectedRouteName,
+            onSelectionChange = { name ->
+                selectedRouteName = name
+            },
+            onFileSelected = { file, json ->
+                val name = json.optString("name")
+                Log.d("MainScreen", "选择的文件: $name, 路径: ${file.absolutePath}")
+            }
+        )
         
         Row {
             // 路径散点图
@@ -218,47 +243,71 @@ private fun RouteServiceCard(
 /**
  * 路径选择下拉框
  */
+data class RouteItem(val displayName: String, val file: File)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RouteSelector() {
-    val options = listOf("Option A", "Option B", "Option C")
-    var expanded by remember { mutableStateOf(false) }
-    var selected by remember { mutableStateOf(options[0]) }
-    
+fun RouteSelector(
+    selectedName: String,
+    onSelectionChange: (String) -> Unit,
+    onFileSelected: (File, JSONObject) -> Unit
+) {
+    val context = LocalContext.current
+
+    val routeItems = remember { mutableStateListOf<RouteItem>() }
+    LaunchedEffect(Unit) {
+        routeItems.clear()
+        val files = FileHelper.listRouteFiles(context)
+        files.forEach { file ->
+            val displayName = try {
+                JSONObject(FileHelper.readText(file)).optString("name", file.name)
+            } catch (e: Exception) {
+                file.name
+            }
+            routeItems.add(RouteItem(displayName, file))
+        }
+    }
+
+    var isExpanded by remember { mutableStateOf(false) }
+
     ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = Modifier.padding(bottom = 10.dp)
+        expanded = isExpanded,
+        onExpandedChange = { isExpanded = it },
+        modifier = Modifier.fillMaxWidth()
     ) {
-        TextField(
-            value = selected,
-            onValueChange = { },
+        OutlinedTextField(
+            value = selectedName,
+            onValueChange = {},
             readOnly = true,
             label = { Text("Select route") },
             trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                // 点击图标切换下拉展开
+                ExposedDropdownMenuDefaults.TrailingIcon(isExpanded)
             },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor()  // 这是关键：让 TextField 能响应点击事件
                 .fillMaxWidth()
         )
-        
+
         ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
+            expanded = isExpanded,
+            onDismissRequest = { isExpanded = false }
         ) {
-            options.forEach { option ->
+            routeItems.forEach { item ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(item.displayName) },
                     onClick = {
-                        selected = option
-                        expanded = false
+                        onSelectionChange(item.displayName)
+                        isExpanded = false
+                        val json = JSONObject(FileHelper.readText(item.file))
+                        onFileSelected(item.file, json)
                     }
                 )
             }
         }
     }
 }
+
 
 /**
  * 路径操作按钮组

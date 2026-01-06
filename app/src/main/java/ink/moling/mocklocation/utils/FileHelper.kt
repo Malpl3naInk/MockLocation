@@ -4,18 +4,30 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import java.io.File
+import java.util.*
 
 object FileHelper {
 
     /* -------------------- Import -------------------- */
 
     /**
-     * 从 SAF Uri 导入文件到 app 内部 filesDir
+     * 导入文件到 app 内部 filesDir/routes/ 目录
+     * 并生成随机文件名（保留原后缀）
+     *
      * @return 导入后的 File
      */
-    fun importToFilesDir(context: Context, uri: Uri): File {
-        val fileName = getFileName(context, uri)
-        val target = File(context.filesDir, fileName)
+    fun importToRoutesDir(context: Context, uri: Uri): File {
+        val routesDir = File(context.filesDir, "routes")
+        if (!routesDir.exists()) routesDir.mkdirs()
+
+        // 获取原始文件名，提取后缀
+        val originalName = getFileName(context, uri)
+        val suffix = originalName.substringAfterLast('.', "")
+
+        // 随机文件名
+        val randomName = UUID.randomUUID().toString() + if (suffix.isNotBlank()) ".$suffix" else ""
+
+        val target = File(routesDir, randomName)
 
         context.contentResolver.openInputStream(uri)?.use { input ->
             target.outputStream().use { output ->
@@ -33,14 +45,13 @@ object FileHelper {
      */
     fun exportFromFilesDir(
         context: Context,
-        fileName: String,
+        file: File,
         targetUri: Uri
     ) {
-        val source = File(context.filesDir, fileName)
-        require(source.exists()) { "File not found: $fileName" }
+        require(file.exists()) { "File not found: ${file.absolutePath}" }
 
         context.contentResolver.openOutputStream(targetUri)?.use { output ->
-            source.inputStream().use { input ->
+            file.inputStream().use { input ->
                 input.copyTo(output)
             }
         } ?: error("Cannot open output stream for uri")
@@ -48,23 +59,22 @@ object FileHelper {
 
     /* -------------------- Runtime IO -------------------- */
 
-    fun readText(context: Context, fileName: String): String {
-        val file = File(context.filesDir, fileName)
-        require(file.exists()) { "File not found: $fileName" }
+    fun readText(file: File): String {
+        require(file.exists()) { "File not found: ${file.absolutePath}" }
         return file.readText()
     }
 
-    fun writeText(context: Context, fileName: String, text: String) {
-        val file = File(context.filesDir, fileName)
+    fun writeText(file: File, text: String) {
         file.writeText(text)
     }
 
-    fun listFiles(context: Context): List<File> {
-        return context.filesDir.listFiles()?.toList() ?: emptyList()
+    fun listRouteFiles(context: Context): List<File> {
+        val routesDir = File(context.filesDir, "routes")
+        if (!routesDir.exists()) return emptyList()
+        return routesDir.listFiles()?.toList() ?: emptyList()
     }
 
-    fun delete(context: Context, fileName: String): Boolean {
-        val file = File(context.filesDir, fileName)
+    fun deleteFile(file: File): Boolean {
         return file.exists() && file.delete()
     }
 
