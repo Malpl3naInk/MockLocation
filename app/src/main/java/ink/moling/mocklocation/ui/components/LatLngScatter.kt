@@ -54,7 +54,7 @@ fun typeToPointType(type: String?): PointType {
  */
 data class LatLng(
     val lat: Double,
-    val lon: Double,
+    val lng: Double,
     val type: String? = null,
     val connections: List<Int> = emptyList()
 ) {
@@ -68,12 +68,12 @@ data class LatLng(
 
 private data class MercatorPoint(val x: Double, val y: Double)
 
-private fun latLngToMercator(lat: Double, lon: Double): MercatorPoint {
+private fun latLngToMercator(lat: Double, lng: Double): MercatorPoint {
     val r = 6378137.0
     val maxLat = 85.05112878
     val clampedLat = lat.coerceIn(-maxLat, maxLat)
 
-    val x = Math.toRadians(lon) * r
+    val x = Math.toRadians(lng) * r
     val y = ln(tan(Math.PI / 4 + Math.toRadians(clampedLat) / 2)) * r
 
     return MercatorPoint(x, y)
@@ -82,7 +82,7 @@ private fun latLngToMercator(lat: Double, lon: Double): MercatorPoint {
 /* ---------------- Bounds 以 Mercator 为单位 ---------------- */
 private data class Bounds(
     val minLat: Double, val maxLat: Double,
-    val minLon: Double, val maxLon: Double
+    val minLng: Double, val maxLng: Double
 )
 
 private fun computeBounds(points: List<LatLng>): Bounds {
@@ -94,7 +94,7 @@ private fun computeBounds(points: List<LatLng>): Bounds {
     var maxY = Double.NEGATIVE_INFINITY
 
     for (p in points) {
-        val m = latLngToMercator(p.lat, p.lon)
+        val m = latLngToMercator(p.lat, p.lng)
         minX = min(minX, m.x)
         maxX = max(maxX, m.x)
         minY = min(minY, m.y)
@@ -113,7 +113,7 @@ private fun computeBounds(points: List<LatLng>): Bounds {
     // 注意 Bounds 的字段名沿用原来的，但值是墨卡托坐标
     return Bounds(
         minLat = minY, maxLat = maxY,
-        minLon = minX, maxLon = maxX
+        minLng = minX, maxLng = maxX
     )
 }
 
@@ -128,7 +128,7 @@ private fun mapPointsToCanvasInternal(
     val availW = (width - paddingPx * 2).coerceAtLeast(0f)
     val availH = (height - paddingPx * 2).coerceAtLeast(0f)
 
-    val xRange = (bounds.maxLon - bounds.minLon).toFloat().coerceAtLeast(1e-12f)
+    val xRange = (bounds.maxLng - bounds.minLng).toFloat().coerceAtLeast(1e-12f)
     val yRange = (bounds.maxLat - bounds.minLat).toFloat().coerceAtLeast(1e-12f)
 
     // 等比缩放（保证不拉伸）
@@ -142,18 +142,18 @@ private fun mapPointsToCanvasInternal(
     val offsetY = paddingPx + (availH - drawH) / 2f
 
     return points.map { p ->
-        val m = latLngToMercator(p.lat, p.lon)
+        val m = latLngToMercator(p.lat, p.lng)
 
-        val x = ((m.x - bounds.minLon).toFloat() * scale) + offsetX
+        val x = ((m.x - bounds.minLng).toFloat() * scale) + offsetX
         val y = (drawH - (m.y - bounds.minLat).toFloat() * scale) + offsetY
 
         Offset(x, y)
     }
 }
 
-/* ---------------- 主控件（名称保持 LatLonScatter 不变） ---------------- */
+/* ---------------- 主控件 ---------------- */
 @Composable
-fun LatLonScatter(
+fun LatLngScatter(
     modifier: Modifier = Modifier,
     points: SnapshotStateList<LatLng> = mutableStateListOf(),
     pointRadius: Dp = 6.dp,
