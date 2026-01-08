@@ -1,11 +1,16 @@
 package ink.moling.mocklocation.ui
 
 import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Add
@@ -47,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -334,7 +341,7 @@ private fun PointModeView(
                     )
                 } else {
                     points.forEach { point ->
-                        DropdownMenuItem(
+                        LongPressDeleteMenuItem(
                             text = {
                                 Column {
                                     Text(point.name)
@@ -346,7 +353,11 @@ private fun PointModeView(
                                 }
                             },
                             onClick = {
-                                selectedPointName = "%.8f, %.8f".format(point.latitude, point.longitude)
+                                selectedPointName = point.name
+                                isExpanded = false
+                            },
+                            onDelete = {
+                                viewModel.deletePoint(point.id)
                                 isExpanded = false
                             }
                         )
@@ -520,7 +531,7 @@ fun RouteSelector(
                 )
             } else {
                 routeItems.forEach { item ->
-                    DropdownMenuItem(
+                    LongPressDeleteMenuItem(
                         text = { Text(item.displayName) },
                         onClick = {
                             isExpanded = false
@@ -529,7 +540,7 @@ fun RouteSelector(
                                 if (!item.file.exists()) {
                                     Log.e("RouteSelector", "File not found: ${item.file.absolutePath}")
                                     onFileDeleted()
-                                    return@DropdownMenuItem
+                                    return@LongPressDeleteMenuItem
                                 }
                                 
                                 val json = JSONObject(FileHelper.readText(item.file))
@@ -539,6 +550,14 @@ fun RouteSelector(
                                 Log.e("RouteSelector", "Error reading file: ${e.message}")
                                 onFileDeleted()
                             }
+                        },
+                        onDelete = {
+                            FileHelper.deleteFile(item.file)
+                            routeItems.remove(item)
+                            if (selectedName == item.displayName) {
+                                onFileDeleted()
+                            }
+                            isExpanded = false
                         }
                     )
                 }
@@ -700,4 +719,83 @@ private fun getTestPoints(): List<LatLng> {
         LatLng(30.31242018, 120.37407256, "W", listOf(42, 44)),
         LatLng(30.31250551, 120.37406562, "W", listOf(36, 43)),
     )
+}
+
+/**
+ * 支持长按删除的 DropdownMenuItem 包装器
+ */
+@Composable
+fun LongPressDeleteMenuItem(
+    text: @Composable () -> Unit,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+    deleteDuration: Int = 1200
+) {
+    val progress = remember { Animatable(0f) }
+    var pressing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(pressing) {
+        if (pressing) {
+            progress.snapTo(0f)
+            progress.animateTo(
+                1f,
+                animationSpec = tween(deleteDuration)
+            )
+            onDelete()
+        } else {
+            progress.snapTo(0f)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { onClick() },
+                    onLongPress = {
+                        pressing = true
+                    },
+                    onPress = {
+                        try {
+                            tryAwaitRelease()
+                        } finally {
+                            pressing = false
+                        }
+                    }
+                )
+            }
+    ) {
+        // 原始内容
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            text()
+        }
+
+        // 删除进度覆盖层（使用嵌套 Box 来正确处理高度和进度）
+        Box(
+            modifier = Modifier.matchParentSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(progress.value)
+                    .fillMaxHeight()
+                    .background(
+                        Color(0xFFFF5252).copy(alpha = progress.value * 0.8f)
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.White.copy(alpha = progress.value),
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 16.dp)
+                )
+            }
+        }
+    }
 }
