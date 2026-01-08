@@ -4,17 +4,29 @@ import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -27,8 +39,10 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.utils.FileHelper
@@ -148,23 +162,100 @@ fun RouteFileList() {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 0.dp)
     ) {
-        items(fileNameToFileMap.keys.toList()) { displayName ->
-            Text(
+        items(
+            items = fileNameToFileMap.keys.toList(),
+            key = { it } // ⚠️ 非常重要
+        ) { displayName ->
+
+            LongPressDeleteRow(
                 text = displayName,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        exportFile = fileNameToFileMap[displayName]
-                        exportFile?.let {
-                            exportLauncher.launch("${displayName}.json")
-                        }
+                onClick = {
+                    exportFile = fileNameToFileMap[displayName]
+                    exportFile?.let {
+                        exportLauncher.launch("$displayName.json")
                     }
-                    .padding(8.dp),
-                maxLines = 1
+                },
+                onDelete = {
+                    FileHelper.deleteFile(fileNameToFileMap[displayName]!!)
+                    fileNameToFileMap.remove(displayName)
+                }
             )
+
             Divider(thickness = 0.5.dp)
         }
     }
 }
+
+@Composable
+fun LongPressDeleteRow(
+    text: String,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+    deleteDuration: Int = 1200
+) {
+    val progress = remember { Animatable(0f) }
+    var pressing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(pressing) {
+        if (pressing) {
+            progress.snapTo(0f)
+            progress.animateTo(
+                1f,
+                animationSpec = tween(deleteDuration)
+            )
+            onDelete()
+        } else {
+            progress.snapTo(0f)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 40.dp)
+            // 👇 手势处理
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { onClick() },
+                    onLongPress = {
+                        pressing = true
+                    },
+                    onPress = {
+                        try {
+                            // 等待手指松开或取消
+                            tryAwaitRelease()
+                        } finally {
+                            // 👈 松手就会走到这里
+                            pressing = false
+                        }
+                    }
+                )
+            }
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(8.dp),
+            maxLines = 1
+        )
+
+        // 删除进度覆盖层
+        Box(
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(progress.value)
+                .background(
+                    Color(0xFFFF5252).copy(alpha = progress.value)
+                )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete",
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp)
+            )
+        }
+    }
+}
+
