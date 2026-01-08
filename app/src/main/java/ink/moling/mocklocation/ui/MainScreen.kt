@@ -1,9 +1,6 @@
 package ink.moling.mocklocation.ui
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,13 +33,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -219,7 +214,7 @@ private fun RouteServiceCard(
             onFileSelected = { file, json ->
                 val name = json.optString("name")
                 Log.d("MainScreen", "选择的文件: $name, 路径: ${file.absolutePath}")
-            }
+            },
         )
         
         Row {
@@ -273,7 +268,7 @@ fun RouteSelector(
     ExposedDropdownMenuBox(
         expanded = isExpanded,
         onExpandedChange = { isExpanded = it },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
     ) {
         OutlinedTextField(
             value = selectedName,
