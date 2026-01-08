@@ -59,7 +59,7 @@ import ink.moling.mocklocation.ui.components.AddPointDialog
 import ink.moling.mocklocation.ui.components.ExpandableCard
 import ink.moling.mocklocation.ui.components.ImportExportDialog
 import ink.moling.mocklocation.ui.components.LatLng
-import ink.moling.mocklocation.ui.components.LatLonScatter
+import ink.moling.mocklocation.ui.components.LatLngScatter
 import ink.moling.mocklocation.ui.components.PermissionDeniedDialog
 import ink.moling.mocklocation.ui.components.RectangleFloatingActionButton
 import ink.moling.mocklocation.utils.FileHelper
@@ -399,7 +399,7 @@ private fun RouteModeView(
 
     Row {
         // 路径散点图
-        LatLonScatter(
+        LatLngScatter(
             modifier = Modifier.weight(0.8f),
             paddingDp = 0.dp,
             cardPadding = 8.dp,
@@ -435,11 +435,11 @@ private fun loadRouteFromJson(
         
         LatLng(
             lat = jsonPoint.getDouble("lat"),
-            lon = jsonPoint.getDouble("lon"),
+            lng = jsonPoint.getDouble("lng"),
             type = jsonPoint.getString("type"),
             connections = connections
         ).also { point ->
-            Log.d("MainScreen", "Point loaded: lat=${point.lat}, lon=${point.lon}, type=${point.type}")
+            Log.d("MainScreen", "Point loaded: lat=${point.lat}, lng=${point.lng}, type=${point.type}")
         }
     }
     

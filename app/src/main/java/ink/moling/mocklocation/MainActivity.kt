@@ -162,7 +162,7 @@ class MainActivity : ComponentActivity() {
             DisposableEffect(Unit) {
                 // 初始化 LocationListener（需要访问 ViewModel）
                 mLocationListener = LocationListener { location ->
-                    val (lat, lon) = kf.update(
+                    val (lat, lng) = kf.update(
                         location.latitude,
                         location.longitude,
                         location.accuracy,
@@ -171,7 +171,7 @@ class MainActivity : ComponentActivity() {
                     val provider = (location.provider ?: "*")[0].toString().uppercase()
                     val altitude = if (provider == "G") location.altitude else viewModel.gpsAltitude.value
                     
-                    viewModel.updateGpsLocation(lat, lon, altitude, provider)
+                    viewModel.updateGpsLocation(lat, lng, altitude, provider)
                 }
                 
                 // 观察服务状态变化
