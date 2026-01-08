@@ -32,11 +32,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +55,7 @@ import ink.moling.mocklocation.MOCK_STATUS_DISABLED
 import ink.moling.mocklocation.MOCK_STATUS_ENABLED
 import ink.moling.mocklocation.MOCK_STATUS_ERR_NO_PERM
 import ink.moling.mocklocation.MOCK_STATUS_INITIALIZING
+import ink.moling.mocklocation.ui.components.AddPointDialog
 import ink.moling.mocklocation.ui.components.ExpandableCard
 import ink.moling.mocklocation.ui.components.ImportExportDialog
 import ink.moling.mocklocation.ui.components.LatLng
@@ -60,6 +63,7 @@ import ink.moling.mocklocation.ui.components.LatLonScatter
 import ink.moling.mocklocation.ui.components.PermissionDeniedDialog
 import ink.moling.mocklocation.ui.components.RectangleFloatingActionButton
 import ink.moling.mocklocation.utils.FileHelper
+import ink.moling.mocklocation.utils.PrefsHelper
 import ink.moling.mocklocation.viewmodel.MainViewModel
 import org.json.JSONObject
 import java.io.File
@@ -85,9 +89,10 @@ fun MainScreen(
     val gpsLongitude by viewModel.gpsLongitude.collectAsState()
     val gpsAltitude by viewModel.gpsAltitude.collectAsState()
     val isImportExportDialogOpen by viewModel.isImportExportDialogOpen.collectAsState()
+    val isAddPointDialogOpen by viewModel.isAddPointDialogOpen.collectAsState()
     
     // 用于触发 RouteSelector 刷新的计数器
-    var refreshTrigger by remember { mutableStateOf(0) }
+    var refreshTrigger by remember { mutableIntStateOf(0) }
     
     // 监听 Dialog 关闭事件，触发刷新
     LaunchedEffect(isImportExportDialogOpen) {
@@ -111,6 +116,14 @@ fun MainScreen(
     if (isImportExportDialogOpen) {
         ImportExportDialog(
             onDismiss = { viewModel.setImportExportDialogOpen(false) }
+        )
+    }
+
+    // 显示添加点对话框
+    if (isAddPointDialogOpen) {
+        AddPointDialog(
+            viewModel = viewModel,
+            onDismiss = { viewModel.setAddPointDialogOpen(false) }
         )
     }
     
@@ -139,19 +152,21 @@ fun MainScreen(
                 gpsAltitude = gpsAltitude
             )
             
-            // 测试数据点（TODO: 应该从数据源获取）
+            // 测试数据点 TODO: 应该从数据源获取
             // val points = getTestPoints()
             
             // 路径模式卡片
             RouteServiceCard(
+                viewModel = viewModel,
                 refreshTrigger = refreshTrigger,
-                onImportExportClick = { viewModel.setImportExportDialogOpen(true) }
+                onImportExportClick = { viewModel.setImportExportDialogOpen(true) },
+                onAddPointClick = { viewModel.setAddPointDialogOpen(true) }
             )
             
-            // 高度噪声卡片
-            ExpandableCard(title = "Altitude noise [ Disabled ]") {
-                Text(text = "ExpandableCard")
-            }
+            // TODO: 高度噪声卡片
+            // ExpandableCard(title = "Altitude noise [ Disabled ]") {
+            //     Text(text = "ExpandableCard")
+            // }
         }
         
         // 底部操作按钮
@@ -203,71 +218,232 @@ private fun LocationServiceInfo(
 }
 
 /**
- * 路径服务卡片
+ * 模拟设置卡片 - 支持点位模式和路径模式
  */
 @Composable
 private fun RouteServiceCard(
+    viewModel: MainViewModel,
     refreshTrigger: Int,
-    onImportExportClick: () -> Unit
+    onImportExportClick: () -> Unit,
+    onAddPointClick: () -> Unit
 ) {
-    // 状态提升：在这里管理选中的路径，避免在折叠时丢失
-    var selectedRouteName by rememberSaveable { mutableStateOf("") }
-    val scatterPoints = remember { mutableStateListOf<LatLng>() }
+    val context = LocalContext.current
+    var currentMode by rememberSaveable { mutableStateOf(PrefsHelper.getMockMode(context)) }
+    val isRouteMode = currentMode == "Route"
     
     ExpandableCard(
-        modifier = Modifier.height(260.dp),
-        title = "Service mode [ Route ]"
+        modifier = Modifier.height(if (isRouteMode) 300.dp else 150.dp),
+        title = "Mock settings [ $currentMode ]"
     ) {
-        RouteSelector(
-            selectedName = selectedRouteName,
-            refreshTrigger = refreshTrigger,
-            onSelectionChange = { name ->
-                selectedRouteName = name
-            },
-            onFileSelected = { file, json ->
-                val name = json.optString("name")
-                Log.d("MainScreen", "选择的文件: $name, 路径: ${file.absolutePath}")
-                scatterPoints.clear()
-                val jsonPoints = json.getJSONArray("points")
-                for (i in 0 until jsonPoints.length()) {
-                    val jsonPoint = jsonPoints.getJSONObject(i)
-                    val jsonConnects = jsonPoint.getJSONArray("connects")
-                    val pointConnects: List<Int> = List(jsonConnects.length()) { i ->
-                        jsonConnects.getInt(i)
-                    }
-                    val newPoint = LatLng(
-                        lat = jsonPoint.getDouble("lat"),
-                        lon = jsonPoint.getDouble("lon"),
-                        type = jsonPoint.getString("type"),
-                        connections = pointConnects
-                    )
-                    Log.d("newPoint:", "lat: ${newPoint.lat},lon: ${newPoint.lon}, type: ${newPoint.type}")
-                    scatterPoints.add(newPoint)
-                }
-            },
-            onFileDeleted = {
-                // 当文件被删除时，清空选择和散点图
-                selectedRouteName = ""
-                scatterPoints.clear()
+        // 模式切换开关
+        ModeToggleSwitch(
+            isRouteMode = isRouteMode,
+            onModeChange = { isRoute ->
+                currentMode = if (isRoute) "Route" else "Point"
+                PrefsHelper.setMockMode(context, currentMode)
             }
         )
         
-        Row {
-            // 路径散点图
-            LatLonScatter(
-                modifier = Modifier.weight(0.8f),
-                paddingDp = 0.dp,
-                cardPadding = 8.dp,
-                points = scatterPoints,
-                pointRadius = 1.dp
-            )
-            
-            // 操作按钮列
-            RouteActionButtons(
+        // 根据模式显示不同的内容
+        if (isRouteMode) {
+            RouteModeView(
+                refreshTrigger = refreshTrigger,
                 onImportExportClick = onImportExportClick
+            )
+        } else {
+            PointModeView(
+                viewModel = viewModel,
+                onAddPointClick = onAddPointClick
             )
         }
     }
+}
+
+/**
+ * 模式切换开关
+ */
+@Composable
+private fun ModeToggleSwitch(
+    isRouteMode: Boolean,
+    onModeChange: (Boolean) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(start = 10.dp, bottom = 8.dp)
+    ) {
+        Text("Point")
+        Switch(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            checked = isRouteMode,
+            onCheckedChange = onModeChange
+        )
+        Text("Route")
+    }
+}
+
+/**
+ * 点位模式视图
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PointModeView(
+    viewModel: MainViewModel,
+    onAddPointClick: () -> Unit
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+    var selectedPointName by rememberSaveable { mutableStateOf("") }
+    val points by viewModel.points.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadPoints()
+    }
+    
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ExposedDropdownMenuBox(
+            expanded = isExpanded,
+            onExpandedChange = { isExpanded = it },
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)
+        ) {
+            OutlinedTextField(
+                value = selectedPointName,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Select point") },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(isExpanded)
+                },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            )
+
+            ExposedDropdownMenu(
+                expanded = isExpanded,
+                onDismissRequest = { isExpanded = false }
+            ) {
+                if (points.isEmpty()) {
+                    DropdownMenuItem(
+                        text = { Text("No saved points") },
+                        onClick = { isExpanded = false },
+                        enabled = false
+                    )
+                } else {
+                    points.forEach { point ->
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(point.name)
+                                    Text(
+                                        text = "%.8f, %.8f".format(point.latitude, point.longitude),
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+                            },
+                            onClick = {
+                                selectedPointName = "%.8f, %.8f".format(point.latitude, point.longitude)
+                                isExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+        
+        // 添加点位按钮
+        IconButton(
+            modifier = Modifier
+                .size(56.dp)
+                .padding(top = 4.dp),
+            onClick = onAddPointClick
+        ) {
+            Icon(
+                Icons.Outlined.Add,
+                contentDescription = "Add point",
+                tint = Color.White
+            )
+        }
+    }
+}
+
+/**
+ * 路径模式视图
+ */
+@Composable
+private fun RouteModeView(
+    refreshTrigger: Int,
+    onImportExportClick: () -> Unit
+) {
+    var selectedRouteName by rememberSaveable { mutableStateOf("") }
+    val routePoints = remember { mutableStateListOf<LatLng>() }
+    
+    RouteSelector(
+        selectedName = selectedRouteName,
+        refreshTrigger = refreshTrigger,
+        onSelectionChange = { name ->
+            selectedRouteName = name
+        },
+        onFileSelected = { file, json ->
+            loadRouteFromJson(file, json, routePoints)
+        },
+        onFileDeleted = {
+            selectedRouteName = ""
+            routePoints.clear()
+        }
+    )
+
+    Row {
+        // 路径散点图
+        LatLonScatter(
+            modifier = Modifier.weight(0.8f),
+            paddingDp = 0.dp,
+            cardPadding = 8.dp,
+            points = routePoints,
+            pointRadius = 1.dp
+        )
+
+        // 操作按钮列
+        RouteActionButtons(
+            onImportExportClick = onImportExportClick
+        )
+    }
+}
+
+/**
+ * 从 JSON 加载路径数据
+ */
+private fun loadRouteFromJson(
+    file: File,
+    json: JSONObject,
+    targetList: MutableList<LatLng>
+) {
+    val name = json.optString("name")
+    Log.d("MainScreen", "Selected file: $name, path: ${file.absolutePath}")
+    
+    targetList.clear()
+    
+    val jsonPoints = json.getJSONArray("points")
+    val newPoints = (0 until jsonPoints.length()).map { i ->
+        val jsonPoint = jsonPoints.getJSONObject(i)
+        val connections = jsonPoint.getJSONArray("connects")
+            .let { arr -> (0 until arr.length()).map { arr.getInt(it) } }
+        
+        LatLng(
+            lat = jsonPoint.getDouble("lat"),
+            lon = jsonPoint.getDouble("lon"),
+            type = jsonPoint.getString("type"),
+            connections = connections
+        ).also { point ->
+            Log.d("MainScreen", "Point loaded: lat=${point.lat}, lon=${point.lon}, type=${point.type}")
+        }
+    }
+    
+    targetList.addAll(newPoints)
 }
 
 /**
@@ -336,28 +512,36 @@ fun RouteSelector(
             expanded = isExpanded,
             onDismissRequest = { isExpanded = false }
         ) {
-            routeItems.forEach { item ->
+            if (routeItems.isEmpty()) {
                 DropdownMenuItem(
-                    text = { Text(item.displayName) },
-                    onClick = {
-                        isExpanded = false
-                        try {
-                            // 检查文件是否存在
-                            if (!item.file.exists()) {
-                                Log.e("RouteSelector", "File not found: ${item.file.absolutePath}")
-                                onFileDeleted()
-                                return@DropdownMenuItem
-                            }
-                            
-                            val json = JSONObject(FileHelper.readText(item.file))
-                            onSelectionChange(item.displayName)
-                            onFileSelected(item.file, json)
-                        } catch (e: Exception) {
-                            Log.e("RouteSelector", "Error reading file: ${e.message}")
-                            onFileDeleted()
-                        }
-                    }
+                    text = { Text("No saved routes") },
+                    onClick = { isExpanded = false },
+                    enabled = false
                 )
+            } else {
+                routeItems.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(item.displayName) },
+                        onClick = {
+                            isExpanded = false
+                            try {
+                                // 检查文件是否存在
+                                if (!item.file.exists()) {
+                                    Log.e("RouteSelector", "File not found: ${item.file.absolutePath}")
+                                    onFileDeleted()
+                                    return@DropdownMenuItem
+                                }
+                                
+                                val json = JSONObject(FileHelper.readText(item.file))
+                                onSelectionChange(item.displayName)
+                                onFileSelected(item.file, json)
+                            } catch (e: Exception) {
+                                Log.e("RouteSelector", "Error reading file: ${e.message}")
+                                onFileDeleted()
+                            }
+                        }
+                    )
+                }
             }
         }
     }

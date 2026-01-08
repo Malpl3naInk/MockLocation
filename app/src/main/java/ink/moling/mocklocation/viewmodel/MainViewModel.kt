@@ -1,16 +1,21 @@
 package ink.moling.mocklocation.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import ink.moling.mocklocation.MOCK_STATUS_DISABLED
 import ink.moling.mocklocation.MockLocationService
+import ink.moling.mocklocation.utils.db.AppDatabase
+import ink.moling.mocklocation.utils.db.MockPointEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * MainViewModel 管理 MockLocation 应用的 UI 状态
  */
-class MainViewModel : ViewModel() {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // Mock 服务状态
     private val _mockStatus = MutableStateFlow(MOCK_STATUS_DISABLED)
@@ -29,9 +34,13 @@ class MainViewModel : ViewModel() {
     private val _gpsProvider = MutableStateFlow("")
     val gpsProvider: StateFlow<String> = _gpsProvider.asStateFlow()
 
-    // Dialog 状态
+    // 导入导出路径 Dialog 状态
     private val _isImportExportDialogOpen = MutableStateFlow(false)
     val isImportExportDialogOpen: StateFlow<Boolean> = _isImportExportDialogOpen.asStateFlow()
+
+    // 添加点 Dialog 状态
+    private val _isAddPointDialogOpen = MutableStateFlow(false)
+    val isAddPointDialogOpen: StateFlow<Boolean> = _isAddPointDialogOpen.asStateFlow()
 
     // 服务引用（由 Activity 设置）
     var serviceBinder: MockLocationService.MockLocationServiceBinder? = null
@@ -61,9 +70,74 @@ class MainViewModel : ViewModel() {
     }
 
     /**
+     * 打开/关闭添加点对话框
+     */
+    fun setAddPointDialogOpen(isOpen: Boolean) {
+        _isAddPointDialogOpen.value = isOpen
+    }
+
+    /**
      * 设置模拟位置（通过服务）
      */
     fun setMockPosition(latitude: Double, longitude: Double, altitude: Double) {
         serviceBinder?.setPosition(latitude, longitude, altitude)
     }
+
+    // ================= 路径点本地存储 =================
+
+    private val mockPointDao by lazy {
+        AppDatabase
+            .getInstance(getApplication())
+            .mockPointDao()
+    }
+
+    private val _points = MutableStateFlow<List<MockPointEntity>>(emptyList())
+    val points: StateFlow<List<MockPointEntity>> = _points.asStateFlow()
+
+    /**
+     * 加载所有点（页面初始化时调用一次）
+     */
+    fun loadPoints() {
+        viewModelScope.launch {
+            _points.value = mockPointDao.getAll()
+        }
+    }
+
+    /**
+     * 添加一个点
+     */
+    fun addPoint(name: String, latitude: Double, longitude: Double) {
+        viewModelScope.launch {
+            mockPointDao.insert(
+                MockPointEntity(
+                    name = name,
+                    latitude = latitude,
+                    longitude = longitude
+                )
+            )
+            _points.value = mockPointDao.getAll()
+        }
+    }
+
+    /**
+     * 删除单个点（按 id）
+     */
+    fun deletePoint(id: Long) {
+        viewModelScope.launch {
+            mockPointDao.deleteById(id)
+            _points.value = mockPointDao.getAll()
+        }
+    }
+
+    /**
+     * 清空所有点
+     */
+    fun clearAllPoints() {
+        viewModelScope.launch {
+            mockPointDao.clearAll()
+            _points.value = emptyList()
+        }
+    }
+
+    // ==================================================
 }

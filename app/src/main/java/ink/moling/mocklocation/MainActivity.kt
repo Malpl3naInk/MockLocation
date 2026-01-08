@@ -23,9 +23,9 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ink.moling.mocklocation.ui.MainScreen
-import ink.moling.mocklocation.viewmodel.MainViewModel
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.utils.LocationKalmanFilter
+import ink.moling.mocklocation.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
 /**
@@ -126,7 +126,7 @@ class MainActivity : ComponentActivity() {
         if (::mConnection.isInitialized) {
             try {
                 unbindService(mConnection)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Service might not be bound
             }
         }
@@ -254,7 +254,7 @@ class MainActivity : ComponentActivity() {
             }
             val serviceMockLocation = Intent(this, MockLocationService::class.java)
             stopService(serviceMockLocation)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Service might not be running
         }
     }
