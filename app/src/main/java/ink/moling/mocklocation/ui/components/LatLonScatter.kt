@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -33,13 +37,13 @@ enum class PointType(val color: Color) {
  * 根据 label 值推断点类型
  * 可根据实际需求自定义映射规则
  */
-fun labelToPointType(label: String?): PointType {
+fun typeToPointType(type: String?): PointType {
     return when {
-        label == null -> PointType.RUNNING
+        type == null -> PointType.RUNNING
         // 根据 label 的值或特征判断类型：
-        label.startsWith("R") || label.startsWith("r") -> PointType.RUNNING
-        label.startsWith("W") || label.startsWith("w") -> PointType.WALKING
-        label.startsWith("L") || label.startsWith("l") -> PointType.LOOPING
+        type.startsWith("R") || type.startsWith("r") -> PointType.RUNNING
+        type.startsWith("W") || type.startsWith("w") -> PointType.WALKING
+        type.startsWith("L") || type.startsWith("l") -> PointType.LOOPING
         else -> PointType.RUNNING
     }
 }
@@ -51,13 +55,13 @@ fun labelToPointType(label: String?): PointType {
 data class LatLng(
     val lat: Double,
     val lon: Double,
-    val label: String? = null,
+    val type: String? = null,
     val connections: List<Int> = emptyList()
 ) {
     /**
      * 根据 label 获取点类型
      */
-    fun getPointType(): PointType = labelToPointType(label)
+    fun getPointType(): PointType = typeToPointType(type)
 }
 
 /* ---------------- Web Mercator 投影 ---------------- */
@@ -151,7 +155,7 @@ private fun mapPointsToCanvasInternal(
 @Composable
 fun LatLonScatter(
     modifier: Modifier = Modifier,
-    points: List<LatLng>,
+    points: SnapshotStateList<LatLng> = mutableStateListOf(),
     pointRadius: Dp = 6.dp,
     pointColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     strokeWidthDp: Dp = 1.dp,
@@ -164,7 +168,8 @@ fun LatLonScatter(
     val strokePx = with(density) { strokeWidthDp.toPx() }
     val paddingPx = with(density) { paddingDp.toPx() }
 
-    val bounds = remember(points) { computeBounds(points) }
+    val bounds by remember { derivedStateOf { computeBounds(points) } }
+
 
     Box(
         modifier = modifier

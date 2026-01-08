@@ -1,19 +1,15 @@
 package ink.moling.mocklocation.ui.components
 
-import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -26,7 +22,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -165,7 +160,7 @@ fun RouteFileList() {
     ) {
         items(
             items = fileNameToFileMap.keys.toList(),
-            key = { it } // ⚠️ 非常重要
+            key = { it }
         ) { displayName ->
 
             LongPressDeleteRow(
@@ -214,7 +209,7 @@ fun LongPressDeleteRow(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 40.dp)
-            // 👇 手势处理
+            // 手势处理
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onClick() },
@@ -226,7 +221,7 @@ fun LongPressDeleteRow(
                             // 等待手指松开或取消
                             tryAwaitRelease()
                         } finally {
-                            // 👈 松手就会走到这里
+                            // 松手取消
                             pressing = false
                         }
                     }

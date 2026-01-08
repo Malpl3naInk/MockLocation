@@ -86,6 +86,17 @@ fun MainScreen(
     val gpsAltitude by viewModel.gpsAltitude.collectAsState()
     val isImportExportDialogOpen by viewModel.isImportExportDialogOpen.collectAsState()
     
+    // 用于触发 RouteSelector 刷新的计数器
+    var refreshTrigger by remember { mutableStateOf(0) }
+    
+    // 监听 Dialog 关闭事件，触发刷新
+    LaunchedEffect(isImportExportDialogOpen) {
+        if (!isImportExportDialogOpen) {
+            // Dialog 关闭时触发刷新
+            refreshTrigger++
+        }
+    }
+    
     // 显示权限未授予对话框
     if (mockStatus == MOCK_STATUS_ERR_NO_PERM) {
         PermissionDeniedDialog(
@@ -129,11 +140,11 @@ fun MainScreen(
             )
             
             // 测试数据点（TODO: 应该从数据源获取）
-            val points = getTestPoints()
+            // val points = getTestPoints()
             
             // 路径模式卡片
             RouteServiceCard(
-                points = points,
+                refreshTrigger = refreshTrigger,
                 onImportExportClick = { viewModel.setImportExportDialogOpen(true) }
             )
             
@@ -196,11 +207,12 @@ private fun LocationServiceInfo(
  */
 @Composable
 private fun RouteServiceCard(
-    points: List<LatLng>,
+    refreshTrigger: Int,
     onImportExportClick: () -> Unit
 ) {
     // 状态提升：在这里管理选中的路径，避免在折叠时丢失
     var selectedRouteName by rememberSaveable { mutableStateOf("") }
+    val scatterPoints = remember { mutableStateListOf<LatLng>() }
     
     ExpandableCard(
         modifier = Modifier.height(260.dp),
@@ -208,13 +220,36 @@ private fun RouteServiceCard(
     ) {
         RouteSelector(
             selectedName = selectedRouteName,
+            refreshTrigger = refreshTrigger,
             onSelectionChange = { name ->
                 selectedRouteName = name
             },
             onFileSelected = { file, json ->
                 val name = json.optString("name")
                 Log.d("MainScreen", "选择的文件: $name, 路径: ${file.absolutePath}")
+                scatterPoints.clear()
+                val jsonPoints = json.getJSONArray("points")
+                for (i in 0 until jsonPoints.length()) {
+                    val jsonPoint = jsonPoints.getJSONObject(i)
+                    val jsonConnects = jsonPoint.getJSONArray("connects")
+                    val pointConnects: List<Int> = List(jsonConnects.length()) { i ->
+                        jsonConnects.getInt(i)
+                    }
+                    val newPoint = LatLng(
+                        lat = jsonPoint.getDouble("lat"),
+                        lon = jsonPoint.getDouble("lon"),
+                        type = jsonPoint.getString("type"),
+                        connections = pointConnects
+                    )
+                    Log.d("newPoint:", "lat: ${newPoint.lat},lon: ${newPoint.lon}, type: ${newPoint.type}")
+                    scatterPoints.add(newPoint)
+                }
             },
+            onFileDeleted = {
+                // 当文件被删除时，清空选择和散点图
+                selectedRouteName = ""
+                scatterPoints.clear()
+            }
         )
         
         Row {
@@ -223,7 +258,7 @@ private fun RouteServiceCard(
                 modifier = Modifier.weight(0.8f),
                 paddingDp = 0.dp,
                 cardPadding = 8.dp,
-                points = points,
+                points = scatterPoints,
                 pointRadius = 1.dp
             )
             
@@ -244,22 +279,35 @@ data class RouteItem(val displayName: String, val file: File)
 @Composable
 fun RouteSelector(
     selectedName: String,
+    refreshTrigger: Int = 0,
     onSelectionChange: (String) -> Unit,
-    onFileSelected: (File, JSONObject) -> Unit
+    onFileSelected: (File, JSONObject) -> Unit,
+    onFileDeleted: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
     val routeItems = remember { mutableStateListOf<RouteItem>() }
-    LaunchedEffect(Unit) {
+    
+    // 监听 refreshTrigger，当它变化时重新加载文件列表
+    LaunchedEffect(refreshTrigger) {
         routeItems.clear()
         val files = FileHelper.listRouteFiles(context)
         files.forEach { file ->
             val displayName = try {
                 JSONObject(FileHelper.readText(file)).optString("name", file.name)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 file.name
             }
             routeItems.add(RouteItem(displayName, file))
+        }
+        
+        // 检查当前选中的文件是否还存在
+        if (selectedName.isNotEmpty()) {
+            val stillExists = routeItems.any { it.displayName == selectedName }
+            if (!stillExists) {
+                Log.d("RouteSelector", "Selected file deleted: $selectedName")
+                onFileDeleted()
+            }
         }
     }
 
@@ -292,10 +340,22 @@ fun RouteSelector(
                 DropdownMenuItem(
                     text = { Text(item.displayName) },
                     onClick = {
-                        onSelectionChange(item.displayName)
                         isExpanded = false
-                        val json = JSONObject(FileHelper.readText(item.file))
-                        onFileSelected(item.file, json)
+                        try {
+                            // 检查文件是否存在
+                            if (!item.file.exists()) {
+                                Log.e("RouteSelector", "File not found: ${item.file.absolutePath}")
+                                onFileDeleted()
+                                return@DropdownMenuItem
+                            }
+                            
+                            val json = JSONObject(FileHelper.readText(item.file))
+                            onSelectionChange(item.displayName)
+                            onFileSelected(item.file, json)
+                        } catch (e: Exception) {
+                            Log.e("RouteSelector", "Error reading file: ${e.message}")
+                            onFileDeleted()
+                        }
                     }
                 )
             }
