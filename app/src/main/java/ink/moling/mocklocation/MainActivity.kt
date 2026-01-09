@@ -18,6 +18,7 @@ import androidx.annotation.RequiresPermission
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
@@ -140,24 +141,30 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         requestPermissions()
 
-        // 初始化 LocationManager
-        mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-
-        // 初始化服务连接
-        mConnection = object : ServiceConnection {
-            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                mServiceBinder = service as MockLocationService.MockLocationServiceBinder
-                mService = mServiceBinder.getService()
-            }
-
-            override fun onServiceDisconnected(name: ComponentName?) {
-                // 服务意外断开
-            }
-        }
-
         setContent {
             val context = LocalContext.current
             val viewModel: MainViewModel = viewModel()
+
+            // 初始化 LocationManager
+            mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+
+            // 初始化服务连接
+            mConnection = object : ServiceConnection {
+                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                    mServiceBinder = service as MockLocationService.MockLocationServiceBinder
+                    viewModel.onServiceBinderReady(mServiceBinder)
+                }
+
+                override fun onServiceDisconnected(name: ComponentName?) {
+                    // 服务意外断开
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                viewModel.needStartService.collect {
+                    startMockLocation()
+                }
+            }
             
             // 设置生命周期监听和位置更新
             DisposableEffect(Unit) {
@@ -181,9 +188,9 @@ class MainActivity : ComponentActivity() {
                     while (!::mServiceBinder.isInitialized) {
                         kotlinx.coroutines.delay(100)
                     }
-                    viewModel.serviceBinder = mServiceBinder
+                    viewModel.serviceBinder.value = mServiceBinder
                 }
-                
+
                 // 权限检查并开启位置更新
                 if (ActivityCompat.checkSelfPermission(
                         context, Manifest.permission.ACCESS_FINE_LOCATION
@@ -230,9 +237,9 @@ class MainActivity : ComponentActivity() {
      * 启动模拟位置服务
      */
     private fun startMockLocation() {
-        val serviceMockLocation = Intent(this, MockLocationService::class.java)
-        startForegroundService(serviceMockLocation)
-        bindService(serviceMockLocation, mConnection, BIND_AUTO_CREATE)
+        val intent = Intent(this, MockLocationService::class.java)
+        startForegroundService(intent)
+        bindService(intent, mConnection, BIND_AUTO_CREATE)
     }
 
     /**

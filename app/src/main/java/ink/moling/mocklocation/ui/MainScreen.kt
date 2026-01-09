@@ -37,9 +37,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ink.moling.mocklocation.data.db.MockPointEntity
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.ui.components.dialog.AddPointDialog
@@ -68,6 +70,7 @@ fun MainScreen(
     onStopMockLocation: () -> Unit
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
 
     val mockStatus by viewModel.mockStatus.collectAsState()
     val gpsLatitude by viewModel.gpsLatitude.collectAsState()
@@ -163,30 +166,35 @@ fun MainScreen(
                 .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
             mockStatus = mockStatus,
             onStartStop = {
-                if (PrefsHelper.getMockMode(context) == "Point") {
-                    if (viewModel.selectedMockPoint == null) {
-                        Toast.makeText(
-                            context,
-                            "Please select point",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        return@BottomActionButtons
-                    }
-                } else {
-                    if (viewModel.selectedMockRoute == null) {
-                        Toast.makeText(
-                            context,
-                            "Please select route",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        return@BottomActionButtons
-                    }
+                val mode = PrefsHelper.getMockMode(context)
+
+                val selected = when (mode) {
+                    "Point" -> viewModel.selectedMockPoint
+                    "Route" -> viewModel.selectedMockRoute
+                    else    -> null // ?
                 }
+
+                selected ?: run {
+                    Toast.makeText(
+                        context,
+                        "Please select ${mode.lowercase()}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@BottomActionButtons
+                }
+
                 if (mockStatus == MockServiceState.Enabled || mockStatus is MockServiceState.Error) {
                     onStopMockLocation()
                     MockServiceStatusRepository.state.value = MockServiceState.Disabled
                 } else if (mockStatus == MockServiceState.Disabled) {
+                    focusManager.clearFocus()
                     onStartMockLocation()
+                    if (mode == "Point") {
+                        val point = selected as MockPointEntity
+                        viewModel.setMockPosition(point.latitude, point.longitude, 48.0)
+                    } else {
+                        /* TODO */
+                    }
                     MockServiceStatusRepository.state.value = MockServiceState.Initializing
                 }
             },

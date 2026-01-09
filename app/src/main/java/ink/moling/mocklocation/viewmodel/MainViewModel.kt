@@ -8,8 +8,10 @@ import ink.moling.mocklocation.data.db.MockPointEntity
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.service.MockLocationService
 import ink.moling.mocklocation.data.models.RouteItem
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -46,8 +48,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isAddPointDialogOpen = MutableStateFlow(false)
     val isAddPointDialogOpen: StateFlow<Boolean> = _isAddPointDialogOpen.asStateFlow()
 
-    // 服务引用（由 Activity 设置）
-    var serviceBinder: MockLocationService.MockLocationServiceBinder? = null
+    // Service Binder（由 Activity 注入）
+    val serviceBinder =
+        MutableStateFlow<MockLocationService.MockLocationServiceBinder?>(null)
+
+    // 一次性事件：请求启动 Service
+    private val _needStartService = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val needStartService = _needStartService.asSharedFlow()
+
+    // 暂存“待执行的操作”
+    private var pendingAction: (() -> Unit)? = null
+
+    fun onServiceBinderReady(
+        binder: MockLocationService.MockLocationServiceBinder
+    ) {
+        serviceBinder.value = binder
+
+        // 自动执行之前没法执行的操作
+        pendingAction?.invoke()
+        pendingAction = null
+    }
 
     /**
      * 更新 GPS 位置数据
@@ -76,9 +96,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * 设置模拟位置（通过服务）
      */
-    fun setMockPosition(latitude: Double, longitude: Double, altitude: Double) {
-        serviceBinder?.setPosition(latitude, longitude, altitude)
+    fun setMockPosition(lat: Double, lng: Double, alt: Double) {
+        val binder = serviceBinder.value
+        if (binder == null) {
+            // Service 还没启动 → 记录操作
+            pendingAction = {
+                serviceBinder.value?.setStaticPoint(lat, lng, alt)
+            }
+            _needStartService.tryEmit(Unit)
+            return
+        }
+
+        // Service 已就绪 → 直接执行
+        binder.setStaticPoint(lat, lng, alt)
     }
+
+
 
     // ================= 路径点本地存储 =================
 
