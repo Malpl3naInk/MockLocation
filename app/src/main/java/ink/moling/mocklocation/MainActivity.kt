@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ink.moling.mocklocation.service.MockLocationService
 import ink.moling.mocklocation.ui.MainScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.utils.LocationKalmanFilter
@@ -174,15 +175,6 @@ class MainActivity : ComponentActivity() {
                     viewModel.updateGpsLocation(lat, lng, altitude, provider)
                 }
                 
-                // 观察服务状态变化
-                val statusJob = lifecycleScope.launch {
-                    if (::mService.isInitialized) {
-                        mService.stateFlow.collect { status ->
-                            viewModel.updateMockStatus(status)
-                        }
-                    }
-                }
-                
                 // 设置服务 Binder 引用到 ViewModel
                 val binderJob = lifecycleScope.launch {
                     // 等待服务连接
@@ -214,7 +206,6 @@ class MainActivity : ComponentActivity() {
                 
                 // 清理
                 onDispose {
-                    statusJob.cancel()
                     binderJob.cancel()
                     mLocationManager.removeUpdates(mLocationListener)
                 }

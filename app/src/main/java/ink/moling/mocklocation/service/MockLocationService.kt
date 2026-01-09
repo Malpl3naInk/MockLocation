@@ -1,4 +1,4 @@
-package ink.moling.mocklocation
+package ink.moling.mocklocation.service
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -20,7 +20,9 @@ import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import kotlinx.coroutines.flow.MutableStateFlow
+import ink.moling.mocklocation.R
+import ink.moling.mocklocation.data.repository.MockServiceState
+import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
 
 /* 定位相关 */
 const val DEFAULT_LAT = 51.476853
@@ -33,11 +35,6 @@ const val SERVICE_MOCK_LOC_HANDLER_NAME = "ServiceMockLocation"
 const val SERVICE_MOCK_LOC_NOTE_ID = 1
 const val SERVICE_MOCK_LOC_NOTE_CHANNEL_ID = "SERVICE_MOCK_LOC_NOTE"
 const val SERVICE_MOCK_LOC_NOTE_CHANNEL_NAME = "SERVICE_MOCK_LOC_NOTE"
-/* 状态相关 */
-const val MOCK_STATUS_DISABLED      = -1
-const val MOCK_STATUS_INITIALIZING  = 0
-const val MOCK_STATUS_ENABLED       = 1
-const val MOCK_STATUS_ERR_NO_PERM    = 2
 
 class MockLocationService : Service() {
     /* 定位相关 */
@@ -51,8 +48,6 @@ class MockLocationService : Service() {
     lateinit var mLocHandler: Handler
     var isMockEnabled = true
 
-    val stateFlow = MutableStateFlow(MOCK_STATUS_INITIALIZING)
-
     private val mBinder = MockLocationServiceBinder()
 
     override fun onBind(intent: Intent?): IBinder = mBinder
@@ -60,25 +55,21 @@ class MockLocationService : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        var initStatus = 0
         mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
 
         initNotification()
 
-        if (removeTestProviderNetwork() and addTestProviderNetwork()) {
-            Log.d("MockLoc_Service", "NETWORK_PROVIDER initialized")
-            initStatus++
-        }
+        removeTestProviderNetwork()
+        if (!addTestProviderNetwork()) return
+        Log.d("MockLoc_Service", "NETWORK_PROVIDER initialized")
 
-        if (removeTestProviderGPS() and addTestProviderGPS()) {
-            Log.d("MockLoc_Service", "GPS_PROVIDER initialized")
-            initStatus++
-        }
+        removeTestProviderGPS()
+        if (!addTestProviderGPS()) return
+        Log.d("MockLoc_Service", "GPS_PROVIDER initialized")
 
         initMockLocation()
 
-        if (initStatus != 0)
-            updateState(MOCK_STATUS_ENABLED)
+        MockServiceStatusRepository.state.value = MockServiceState.Enabled
     }
 
     override fun onDestroy() {
@@ -152,12 +143,10 @@ class MockLocationService : Service() {
                 mLocationManager.setTestProviderEnabled(LocationManager.GPS_PROVIDER, false)
                 mLocationManager.removeTestProvider(LocationManager.GPS_PROVIDER)
             }
-            return true
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "removeTestProviderGPS ${e.message}")
-            updateState(MOCK_STATUS_ERR_NO_PERM)
-            return false
         }
+        return true
     }
 
     // ----------------
@@ -199,7 +188,12 @@ class MockLocationService : Service() {
             return true
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "addTestProviderGPS ${e.message}")
-            updateState(MOCK_STATUS_ERR_NO_PERM)
+            MockServiceStatusRepository.state.value =
+                MockServiceState.Error(
+                    type = "Permission Not Granted",
+                    msg = "Program is not allowed to perform MOCK_LOCATION",
+                    stackTrace = e.stackTraceToString()
+                )
             return false
         }
     }
@@ -237,12 +231,10 @@ class MockLocationService : Service() {
                 mLocationManager.setTestProviderEnabled(LocationManager.NETWORK_PROVIDER, false)
                 mLocationManager.removeTestProvider(LocationManager.NETWORK_PROVIDER)
             }
-            return true
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "removeTestProviderNetwork ${e.message}")
-            updateState(MOCK_STATUS_ERR_NO_PERM)
-            return false
         }
+        return true
     }
 
     // ----------------
@@ -284,7 +276,12 @@ class MockLocationService : Service() {
             return true
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "addTestProviderNetwork ${e.message}")
-            updateState(MOCK_STATUS_ERR_NO_PERM)
+            MockServiceStatusRepository.state.value =
+                MockServiceState.Error(
+                    type = "Permission Not Granted",
+                    msg = "Program is not allowed to perform MOCK_LOCATION",
+                    stackTrace = e.stackTraceToString()
+                )
             return false
         }
     }
@@ -319,9 +316,5 @@ class MockLocationService : Service() {
             mCurAlt = alt
             mLocHandler.sendEmptyMessage(HANDLER_MSG_ID)
         }
-    }
-
-    fun updateState(newState: Int) {
-        stateFlow.value = newState
     }
 }

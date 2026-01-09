@@ -58,16 +58,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ink.moling.mocklocation.MOCK_STATUS_DISABLED
-import ink.moling.mocklocation.MOCK_STATUS_ENABLED
-import ink.moling.mocklocation.MOCK_STATUS_ERR_NO_PERM
-import ink.moling.mocklocation.MOCK_STATUS_INITIALIZING
+import ink.moling.mocklocation.data.repository.MockServiceState
+import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.ui.components.AddPointDialog
+import ink.moling.mocklocation.ui.components.ErrorDialog
 import ink.moling.mocklocation.ui.components.ExpandableCard
 import ink.moling.mocklocation.ui.components.ImportExportDialog
 import ink.moling.mocklocation.ui.components.LatLng
 import ink.moling.mocklocation.ui.components.LatLngScatter
-import ink.moling.mocklocation.ui.components.PermissionDeniedDialog
 import ink.moling.mocklocation.ui.components.RectangleFloatingActionButton
 import ink.moling.mocklocation.utils.FileHelper
 import ink.moling.mocklocation.utils.PrefsHelper
@@ -110,11 +108,14 @@ fun MainScreen(
     }
     
     // 显示权限未授予对话框
-    if (mockStatus == MOCK_STATUS_ERR_NO_PERM) {
-        PermissionDeniedDialog(
+    if (mockStatus is MockServiceState.Error) {
+        ErrorDialog(
+            title = (mockStatus as MockServiceState.Error).type,
+            text = (mockStatus as MockServiceState.Error).msg,
+            stackTrace = (mockStatus as MockServiceState.Error).stackTrace,
             onDismiss = {
                 onStopMockLocation()
-                viewModel.updateMockStatus(MOCK_STATUS_DISABLED)
+                MockServiceStatusRepository.state.value = MockServiceState.Disabled
             }
         )
     }
@@ -185,12 +186,12 @@ fun MainScreen(
                 .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
             mockStatus = mockStatus,
             onStartStop = {
-                if (mockStatus == MOCK_STATUS_ENABLED || mockStatus == MOCK_STATUS_ERR_NO_PERM) {
+                if (mockStatus == MockServiceState.Enabled || mockStatus is MockServiceState.Error) {
                     onStopMockLocation()
-                    viewModel.updateMockStatus(MOCK_STATUS_DISABLED)
-                } else if (mockStatus == MOCK_STATUS_DISABLED) {
+                    MockServiceStatusRepository.state.value = MockServiceState.Disabled
+                } else if (mockStatus == MockServiceState.Disabled) {
                     onStartMockLocation()
-                    viewModel.updateMockStatus(MOCK_STATUS_INITIALIZING)
+                    MockServiceStatusRepository.state.value = MockServiceState.Initializing
                 }
             },
             onSettings = {
@@ -206,13 +207,13 @@ fun MainScreen(
  */
 @Composable
 private fun LocationServiceInfo(
-    mockStatus: Int,
+    mockStatus: MockServiceState,
     gpsLatitude: Double,
     gpsLongitude: Double,
     gpsAltitude: Double
 ) {
     Column(modifier = Modifier.padding(all = 8.dp)) {
-        Text("Location Service ${if (mockStatus == MOCK_STATUS_ENABLED) "*" else ""}")
+        Text("Location Service ${if (mockStatus == MockServiceState.Enabled) "*" else ""}")
         Text(
             "@%.8f,%.8f\n#%.2f".format(
                 gpsLatitude,
@@ -254,6 +255,7 @@ private fun RouteServiceCard(
         // 根据模式显示不同的内容
         if (isRouteMode) {
             RouteModeView(
+                viewModel = viewModel,
                 refreshTrigger = refreshTrigger,
                 onImportExportClick = onImportExportClick
             )
@@ -320,6 +322,7 @@ private fun PointModeView(
                 value = selectedPointName,
                 onValueChange = {},
                 readOnly = true,
+                enabled = (viewModel.mockStatus.value != MockServiceState.Enabled),
                 label = { Text("Select point") },
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(isExpanded)
@@ -387,6 +390,7 @@ private fun PointModeView(
  */
 @Composable
 private fun RouteModeView(
+    viewModel: MainViewModel,
     refreshTrigger: Int,
     onImportExportClick: () -> Unit
 ) {
@@ -394,6 +398,7 @@ private fun RouteModeView(
     val routePoints = remember { mutableStateListOf<LatLng>() }
     
     RouteSelector(
+        viewModel = viewModel,
         selectedName = selectedRouteName,
         refreshTrigger = refreshTrigger,
         onSelectionChange = { name ->
@@ -465,6 +470,7 @@ data class RouteItem(val displayName: String, val file: File)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RouteSelector(
+    viewModel: MainViewModel,
     selectedName: String,
     refreshTrigger: Int = 0,
     onSelectionChange: (String) -> Unit,
@@ -509,6 +515,7 @@ fun RouteSelector(
             value = selectedName,
             onValueChange = {},
             readOnly = true,
+            enabled = (viewModel.mockStatus.value != MockServiceState.Enabled),
             label = { Text("Select route") },
             trailingIcon = {
                 // 点击图标切换下拉展开
@@ -622,7 +629,7 @@ private fun RouteActionButtons(
 @Composable
 private fun BottomActionButtons(
     modifier: Modifier = Modifier,
-    mockStatus: Int,
+    mockStatus: MockServiceState,
     onStartStop: () -> Unit,
     onSettings: () -> Unit
 ) {
@@ -637,15 +644,15 @@ private fun BottomActionButtons(
             onClick = onStartStop
         ) {
             val buttonLabel = when (mockStatus) {
-                MOCK_STATUS_ENABLED -> "Stop"
-                MOCK_STATUS_DISABLED -> "Start"
-                MOCK_STATUS_INITIALIZING -> "Initializing"
+                MockServiceState.Enabled -> "Stop"
+                MockServiceState.Disabled -> "Start"
+                MockServiceState.Initializing -> "Initializing"
                 else -> "Error"
             }
             val buttonIcon = when (mockStatus) {
-                MOCK_STATUS_ENABLED -> Icons.Filled.LocationOn
-                MOCK_STATUS_DISABLED -> Icons.Outlined.LocationOn
-                MOCK_STATUS_INITIALIZING -> Icons.Outlined.Build
+                MockServiceState.Enabled -> Icons.Filled.LocationOn
+                MockServiceState.Disabled -> Icons.Outlined.LocationOn
+                MockServiceState.Initializing -> Icons.Outlined.Build
                 else -> Icons.Filled.Warning
             }
             Icon(buttonIcon, contentDescription = buttonLabel)

@@ -3,6 +3,7 @@ package ink.moling.mocklocation.ui.components
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
@@ -33,7 +36,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.utils.FileHelper
@@ -44,16 +49,42 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * 权限未授予警告对话框
+ * 错误对话框
  */
 @Composable
-fun PermissionDeniedDialog(
-    onDismiss: () -> Unit
+fun ErrorDialog(
+    onDismiss: () -> Unit,
+    title: String,
+    text: String,
+    stackTrace: String
 ) {
+    val context = LocalContext.current
+    val stackTraceScrollState = rememberScrollState()
+    val clipboardManager = LocalClipboardManager.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Permission Not Granted") },
-        text = { Text("Program is not allowed to perform MOCK_LOCATION") },
+        title = { Text(title) },
+        text = {
+            Column {
+                Text(text)
+                Text(
+                    stackTrace,
+                    color = Color.Gray,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .padding(top = 20.dp)
+                        .verticalScroll(state = stackTraceScrollState)
+                        .combinedClickable(
+                            onClick = { /* 可选 */ },
+                            onLongClick = {
+                                clipboardManager.setText(AnnotatedString(stackTrace))
+                                Toast.makeText(context, "Stack trace copied", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                )
+            }
+        },
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text("OK")
