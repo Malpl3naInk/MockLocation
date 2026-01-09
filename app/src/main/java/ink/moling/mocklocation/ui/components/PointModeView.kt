@@ -41,6 +41,8 @@ fun PointModeView(
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     val points by viewModel.points.collectAsState()
+    val mockStatus by viewModel.mockStatus.collectAsState()
+    val isMockDisabled = mockStatus != MockServiceState.Enabled
 
     LaunchedEffect(Unit) {
         viewModel.loadPoints()
@@ -52,16 +54,19 @@ fun PointModeView(
     ) {
         ExposedDropdownMenuBox(
             expanded = isExpanded,
-            onExpandedChange = { isExpanded = it },
+            onExpandedChange = {
+                if (isMockDisabled) isExpanded = it
+            },
             modifier = Modifier
                 .weight(1f)
                 .padding(end = 8.dp)
         ) {
+
             OutlinedTextField(
                 value = viewModel.selectedMockPoint?.name ?: "",
                 onValueChange = {},
                 readOnly = true,
-                enabled = (viewModel.mockStatus.value != MockServiceState.Enabled),
+                enabled = isMockDisabled,
                 label = { Text("Select point") },
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(isExpanded)

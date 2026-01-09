@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -148,10 +149,14 @@ fun RouteSelector(
     }
 
     var isExpanded by remember { mutableStateOf(false) }
+    val mockStatus by viewModel.mockStatus.collectAsState()
+    val isMockDisabled = mockStatus != MockServiceState.Enabled
 
     ExposedDropdownMenuBox(
         expanded = isExpanded,
-        onExpandedChange = { isExpanded = it },
+        onExpandedChange = {
+            if (isMockDisabled) isExpanded = it
+        },
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
     ) {
         OutlinedTextField(

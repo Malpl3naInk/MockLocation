@@ -23,6 +23,8 @@ import androidx.core.app.NotificationCompat
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
+import ink.moling.mocklocation.utils.LocationSimulator
+import ink.moling.mocklocation.utils.StaticPointSimulator
 
 /* 定位相关 */
 const val DEFAULT_LAT = 51.476853
@@ -46,11 +48,13 @@ class MockLocationService : Service() {
     lateinit var mLocationManager: LocationManager
     lateinit var mLocHandlerThread: HandlerThread
     lateinit var mLocHandler: Handler
-    var isMockEnabled = true
 
     private val mBinder = MockLocationServiceBinder()
 
     override fun onBind(intent: Intent?): IBinder = mBinder
+
+    @Volatile
+    private var simulator: LocationSimulator? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -73,7 +77,6 @@ class MockLocationService : Service() {
     }
 
     override fun onDestroy() {
-        isMockEnabled = false
         removeTestProviderNetwork()
         removeTestProviderGPS()
 
@@ -86,29 +89,41 @@ class MockLocationService : Service() {
     // 初始化位置模拟
     // ----------------
     private fun initMockLocation() {
-        mLocHandlerThread = HandlerThread(SERVICE_MOCK_LOC_HANDLER_NAME, Process.THREAD_PRIORITY_FOREGROUND)
+        mLocHandlerThread = HandlerThread(
+            SERVICE_MOCK_LOC_HANDLER_NAME,
+            Process.THREAD_PRIORITY_FOREGROUND
+        )
         mLocHandlerThread.start()
+
         mLocHandler = object : Handler(mLocHandlerThread.looper) {
+
+            private val tickMs = 100L
+
             override fun handleMessage(msg: Message) {
-                try {
-                    Thread.sleep(100)
 
-                    if (isMockEnabled) {
-                        setLocationNetwork()
-                        setLocationGPS()
-
-                        sendEmptyMessage(HANDLER_MSG_ID)
-                        // Log.d("MockLoc_Service", "Current Location - Lat $mCurLat Lng $mCurLng Alt $mCurAlt")
-                    }
-                } catch (e: InterruptedException) {
-                    Log.e("MockLoc_Service", "initMockLocation ${e.message}")
-                    Thread.currentThread().interrupt()
+                // 由模拟器推进位置
+                simulator?.let {
+                    val loc = it.next(tickMs)
+                    // Log.d("MockLoc_Service", "Next tick=$mCurLat,$mCurLng,$mCurAlt")
+                    mCurLat = loc.lat
+                    mCurLng = loc.lng
+                    mCurAlt = loc.alt
+                    mCurBea = loc.bearing
+                    // speed 如需可同步
                 }
+
+                // 注入系统定位
+                setLocationNetwork()
+                setLocationGPS()
+
+                // 安排下一帧
+                sendEmptyMessageDelayed(HANDLER_MSG_ID, tickMs)
             }
         }
 
         mLocHandler.sendEmptyMessage(HANDLER_MSG_ID)
     }
+
 
     // ----------------
     // 初始化保活通知
@@ -309,12 +324,21 @@ class MockLocationService : Service() {
 
     inner class MockLocationServiceBinder : Binder() {
         fun getService() = this@MockLocationService
-        fun setPosition(lat: Double, lng: Double, alt: Double) {
-            mLocHandler.removeMessages(HANDLER_MSG_ID)
-            mCurLng = lng
-            mCurLat = lat
-            mCurAlt = alt
-            mLocHandler.sendEmptyMessage(HANDLER_MSG_ID)
+
+        fun setStaticPoint(lat: Double, lng: Double, alt: Double) {
+            Log.d("MockLoc_Service", "setStaticPoint $lat,$lng,$alt")
+            simulator = StaticPointSimulator(lat, lng, alt)
+        }
+
+        /*fun startPathSimulation(
+            path: List<PathPoint>,
+            speedMps: Double
+        ) {
+            simulator = PathSimulator(path, speedMps)
+        }*/
+
+        fun stopSimulation() {
+            simulator = null
         }
     }
 }
