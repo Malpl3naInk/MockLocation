@@ -79,7 +79,11 @@ fun ErrorDialog(
                             onClick = { /* 可选 */ },
                             onLongClick = {
                                 clipboardManager.setText(AnnotatedString(stackTrace))
-                                Toast.makeText(context, "Stack trace copied", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Stack trace copied",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         )
                 )
