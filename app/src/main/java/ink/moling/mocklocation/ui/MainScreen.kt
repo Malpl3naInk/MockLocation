@@ -1,17 +1,11 @@
 package ink.moling.mocklocation.ui
 
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,25 +14,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Build
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.ImportExport
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,33 +30,27 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
-import ink.moling.mocklocation.ui.components.AddPointDialog
-import ink.moling.mocklocation.ui.components.ErrorDialog
+import ink.moling.mocklocation.ui.components.dialog.AddPointDialog
+import ink.moling.mocklocation.ui.components.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.components.ExpandableCard
-import ink.moling.mocklocation.ui.components.ImportExportDialog
-import ink.moling.mocklocation.ui.components.LatLng
-import ink.moling.mocklocation.ui.components.LatLngScatter
+import ink.moling.mocklocation.ui.components.dialog.ImportExportDialog
+import ink.moling.mocklocation.ui.components.PointModeView
 import ink.moling.mocklocation.ui.components.RectangleFloatingActionButton
-import ink.moling.mocklocation.utils.FileHelper
+import ink.moling.mocklocation.ui.components.RouteModeView
 import ink.moling.mocklocation.utils.PrefsHelper
 import ink.moling.mocklocation.viewmodel.MainViewModel
-import org.json.JSONObject
-import java.io.File
 
 /**
  * 主屏幕 Composable
@@ -82,7 +60,6 @@ import java.io.File
  * @param onStartMockLocation 开始模拟位置回调
  * @param onStopMockLocation 停止模拟位置回调
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
@@ -163,8 +140,8 @@ fun MainScreen(
                 gpsAltitude = gpsAltitude
             )
             
-            // 路径模式卡片
-            RouteServiceCard(
+            // 模拟设置卡片（包含点位和路径模式）
+            MockSettingsCard(
                 viewModel = viewModel,
                 refreshTrigger = refreshTrigger,
                 onImportExportClick = { viewModel.setImportExportDialogOpen(true) },
@@ -222,33 +199,10 @@ fun MainScreen(
 }
 
 /**
- * 位置服务信息显示
- */
-@Composable
-private fun LocationServiceInfo(
-    mockStatus: MockServiceState,
-    gpsLatitude: Double,
-    gpsLongitude: Double,
-    gpsAltitude: Double
-) {
-    Column(modifier = Modifier.padding(all = 8.dp)) {
-        Text("Location Service ${if (mockStatus == MockServiceState.Enabled) "*" else ""}")
-        Text(
-            "@%.8f,%.8f\n#%.2f".format(
-                gpsLatitude,
-                gpsLongitude,
-                gpsAltitude
-            ),
-            modifier = Modifier.padding(start = 8.dp)
-        )
-    }
-}
-
-/**
  * 模拟设置卡片 - 支持点位模式和路径模式
  */
 @Composable
-private fun RouteServiceCard(
+fun MockSettingsCard(
     viewModel: MainViewModel,
     refreshTrigger: Int,
     onImportExportClick: () -> Unit,
@@ -257,7 +211,7 @@ private fun RouteServiceCard(
     val context = LocalContext.current
     var currentMode by rememberSaveable { mutableStateOf(PrefsHelper.getMockMode(context)) }
     val isRouteMode = currentMode == "Route"
-    
+
     ExpandableCard(
         modifier = Modifier.height(if (isRouteMode) 300.dp else 150.dp),
         title = "Mock settings [ $currentMode ]"
@@ -270,7 +224,7 @@ private fun RouteServiceCard(
                 PrefsHelper.setMockMode(context, currentMode)
             }
         )
-        
+
         // 根据模式显示不同的内容
         if (isRouteMode) {
             RouteModeView(
@@ -288,362 +242,10 @@ private fun RouteServiceCard(
 }
 
 /**
- * 模式切换开关
- */
-@Composable
-private fun ModeToggleSwitch(
-    isRouteMode: Boolean,
-    onModeChange: (Boolean) -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 10.dp, bottom = 8.dp)
-    ) {
-        Text("Point")
-        Switch(
-            modifier = Modifier.padding(horizontal = 10.dp),
-            checked = isRouteMode,
-            onCheckedChange = onModeChange
-        )
-        Text("Route")
-    }
-}
-
-/**
- * 点位模式视图
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PointModeView(
-    viewModel: MainViewModel,
-    onAddPointClick: () -> Unit
-) {
-    var isExpanded by remember { mutableStateOf(false) }
-    val points by viewModel.points.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.loadPoints()
-    }
-    
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        ExposedDropdownMenuBox(
-            expanded = isExpanded,
-            onExpandedChange = { isExpanded = it },
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 8.dp)
-        ) {
-            OutlinedTextField(
-                value = viewModel.selectedMockPoint?.name ?: "",
-                onValueChange = {},
-                readOnly = true,
-                enabled = (viewModel.mockStatus.value != MockServiceState.Enabled),
-                label = { Text("Select point") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(isExpanded)
-                },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth()
-            )
-
-            ExposedDropdownMenu(
-                expanded = isExpanded,
-                onDismissRequest = { isExpanded = false }
-            ) {
-                if (points.isEmpty()) {
-                    DropdownMenuItem(
-                        text = { Text("No saved points") },
-                        onClick = { isExpanded = false },
-                        enabled = false
-                    )
-                } else {
-                    points.forEach { point ->
-                        LongPressDeleteMenuItem(
-                            text = {
-                                Column {
-                                    Text(point.name)
-                                    Text(
-                                        text = "%.8f, %.8f".format(point.latitude, point.longitude),
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                            },
-                            onClick = {
-                                viewModel.selectedMockPoint = point
-                                isExpanded = false
-                            },
-                            onDelete = {
-                                if (point.name == viewModel.selectedMockPoint?.name) {
-                                    viewModel.selectedMockPoint = null
-                                }
-                                viewModel.deletePoint(point.id)
-                                isExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-        }
-        
-        // 添加点位按钮
-        IconButton(
-            modifier = Modifier
-                .size(56.dp)
-                .padding(top = 4.dp),
-            onClick = onAddPointClick
-        ) {
-            Icon(
-                Icons.Outlined.Add,
-                contentDescription = "Add point",
-                tint = Color.White
-            )
-        }
-    }
-}
-
-/**
- * 路径模式视图
- */
-@Composable
-private fun RouteModeView(
-    viewModel: MainViewModel,
-    refreshTrigger: Int,
-    onImportExportClick: () -> Unit
-) {
-    val routePoints = remember { mutableStateListOf<LatLng>() }
-    viewModel.selectedMockRoute?.file?.let { loadRouteFromJson(it, routePoints) }
-    
-    RouteSelector(
-        viewModel = viewModel,
-        refreshTrigger = refreshTrigger,
-        onFileSelected = { item ->
-            loadRouteFromJson(item.file, routePoints)
-        },
-        onFileDeleted = {
-            routePoints.clear()
-        }
-    )
-
-    Row {
-        // 路径散点图
-        LatLngScatter(
-            modifier = Modifier.weight(0.8f),
-            paddingDp = 0.dp,
-            cardPadding = 8.dp,
-            points = routePoints,
-            pointRadius = 1.dp
-        )
-
-        // 操作按钮列
-        RouteActionButtons(
-            onImportExportClick = onImportExportClick
-        )
-    }
-}
-
-/**
- * 从 JSON 加载路径数据
- */
-private fun loadRouteFromJson(
-    file: File,
-    targetList: MutableList<LatLng>
-) {
-    val json = JSONObject(FileHelper.readText(file))
-    val name = json.optString("name")
-    Log.d("MainScreen", "Selected file: $name, path: ${file.absolutePath}")
-    
-    targetList.clear()
-    
-    val jsonPoints = json.getJSONArray("points")
-    val newPoints = (0 until jsonPoints.length()).map { i ->
-        val jsonPoint = jsonPoints.getJSONObject(i)
-        val connections = jsonPoint.getJSONArray("connects")
-            .let { arr -> (0 until arr.length()).map { arr.getInt(it) } }
-        
-        LatLng(
-            lat = jsonPoint.getDouble("lat"),
-            lng = jsonPoint.getDouble("lng"),
-            type = jsonPoint.getString("type"),
-            connections = connections
-        ).also { point ->
-            Log.d("MainScreen", "Point loaded: lat=${point.lat}, lng=${point.lng}, type=${point.type}")
-        }
-    }
-    
-    targetList.addAll(newPoints)
-}
-
-/**
- * 路径选择下拉框
- */
-data class RouteItem(val displayName: String, val file: File)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RouteSelector(
-    viewModel: MainViewModel,
-    refreshTrigger: Int = 0,
-    onFileSelected: (RouteItem) -> Unit,
-    onFileDeleted: () -> Unit = {}
-) {
-    val context = LocalContext.current
-
-    val routeItems = remember { mutableStateListOf<RouteItem>() }
-
-    val selectedName = viewModel.selectedMockRoute?.displayName ?: ""
-    
-    // 监听 refreshTrigger，当它变化时重新加载文件列表
-    LaunchedEffect(refreshTrigger) {
-        routeItems.clear()
-        val files = FileHelper.listRouteFiles(context)
-        files.forEach { file ->
-            val displayName = try {
-                JSONObject(FileHelper.readText(file)).optString("name", file.name)
-            } catch (_: Exception) {
-                file.name
-            }
-            routeItems.add(RouteItem(displayName, file))
-        }
-        
-        // 检查当前选中的文件是否还存在
-        if (selectedName.isNotEmpty()) {
-            val stillExists = routeItems.any { it.displayName == selectedName }
-            if (!stillExists) {
-                Log.d("RouteSelector", "Selected file deleted: $selectedName")
-                onFileDeleted()
-            }
-        }
-    }
-
-    var isExpanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = isExpanded,
-        onExpandedChange = { isExpanded = it },
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-    ) {
-        OutlinedTextField(
-            value = selectedName,
-            onValueChange = {},
-            readOnly = true,
-            enabled = (viewModel.mockStatus.value != MockServiceState.Enabled),
-            label = { Text("Select route") },
-            trailingIcon = {
-                // 点击图标切换下拉展开
-                ExposedDropdownMenuDefaults.TrailingIcon(isExpanded)
-            },
-            modifier = Modifier
-                .menuAnchor()  // 这是关键：让 TextField 能响应点击事件
-                .fillMaxWidth()
-        )
-
-        ExposedDropdownMenu(
-            expanded = isExpanded,
-            onDismissRequest = { isExpanded = false }
-        ) {
-            if (routeItems.isEmpty()) {
-                DropdownMenuItem(
-                    text = { Text("No saved routes") },
-                    onClick = { isExpanded = false },
-                    enabled = false
-                )
-            } else {
-                routeItems.forEach { item ->
-                    LongPressDeleteMenuItem(
-                        text = { Text(item.displayName) },
-                        onClick = {
-                            isExpanded = false
-                            try {
-                                // 检查文件是否存在
-                                if (!item.file.exists()) {
-                                    Log.e("RouteSelector", "File not found: ${item.file.absolutePath}")
-                                    onFileDeleted()
-                                    return@LongPressDeleteMenuItem
-                                }
-
-                                viewModel.selectedMockRoute = item
-                                onFileSelected(item.copy())
-                            } catch (e: Exception) {
-                                Log.e("RouteSelector", "Error reading file: ${e.message}")
-                                onFileDeleted()
-                            }
-                        },
-                        onDelete = {
-                            FileHelper.deleteFile(item.file)
-                            routeItems.remove(item)
-                            if (selectedName == item.displayName) {
-                                viewModel.selectedMockRoute = null
-                                onFileDeleted()
-                            }
-                            isExpanded = false
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-/**
- * 路径操作按钮组
- */
-@Composable
-private fun RouteActionButtons(
-    onImportExportClick: () -> Unit
-) {
-    Column {
-        IconButton(
-            modifier = Modifier
-                .size(50.dp)
-                .padding(vertical = 5.dp),
-            onClick = onImportExportClick
-        ) {
-            Icon(
-                Icons.Outlined.ImportExport,
-                contentDescription = "ImportExport",
-                tint = Color.White
-            )
-        }
-        
-        IconButton(
-            modifier = Modifier
-                .size(50.dp)
-                .padding(vertical = 5.dp),
-            onClick = { /* TODO: Edit */ }
-        ) {
-            Icon(
-                Icons.Outlined.Edit,
-                contentDescription = "Edit",
-                tint = Color.White
-            )
-        }
-        
-        IconButton(
-            modifier = Modifier
-                .size(50.dp)
-                .padding(vertical = 5.dp),
-            onClick = { /* TODO: Add new */ }
-        ) {
-            Icon(
-                Icons.Outlined.Add,
-                contentDescription = "New",
-                tint = Color.White
-            )
-        }
-    }
-}
-
-/**
  * 底部操作按钮（开始/停止 + 设置）
  */
 @Composable
-private fun BottomActionButtons(
+fun BottomActionButtons(
     modifier: Modifier = Modifier,
     mockStatus: MockServiceState,
     onStartStop: () -> Unit,
@@ -674,9 +276,9 @@ private fun BottomActionButtons(
             Icon(buttonIcon, contentDescription = buttonLabel)
             Text(text = buttonLabel, modifier = Modifier.padding(start = 8.dp))
         }
-        
+
         Spacer(modifier = Modifier.width(16.dp))
-        
+
         // 设置按钮
         FloatingActionButton(
             onClick = onSettings,
@@ -691,80 +293,46 @@ private fun BottomActionButtons(
 }
 
 /**
- * 支持长按删除的 DropdownMenuItem 包装器
+ * 模式切换开关组件（点位模式/路径模式）
  */
 @Composable
-fun LongPressDeleteMenuItem(
-    text: @Composable () -> Unit,
-    onClick: () -> Unit,
-    onDelete: () -> Unit,
-    deleteDuration: Int = 1200
+fun ModeToggleSwitch(
+    isRouteMode: Boolean,
+    onModeChange: (Boolean) -> Unit
 ) {
-    val progress = remember { Animatable(0f) }
-    var pressing by remember { mutableStateOf(false) }
-
-    LaunchedEffect(pressing) {
-        if (pressing) {
-            progress.snapTo(0f)
-            progress.animateTo(
-                1f,
-                animationSpec = tween(deleteDuration)
-            )
-            onDelete()
-        } else {
-            progress.snapTo(0f)
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { onClick() },
-                    onLongPress = {
-                        pressing = true
-                    },
-                    onPress = {
-                        try {
-                            tryAwaitRelease()
-                        } finally {
-                            pressing = false
-                        }
-                    }
-                )
-            }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(start = 10.dp, bottom = 8.dp)
     ) {
-        // 原始内容
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-        ) {
-            text()
-        }
+        Text("Point")
+        Switch(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            checked = isRouteMode,
+            onCheckedChange = onModeChange
+        )
+        Text("Route")
+    }
+}
 
-        // 删除进度覆盖层（使用嵌套 Box 来正确处理高度和进度）
-        Box(
-            modifier = Modifier.matchParentSize()
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(progress.value)
-                    .fillMaxHeight()
-                    .background(
-                        Color(0xFFFF5252).copy(alpha = progress.value * 0.8f)
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = Color.White.copy(alpha = progress.value),
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 16.dp)
-                )
-            }
-        }
+/**
+ * 位置服务信息显示组件
+ */
+@Composable
+fun LocationServiceInfo(
+    mockStatus: MockServiceState,
+    gpsLatitude: Double,
+    gpsLongitude: Double,
+    gpsAltitude: Double
+) {
+    Column(modifier = Modifier.padding(all = 8.dp)) {
+        Text("Location Service ${if (mockStatus == MockServiceState.Enabled) "*" else ""}")
+        Text(
+            "@%.8f,%.8f\n#%.2f".format(
+                gpsLatitude,
+                gpsLongitude,
+                gpsAltitude
+            ),
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }
