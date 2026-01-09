@@ -1,6 +1,7 @@
 package ink.moling.mocklocation.ui
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -89,6 +90,8 @@ fun MainScreen(
     onStartMockLocation: () -> Unit,
     onStopMockLocation: () -> Unit
 ) {
+    val context = LocalContext.current
+
     val mockStatus by viewModel.mockStatus.collectAsState()
     val gpsLatitude by viewModel.gpsLatitude.collectAsState()
     val gpsLongitude by viewModel.gpsLongitude.collectAsState()
@@ -160,9 +163,6 @@ fun MainScreen(
                 gpsAltitude = gpsAltitude
             )
             
-            // 测试数据点 TODO: 应该从数据源获取
-            // val points = getTestPoints()
-            
             // 路径模式卡片
             RouteServiceCard(
                 viewModel = viewModel,
@@ -186,6 +186,25 @@ fun MainScreen(
                 .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
             mockStatus = mockStatus,
             onStartStop = {
+                if (PrefsHelper.getMockMode(context) == "Point") {
+                    if (viewModel.selectedMockPoint == null) {
+                        Toast.makeText(
+                            context,
+                            "Please select point",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@BottomActionButtons
+                    }
+                } else {
+                    if (viewModel.selectedMockRoute == null) {
+                        Toast.makeText(
+                            context,
+                            "Please select route",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@BottomActionButtons
+                    }
+                }
                 if (mockStatus == MockServiceState.Enabled || mockStatus is MockServiceState.Error) {
                     onStopMockLocation()
                     MockServiceStatusRepository.state.value = MockServiceState.Disabled
@@ -300,7 +319,6 @@ private fun PointModeView(
     onAddPointClick: () -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    var selectedPointName by rememberSaveable { mutableStateOf("") }
     val points by viewModel.points.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -319,7 +337,7 @@ private fun PointModeView(
                 .padding(end = 8.dp)
         ) {
             OutlinedTextField(
-                value = selectedPointName,
+                value = viewModel.selectedMockPoint?.name ?: "",
                 onValueChange = {},
                 readOnly = true,
                 enabled = (viewModel.mockStatus.value != MockServiceState.Enabled),
@@ -356,10 +374,13 @@ private fun PointModeView(
                                 }
                             },
                             onClick = {
-                                selectedPointName = point.name
+                                viewModel.selectedMockPoint = point
                                 isExpanded = false
                             },
                             onDelete = {
+                                if (point.name == viewModel.selectedMockPoint?.name) {
+                                    viewModel.selectedMockPoint = null
+                                }
                                 viewModel.deletePoint(point.id)
                                 isExpanded = false
                             }
@@ -394,21 +415,16 @@ private fun RouteModeView(
     refreshTrigger: Int,
     onImportExportClick: () -> Unit
 ) {
-    var selectedRouteName by rememberSaveable { mutableStateOf("") }
     val routePoints = remember { mutableStateListOf<LatLng>() }
+    viewModel.selectedMockRoute?.file?.let { loadRouteFromJson(it, routePoints) }
     
     RouteSelector(
         viewModel = viewModel,
-        selectedName = selectedRouteName,
         refreshTrigger = refreshTrigger,
-        onSelectionChange = { name ->
-            selectedRouteName = name
-        },
-        onFileSelected = { file, json ->
-            loadRouteFromJson(file, json, routePoints)
+        onFileSelected = { item ->
+            loadRouteFromJson(item.file, routePoints)
         },
         onFileDeleted = {
-            selectedRouteName = ""
             routePoints.clear()
         }
     )
@@ -435,9 +451,9 @@ private fun RouteModeView(
  */
 private fun loadRouteFromJson(
     file: File,
-    json: JSONObject,
     targetList: MutableList<LatLng>
 ) {
+    val json = JSONObject(FileHelper.readText(file))
     val name = json.optString("name")
     Log.d("MainScreen", "Selected file: $name, path: ${file.absolutePath}")
     
@@ -471,15 +487,15 @@ data class RouteItem(val displayName: String, val file: File)
 @Composable
 fun RouteSelector(
     viewModel: MainViewModel,
-    selectedName: String,
     refreshTrigger: Int = 0,
-    onSelectionChange: (String) -> Unit,
-    onFileSelected: (File, JSONObject) -> Unit,
+    onFileSelected: (RouteItem) -> Unit,
     onFileDeleted: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
     val routeItems = remember { mutableStateListOf<RouteItem>() }
+
+    val selectedName = viewModel.selectedMockRoute?.displayName ?: ""
     
     // 监听 refreshTrigger，当它变化时重新加载文件列表
     LaunchedEffect(refreshTrigger) {
@@ -549,10 +565,9 @@ fun RouteSelector(
                                     onFileDeleted()
                                     return@LongPressDeleteMenuItem
                                 }
-                                
-                                val json = JSONObject(FileHelper.readText(item.file))
-                                onSelectionChange(item.displayName)
-                                onFileSelected(item.file, json)
+
+                                viewModel.selectedMockRoute = item
+                                onFileSelected(item.copy())
                             } catch (e: Exception) {
                                 Log.e("RouteSelector", "Error reading file: ${e.message}")
                                 onFileDeleted()
@@ -562,6 +577,7 @@ fun RouteSelector(
                             FileHelper.deleteFile(item.file)
                             routeItems.remove(item)
                             if (selectedName == item.displayName) {
+                                viewModel.selectedMockRoute = null
                                 onFileDeleted()
                             }
                             isExpanded = false
@@ -672,60 +688,6 @@ private fun BottomActionButtons(
             Icon(Icons.Outlined.Settings, contentDescription = "Settings")
         }
     }
-}
-
-/**
- * 获取测试数据点
- * TODO: 应该从数据源或存储中获取
- */
-private fun getTestPoints(): List<LatLng> {
-    return listOf(
-        LatLng(30.31278782, 120.37452974, "R", listOf(1, 36)),
-        LatLng(30.31270001, 120.37486252, "R", listOf(0, 2)),
-        LatLng(30.31255188, 120.37488464, "R", listOf(1, 3, 5)),
-        LatLng(30.31176745, 120.37448947, "R", listOf(2, 4)),
-        LatLng(30.31151951, 120.37454468, "W", listOf(3, 9, 14, 37)),
-        LatLng(30.31254331, 120.37556238, "R", listOf(2, 6, 28)),
-        LatLng(30.31215474, 120.37559495, "R", listOf(5, 15)),
-        LatLng(30.31089503, 120.37400104, "R", listOf(7, 29)),
-        LatLng(30.31099922, 120.37415835, "R", listOf(7, 9)),
-        LatLng(30.31107804, 120.37453341, "W", listOf(4, 8, 10)),
-        LatLng(30.31109505, 120.37481889, "R", listOf(9, 11)),
-        LatLng(30.31099153, 120.37506155, "R", listOf(10, 12)),
-        LatLng(30.31101573, 120.37525065, "R", listOf(11, 13)),
-        LatLng(30.31107460, 120.37518060, "R", listOf(12, 14)),
-        LatLng(30.31148371, 120.37516653, "R", listOf(4, 13, 15)),
-        LatLng(30.31152987, 120.37561017, "R", listOf(6, 14, 16)),
-        LatLng(30.31159333, 120.37585899, "L", listOf(15, 17, 28)),
-        LatLng(30.31143965, 120.37597601, "L", listOf(16, 18)),
-        LatLng(30.31133080, 120.37615380, "L", listOf(17, 19)),
-        LatLng(30.31130983, 120.37634747, "L", listOf(18, 20)),
-        LatLng(30.31135689, 120.37654047, "L", listOf(19, 21)),
-        LatLng(30.31155897, 120.37677538, "L", listOf(20, 22)),
-        LatLng(30.31258439, 120.37678427, "L", listOf(21, 23)),
-        LatLng(30.31272915, 120.37669964, "L", listOf(22, 24)),
-        LatLng(30.31282787, 120.37658566, "L", listOf(23, 25)),
-        LatLng(30.31290106, 120.37630929, "L", listOf(24, 26)),
-        LatLng(30.31281503, 120.37600992, "L", listOf(25, 27)),
-        LatLng(30.31271835, 120.37591156, "L", listOf(26, 28)),
-        LatLng(30.31262546, 120.37586177, "L", listOf(5, 16, 27)),
-        LatLng(30.31101727, 120.37364696, "R", listOf(7, 30)),
-        LatLng(30.31146107, 120.37361030, "R", listOf(29, 31, 37)),
-        LatLng(30.31157536, 120.37357460, "R", listOf(30, 32, 38)),
-        LatLng(30.31163393, 120.37349810, "R", listOf(31, 33)),
-        LatLng(30.31195135, 120.37347551, "R", listOf(32, 34)),
-        LatLng(30.31261212, 120.37348310, "R", listOf(33, 35)),
-        LatLng(30.31272823, 120.37365519, "R", listOf(34, 36)),
-        LatLng(30.31274091, 120.37431647, "W", listOf(0, 35, 44)),
-        LatLng(30.31154134, 120.37368335, "R", listOf(4, 30, 38)),
-        LatLng(30.31165234, 120.37367430, "W", listOf(31, 37, 39)),
-        LatLng(30.31208896, 120.37388341, "W", listOf(38, 40)),
-        LatLng(30.31215410, 120.37396471, "W", listOf(39, 41)),
-        LatLng(30.31225064, 120.37398847, "W", listOf(40, 42)),
-        LatLng(30.31235995, 120.37402515, "W", listOf(41, 43)),
-        LatLng(30.31242018, 120.37407256, "W", listOf(42, 44)),
-        LatLng(30.31250551, 120.37406562, "W", listOf(36, 43)),
-    )
 }
 
 /**
