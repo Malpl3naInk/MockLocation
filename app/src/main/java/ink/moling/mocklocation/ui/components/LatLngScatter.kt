@@ -22,6 +22,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
+import ink.moling.mocklocation.data.models.LatLng
 import kotlin.math.*
 
 /**
@@ -49,20 +50,9 @@ fun typeToPointType(type: String?): PointType {
 }
 
 /**
- * connections: 要连接的点索引
- * label: 点标签，用于标识和判断点类型
+ * LatLng 扩展函数：根据 label 获取点类型
  */
-data class LatLng(
-    val lat: Double,
-    val lng: Double,
-    val type: String? = null,
-    val connections: List<Int> = emptyList()
-) {
-    /**
-     * 根据 label 获取点类型
-     */
-    fun getPointType(): PointType = typeToPointType(type)
-}
+fun LatLng.getPointType(): PointType = typeToPointType(type)
 
 /* ---------------- Web Mercator 投影 ---------------- */
 

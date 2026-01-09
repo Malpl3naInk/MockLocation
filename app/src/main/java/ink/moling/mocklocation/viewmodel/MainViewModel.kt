@@ -7,7 +7,7 @@ import ink.moling.mocklocation.data.db.AppDatabase
 import ink.moling.mocklocation.data.db.MockPointEntity
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.service.MockLocationService
-import ink.moling.mocklocation.ui.RouteItem
+import ink.moling.mocklocation.data.models.RouteItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

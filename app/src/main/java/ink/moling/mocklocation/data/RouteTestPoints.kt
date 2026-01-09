@@ -1,6 +1,6 @@
 package ink.moling.mocklocation.data
 
-import ink.moling.mocklocation.ui.components.LatLng
+import ink.moling.mocklocation.data.models.LatLng
 
 /**
  * 测试数据点
