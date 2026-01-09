@@ -3,10 +3,10 @@ package ink.moling.mocklocation.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import ink.moling.mocklocation.MOCK_STATUS_DISABLED
-import ink.moling.mocklocation.MockLocationService
-import ink.moling.mocklocation.utils.db.AppDatabase
-import ink.moling.mocklocation.utils.db.MockPointEntity
+import ink.moling.mocklocation.data.db.AppDatabase
+import ink.moling.mocklocation.data.db.MockPointEntity
+import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
+import ink.moling.mocklocation.service.MockLocationService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,8 +18,7 @@ import kotlinx.coroutines.launch
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // Mock 服务状态
-    private val _mockStatus = MutableStateFlow(MOCK_STATUS_DISABLED)
-    val mockStatus: StateFlow<Int> = _mockStatus.asStateFlow()
+    val mockStatus = MockServiceStatusRepository.state
 
     // 实时 GPS 数据
     private val _gpsLatitude = MutableStateFlow(0.0)
@@ -53,13 +52,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _gpsLongitude.value = longitude
         _gpsAltitude.value = altitude
         _gpsProvider.value = provider
-    }
-
-    /**
-     * 更新 Mock 服务状态
-     */
-    fun updateMockStatus(status: Int) {
-        _mockStatus.value = status
     }
 
     /**

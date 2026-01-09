@@ -42,7 +42,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".MockLocationService"
+            android:name=".service.MockLocationService"
             android:exported="false" />
     </application>
 
