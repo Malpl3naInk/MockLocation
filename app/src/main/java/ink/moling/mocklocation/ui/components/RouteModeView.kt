@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.ImportExport
+import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -30,8 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import ink.moling.mocklocation.data.models.LatLng
+import com.google.gson.Gson
 import ink.moling.mocklocation.data.models.RouteItem
+import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.utils.FileHelper
 import ink.moling.mocklocation.viewmodel.MainViewModel
@@ -47,17 +48,21 @@ fun RouteModeView(
     refreshTrigger: Int,
     onImportExportClick: () -> Unit
 ) {
-    val routePoints = remember { mutableStateListOf<LatLng>() }
-    viewModel.selectedMockRoute?.file?.let { loadRouteFromJson(it, routePoints) }
+    var currentRouteObject by remember { mutableStateOf<RouteObject?>(null) }
+    
+    // 初始加载选中的路径
+    LaunchedEffect(viewModel.selectedMockRoute) {
+        currentRouteObject = viewModel.selectedMockRoute?.file?.let { loadRouteFromJson(it) }
+    }
     
     RouteSelector(
         viewModel = viewModel,
         refreshTrigger = refreshTrigger,
         onFileSelected = { item ->
-            loadRouteFromJson(item.file, routePoints)
+            currentRouteObject = loadRouteFromJson(item.file)
         },
         onFileDeleted = {
-            routePoints.clear()
+            currentRouteObject = null
         }
     )
 
@@ -67,47 +72,34 @@ fun RouteModeView(
             modifier = Modifier.weight(0.8f),
             paddingDp = 0.dp,
             cardPadding = 8.dp,
-            points = routePoints,
+            routeObject = currentRouteObject,
             pointRadius = 1.dp
         )
 
         // 操作按钮列
         RouteActionButtons(
-            onImportExportClick = onImportExportClick
+            onRouteClick = onImportExportClick
         )
     }
 }
 
 /**
- * 从 JSON 加载路径数据
+ * 从 JSON 加载路径数据（使用 RouteObject 数据模型）
  */
-private fun loadRouteFromJson(
-    file: File,
-    targetList: MutableList<LatLng>
-) {
-    val json = JSONObject(FileHelper.readText(file))
-    val name = json.optString("name")
-    Log.d("RouteModeView", "Selected file: $name, path: ${file.absolutePath}")
-    
-    targetList.clear()
-    
-    val jsonPoints = json.getJSONArray("points")
-    val newPoints = (0 until jsonPoints.length()).map { i ->
-        val jsonPoint = jsonPoints.getJSONObject(i)
-        val connections = jsonPoint.getJSONArray("connects")
-            .let { arr -> (0 until arr.length()).map { arr.getInt(it) } }
+private fun loadRouteFromJson(file: File): RouteObject? {
+    return try {
+        val jsonText = FileHelper.readText(file)
+        val gson = Gson()
+        val routeObject = gson.fromJson(jsonText, RouteObject::class.java)
         
-        LatLng(
-            lat = jsonPoint.getDouble("lat"),
-            lng = jsonPoint.getDouble("lng"),
-            type = jsonPoint.getString("type"),
-            connections = connections
-        ).also { point ->
-            Log.d("RouteModeView", "Point loaded: lat=${point.lat}, lng=${point.lng}, type=${point.type}")
-        }
+        Log.d("RouteModeView", "Loaded route: ${routeObject.name}, type: ${routeObject.meta.type}, version: ${routeObject.meta.version}")
+        Log.d("RouteModeView", "Loaded ${routeObject.points.size} points")
+        
+        routeObject
+    } catch (e: Exception) {
+        Log.e("RouteModeView", "Error loading route from JSON: ${e.message}", e)
+        null
     }
-    
-    targetList.addAll(newPoints)
 }
 
 /**
@@ -226,18 +218,18 @@ fun RouteSelector(
  */
 @Composable
 fun RouteActionButtons(
-    onImportExportClick: () -> Unit
+    onRouteClick: () -> Unit
 ) {
     Column {
         IconButton(
             modifier = Modifier
                 .size(50.dp)
                 .padding(vertical = 5.dp),
-            onClick = onImportExportClick
+            onClick = onRouteClick
         ) {
             Icon(
-                Icons.Outlined.ImportExport,
-                contentDescription = "ImportExport",
+                Icons.Outlined.Route,
+                contentDescription = "Route",
                 tint = Color.White
             )
         }

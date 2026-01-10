@@ -9,9 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -19,40 +17,44 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalDensity
-import ink.moling.mocklocation.data.models.LatLng
-import kotlin.math.*
+import ink.moling.mocklocation.data.models.PointType
+import ink.moling.mocklocation.data.models.RouteObject
+import ink.moling.mocklocation.data.models.RoutePoint
+import kotlin.math.hypot
+import kotlin.math.ln
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.tan
 
 /**
- * 点类型枚举，用于区分不同路径类型
+ * PointType 的显示颜色配置
  */
-enum class PointType(val color: Color) {
-    RUNNING(Color(0xFF2196F3)),      // 蓝色 - 普通路径
-    WALKING(Color(0xFFFF9800)),      // 绿色 - 步行路径
-    LOOPING(Color(0xFF4CAF50))       // 橙色 - 场地路径
+fun PointType.getColor(): Color = when (this) {
+    PointType.R -> Color(0xFF2196F3)  // 蓝色 - Running
+    PointType.W -> Color(0xFFFF9800)  // 橙色 - Walking
+    PointType.L -> Color(0xFF4CAF50)  // 绿色 - Looping
 }
 
 /**
- * 根据 label 值推断点类型
- * 可根据实际需求自定义映射规则
+ * 根据字符串类型推断 PointType
  */
 fun typeToPointType(type: String?): PointType {
     return when {
-        type == null -> PointType.RUNNING
-        // 根据 label 的值或特征判断类型：
-        type.startsWith("R") || type.startsWith("r") -> PointType.RUNNING
-        type.startsWith("W") || type.startsWith("w") -> PointType.WALKING
-        type.startsWith("L") || type.startsWith("l") -> PointType.LOOPING
-        else -> PointType.RUNNING
+        type.isNullOrEmpty() -> PointType.R
+        type.startsWith("R", ignoreCase = true) -> PointType.R
+        type.startsWith("W", ignoreCase = true) -> PointType.W
+        type.startsWith("L", ignoreCase = true) -> PointType.L
+        else -> PointType.R
     }
 }
 
 /**
- * LatLng 扩展函数：根据 label 获取点类型
+ * RoutePoint 扩展函数：根据 type 字符串获取点类型
  */
-fun LatLng.getPointType(): PointType = typeToPointType(type)
+fun RoutePoint.getPointType(): PointType = typeToPointType(type)
 
 /* ---------------- Web Mercator 投影 ---------------- */
 
@@ -75,7 +77,7 @@ private data class Bounds(
     val minLng: Double, val maxLng: Double
 )
 
-private fun computeBounds(points: List<LatLng>): Bounds {
+private fun computeBounds(points: List<RoutePoint>): Bounds {
     if (points.isEmpty()) return Bounds(0.0, 0.0, 0.0, 0.0)
 
     var minX = Double.POSITIVE_INFINITY
@@ -109,7 +111,7 @@ private fun computeBounds(points: List<LatLng>): Bounds {
 
 /* ---------------- Mercator 映射至画布 ---------------- */
 private fun mapPointsToCanvasInternal(
-    points: List<LatLng>,
+    points: List<RoutePoint>,
     width: Float,
     height: Float,
     bounds: Bounds,
@@ -145,27 +147,35 @@ private fun mapPointsToCanvasInternal(
 @Composable
 fun LatLngScatter(
     modifier: Modifier = Modifier,
-    points: SnapshotStateList<LatLng> = mutableStateListOf(),
+    routeObject: RouteObject? = null,
     pointRadius: Dp = 6.dp,
     pointColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     strokeWidthDp: Dp = 1.dp,
     paddingDp: Dp = 8.dp,            // 绘图 Padding
     cardPadding: Dp = 16.dp,         // Card 内部 Padding
-    onPointClick: ((index: Int, point: LatLng) -> Unit)? = null
+    onPointClick: ((index: Int, point: RoutePoint) -> Unit)? = null
 ) {
     val density = LocalDensity.current
     val prPx = with(density) { pointRadius.toPx() }
     val strokePx = with(density) { strokeWidthDp.toPx() }
     val paddingPx = with(density) { paddingDp.toPx() }
 
-    val bounds by remember { derivedStateOf { computeBounds(points) } }
+    // 从 RouteObject 获取点列表
+    val points = routeObject?.points ?: emptyList()
+    
+    val bounds by remember(points) { derivedStateOf { computeBounds(points) } }
+    
+    // 创建 ID 到索引的映射，用于通过 ID 查找点
+    val idToIndex by remember(points) { derivedStateOf { 
+        points.mapIndexed { index, point -> point.id to index }.toMap()
+    } }
 
 
     Box(
         modifier = modifier
             .padding(cardPadding)
             .clipToBounds()
-            .pointerInput(points) {
+            .pointerInput(routeObject) {
                 detectTapGestures { tapOffset ->
                     val mapped = mapPointsToCanvasInternal(
                         points, size.width.toFloat(), size.height.toFloat(), bounds, paddingPx
@@ -200,17 +210,20 @@ fun LatLngScatter(
                 val start = mapped[i]
                 val startType = startPoint.getPointType()
                 
-                for (target in startPoint.connections) {
-                    if (target !in mapped.indices) continue
-                    val endPoint = points[target]
-                    val end = mapped[target]
+                for (targetId in startPoint.connects) {
+                    // 通过 ID 查找目标点的索引
+                    val targetIndex = idToIndex[targetId] ?: continue
+                    if (targetIndex !in mapped.indices) continue
+                    
+                    val endPoint = points[targetIndex]
+                    val end = mapped[targetIndex]
                     val endType = endPoint.getPointType()
                     
-                    // 只有两端点类型相同时使用类型颜色，否则使用默认颜色（RUNNING）
+                    // 只有两端点类型相同时使用类型颜色，否则使用默认颜色（R）
                     val lineColor = if (startType == endType) {
-                        startType.color
+                        startType.getColor()
                     } else {
-                        PointType.RUNNING.color
+                        PointType.R.getColor()
                     }
                     
                     val path = Path().apply {
