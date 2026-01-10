@@ -8,12 +8,21 @@ data class KalmanState(
     var covariance: Array<DoubleArray>
 )
 
-class LocationKalmanFilter(
+class KalmanFilter(
     private val processNoise: Double = 1e-5
 ) {
 
     private var state: KalmanState? = null
     private var lastTimestamp: Long = 0L
+
+    /**
+     * Reset the filter state
+     * Should be called when location tracking is interrupted or restarted
+     */
+    fun reset() {
+        state = null
+        lastTimestamp = 0L
+    }
 
     fun update(
         lat: Double,
@@ -32,6 +41,13 @@ class LocationKalmanFilter(
         }
 
         val dt = (timestamp - lastTimestamp) / 1000.0
+        
+        // Reset if time gap is too large (e.g., location tracking was paused)
+        if (dt > 10.0 || dt < 0) {
+            reset()
+            return update(lat, lng, accuracy, timestamp)
+        }
+        
         lastTimestamp = timestamp
 
         predict(dt)
@@ -63,7 +79,11 @@ class LocationKalmanFilter(
         s.covariance = matAdd(matMul(matMul(F, s.covariance), transpose(F)), Q)
     }
 
-    private fun correct(measLat: Double, measLng: Double, accuracy: Double) {
+    private fun correct(
+        measLat: Double,
+        measLng: Double,
+        accuracy: Double
+    ) {
         val s = state!!
 
         val H = arrayOf(

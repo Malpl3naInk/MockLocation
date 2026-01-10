@@ -69,6 +69,9 @@ dependencies {
     // Gson for JSON serialization
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // Google Open Location Code
+    implementation("com.google.openlocationcode:openlocationcode:1.0.4")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
