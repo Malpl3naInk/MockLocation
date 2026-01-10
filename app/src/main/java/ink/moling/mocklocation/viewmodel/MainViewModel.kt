@@ -136,13 +136,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * 添加一个点
      */
-    fun addPoint(name: String, latitude: Double, longitude: Double) {
+    fun addPoint(name: String, latitude: Double, longitude: Double, altitude: Double) {
         viewModelScope.launch {
             mockPointDao.insert(
                 MockPointEntity(
                     name = name,
                     latitude = latitude,
-                    longitude = longitude
+                    longitude = longitude,
+                    altitude = altitude
                 )
             )
             _points.value = mockPointDao.getAll()

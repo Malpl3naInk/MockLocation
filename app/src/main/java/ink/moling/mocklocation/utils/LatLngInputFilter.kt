@@ -2,7 +2,7 @@ package ink.moling.mocklocation.utils
 
 import android.util.Log
 
-enum class LatLngInputType { LAT, LNG }
+enum class LatLngInputType { LAT, LNG, ALT }
 
 fun isValidLatLngInput(
     input: String,
@@ -27,5 +27,6 @@ fun isValidLatLngInput(
     return when (type) {
         LatLngInputType.LAT -> value in -90.0..90.0
         LatLngInputType.LNG -> value in -180.0..180.0
+        LatLngInputType.ALT -> value in -10000.0..100000.0
     }
 }
