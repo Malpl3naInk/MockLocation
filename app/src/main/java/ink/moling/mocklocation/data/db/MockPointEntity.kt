@@ -8,5 +8,6 @@ data class MockPointEntity (
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val latitude: Double,
-    val longitude: Double
+    val longitude: Double,
+    val altitude: Double
 )
