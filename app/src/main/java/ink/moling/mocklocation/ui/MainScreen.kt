@@ -18,7 +18,10 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.ShareLocation
+import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -41,7 +44,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.openlocationcode.OpenLocationCode
 import ink.moling.mocklocation.data.db.MockPointEntity
+import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.ui.components.dialog.AddPointDialog
@@ -73,9 +78,7 @@ fun MainScreen(
     val focusManager = LocalFocusManager.current
 
     val mockStatus by viewModel.mockStatus.collectAsState()
-    val gpsLatitude by viewModel.gpsLatitude.collectAsState()
-    val gpsLongitude by viewModel.gpsLongitude.collectAsState()
-    val gpsAltitude by viewModel.gpsAltitude.collectAsState()
+    val fusedLocation by viewModel.fusedLocation.collectAsState()
     val isImportExportDialogOpen by viewModel.isImportExportDialogOpen.collectAsState()
     val isAddPointDialogOpen by viewModel.isAddPointDialogOpen.collectAsState()
     
@@ -138,9 +141,7 @@ fun MainScreen(
             // 位置服务信息显示
             LocationServiceInfo(
                 mockStatus = mockStatus,
-                gpsLatitude = gpsLatitude,
-                gpsLongitude = gpsLongitude,
-                gpsAltitude = gpsAltitude
+                fusedLocation = fusedLocation
             )
             
             // 模拟设置卡片（包含点位和路径模式）
@@ -328,19 +329,42 @@ fun ModeToggleSwitch(
 @Composable
 fun LocationServiceInfo(
     mockStatus: MockServiceState,
-    gpsLatitude: Double,
-    gpsLongitude: Double,
-    gpsAltitude: Double
+    fusedLocation: CandidateLocation?
 ) {
-    Column(modifier = Modifier.padding(all = 8.dp)) {
-        Text("Location Service ${if (mockStatus == MockServiceState.Enabled) "*" else ""}")
-        Text(
-            "@%.8f,%.8f\n#%.2f".format(
-                gpsLatitude,
-                gpsLongitude,
-                gpsAltitude
-            ),
-            modifier = Modifier.padding(start = 8.dp)
-        )
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            when (mockStatus) {
+                MockServiceState.Enabled -> {
+                    Icon(
+                        Icons.Outlined.ShareLocation,
+                        contentDescription = "Mock Location",
+                        modifier = Modifier.padding(start = 20.dp)
+                    )
+                }
+                else -> {
+                    Icon(
+                        Icons.Outlined.MyLocation,
+                        contentDescription = "My location",
+                        modifier = Modifier.padding(start = 20.dp)
+                    )
+                }
+            }
+            Column(modifier = Modifier.padding(all = 12.dp)) {
+                Text(
+                    text = fusedLocation?.let {
+                        "@%.5f,%.5f#%.2f".format(
+                            it.lat,
+                            it.lng,
+                            it.alt ?: 0.0f
+                        )
+                    } ?: "@0.00000,0.00000#0.00"
+                )
+                Text(
+                    text = fusedLocation?.let {
+                        OpenLocationCode.encode(it.lat, it.lng)
+                    } ?: ""
+                )
+            }
+        }
     }
 }

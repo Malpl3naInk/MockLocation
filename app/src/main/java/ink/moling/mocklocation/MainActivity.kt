@@ -23,11 +23,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ink.moling.mocklocation.data.models.CandidateLocation
+import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.service.MockLocationService
 import ink.moling.mocklocation.ui.MainScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
-import ink.moling.mocklocation.utils.LocationKalmanFilter
+import ink.moling.mocklocation.utils.KalmanFilter
 import ink.moling.mocklocation.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -53,7 +55,7 @@ class MainActivity : ComponentActivity() {
      */
     private lateinit var locationManager: LocationManager
     private lateinit var locationListener: LocationListener
-    private var kf = LocationKalmanFilter()
+    private var kf = KalmanFilter()
 
     // 权限申请相关
     private val requestPermissions =
@@ -166,23 +168,57 @@ class MainActivity : ComponentActivity() {
                 }
             }
             
+            // 监听 Mock 状态变化，在停用时重置 Kalman 滤波器
+            LaunchedEffect(Unit) {
+                viewModel.mockStatus.collect { status ->
+                    if (status == MockServiceState.Disabled) {
+                        kf.reset()
+                    }
+                }
+            }
+            
             // 设置生命周期监听和位置更新
             DisposableEffect(Unit) {
                 // 初始化 LocationListener（需要访问 ViewModel）
                 locationListener = LocationListener { location ->
-                    if (viewModel.mockStatus.value == MockServiceState.Enabled) {
-                        return@LocationListener // Disable location update when MockLocation running
-                    }
-                    val (lat, lng) = kf.update(
-                        location.latitude,
-                        location.longitude,
-                        location.accuracy,
-                        location.time
-                    )
-                    val provider = (location.provider ?: "*")[0].toString().uppercase()
-                    val altitude = if (provider == "G") location.altitude else viewModel.gpsAltitude.value
+                    if (viewModel.mockStatus.value == MockServiceState.Enabled) return@LocationListener
 
-                    viewModel.updateGpsLocation(lat, lng, altitude, provider)
+                    val source = when (location.provider) {
+                        LocationManager.GPS_PROVIDER -> Source.GPS
+                        LocationManager.NETWORK_PROVIDER -> Source.NETWORK
+                        else -> return@LocationListener
+                    }
+
+                    val c = if (source == Source.GPS) {
+                        val (lat, lng) = kf.update(
+                            location.latitude,
+                            location.longitude,
+                            location.accuracy,
+                            location.time
+                        )
+                        CandidateLocation(
+                            lat = lat,
+                            lng = lng,
+                            accuracy = location.accuracy,
+                            time = location.time,
+                            alt = location.altitude,
+                            source = Source.GPS
+                        )
+                    } else {
+                        CandidateLocation(
+                            lat = location.latitude,
+                            lng = location.longitude,
+                            accuracy = location.accuracy,
+                            time = location.time,
+                            alt = null,
+                            source = Source.NETWORK
+                        )
+                    }
+
+                    when (source) {
+                        Source.GPS -> viewModel.updateGpsCandidate(c)
+                        Source.NETWORK -> viewModel.updateNetCandidate(c)
+                    }
                 }
                 
                 // 设置服务 Binder 引用到 ViewModel

@@ -84,9 +84,9 @@ fun AddPointDialog(
                 }
                 Button(
                     onClick = {
-                        pointLatitude   = viewModel.gpsLatitude.value.toString()
-                        pointLongitude  = viewModel.gpsLongitude.value.toString()
-                        pointAltitude   = viewModel.gpsAltitude.value.toString()
+                        pointLatitude   = viewModel.fusedLocation.value?.lat.toString()
+                        pointLongitude  = viewModel.fusedLocation.value?.lng.toString()
+                        pointAltitude   = viewModel.fusedLocation.value?.alt.toString()
                     },
                     enabled = viewModel.mockStatus.value != MockServiceState.Enabled
                 ) {
