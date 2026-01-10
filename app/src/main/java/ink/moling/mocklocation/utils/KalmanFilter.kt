@@ -8,6 +8,7 @@ data class KalmanState(
     var covariance: Array<DoubleArray>
 )
 
+@Suppress("LocalVariableName")
 class KalmanFilter(
     private val processNoise: Double = 1e-5
 ) {
@@ -43,7 +44,7 @@ class KalmanFilter(
         val dt = (timestamp - lastTimestamp) / 1000.0
         
         // Reset if time gap is too large (e.g., location tracking was paused)
-        if (dt > 10.0 || dt < 0) {
+        if (dt !in 0.0..10.0) {
             reset()
             return update(lat, lng, accuracy, timestamp)
         }

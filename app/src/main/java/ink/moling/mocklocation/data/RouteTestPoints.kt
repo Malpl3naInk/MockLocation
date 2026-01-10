@@ -5,6 +5,7 @@ import ink.moling.mocklocation.data.models.RoutePoint
 /**
  * 测试数据点
  */
+@Suppress("unused")
 private fun routeTestPoints(): List<RoutePoint> {
     return listOf(
         RoutePoint(0, 30.31278782, 120.37452974, "R", listOf(1, 36)),
