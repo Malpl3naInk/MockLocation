@@ -152,7 +152,7 @@ class MockLocationService : Service() {
     // ----------------
     // 移除当前 GPS Test Provider
     // ----------------
-    private fun removeTestProviderGPS(): Boolean {
+    private fun removeTestProviderGPS() {
         try {
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 locationManager.setTestProviderEnabled(LocationManager.GPS_PROVIDER, false)
@@ -161,7 +161,6 @@ class MockLocationService : Service() {
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "removeTestProviderGPS ${e.message}")
         }
-        return true
     }
 
     // ----------------
@@ -247,7 +246,7 @@ class MockLocationService : Service() {
     // ----------------
     // 移除当前 Network Test Provider
     // ----------------
-    private fun removeTestProviderNetwork(): Boolean {
+    private fun removeTestProviderNetwork() {
         try {
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.setTestProviderEnabled(LocationManager.NETWORK_PROVIDER, false)
@@ -256,7 +255,6 @@ class MockLocationService : Service() {
         } catch (e: Exception) {
             Log.e("MockLoc_Service", "removeTestProviderNetwork ${e.message}")
         }
-        return true
     }
 
     // ----------------

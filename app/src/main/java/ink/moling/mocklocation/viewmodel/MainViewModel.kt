@@ -188,10 +188,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun clearAllPoints() {
-        viewModelScope.launch {
-            mockPointDao.clearAll()
-            _points.value = emptyList()
-        }
-    }
+//    fun clearAllPoints() {
+//        viewModelScope.launch {
+//            mockPointDao.clearAll()
+//            _points.value = emptyList()
+//        }
+//    }
 }
