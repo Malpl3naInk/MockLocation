@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.service.MockLocationService
 import ink.moling.mocklocation.ui.MainScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
@@ -44,16 +45,15 @@ class MainActivity : ComponentActivity() {
     /*
      * MockLocation 服务
      */
-    private lateinit var mServiceBinder: MockLocationService.MockLocationServiceBinder
-    private lateinit var mService: MockLocationService
-    private lateinit var mConnection: ServiceConnection
+    private lateinit var serviceBinder: MockLocationService.MockLocationServiceBinder
+    private lateinit var connection: ServiceConnection
     
     /*
      * 位置管理
      */
-    private lateinit var mLocationManager: LocationManager
-    private lateinit var mLocationListener: LocationListener
-    private val kf = LocationKalmanFilter()
+    private lateinit var locationManager: LocationManager
+    private lateinit var locationListener: LocationListener
+    private var kf = LocationKalmanFilter()
 
     // 权限申请相关
     private val requestPermissions =
@@ -101,33 +101,33 @@ class MainActivity : ComponentActivity() {
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onResume() {
         super.onResume()
-        if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION) && ::mLocationListener.isInitialized) {
-            mLocationManager.requestLocationUpdates(
+        if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION) && ::locationListener.isInitialized) {
+            locationManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
                 1000L,
                 0f,
-                mLocationListener
+                locationListener
             )
-            mLocationManager.requestLocationUpdates(
+            locationManager.requestLocationUpdates(
                 LocationManager.NETWORK_PROVIDER,
                 2000L,
                 0f,
-                mLocationListener
+                locationListener
             )
         }
     }
 
     override fun onPause() {
         super.onPause()
-        if (::mLocationListener.isInitialized) {
-            mLocationManager.removeUpdates(mLocationListener)
+        if (::locationListener.isInitialized) {
+            locationManager.removeUpdates(locationListener)
         }
     }
 
     override fun onDestroy() {
-        if (::mConnection.isInitialized) {
+        if (::connection.isInitialized) {
             try {
-                unbindService(mConnection)
+                unbindService(connection)
             } catch (_: Exception) {
                 // Service might not be bound
             }
@@ -146,13 +146,13 @@ class MainActivity : ComponentActivity() {
             val viewModel: MainViewModel = viewModel()
 
             // 初始化 LocationManager
-            mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+            locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
 
             // 初始化服务连接
-            mConnection = object : ServiceConnection {
+            connection = object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                    mServiceBinder = service as MockLocationService.MockLocationServiceBinder
-                    viewModel.onServiceBinderReady(mServiceBinder)
+                    serviceBinder = service as MockLocationService.MockLocationServiceBinder
+                    viewModel.onServiceBinderReady(serviceBinder)
                 }
 
                 override fun onServiceDisconnected(name: ComponentName?) {
@@ -169,7 +169,10 @@ class MainActivity : ComponentActivity() {
             // 设置生命周期监听和位置更新
             DisposableEffect(Unit) {
                 // 初始化 LocationListener（需要访问 ViewModel）
-                mLocationListener = LocationListener { location ->
+                locationListener = LocationListener { location ->
+                    if (viewModel.mockStatus.value == MockServiceState.Enabled) {
+                        return@LocationListener // Disable location update when MockLocation running
+                    }
                     val (lat, lng) = kf.update(
                         location.latitude,
                         location.longitude,
@@ -178,17 +181,17 @@ class MainActivity : ComponentActivity() {
                     )
                     val provider = (location.provider ?: "*")[0].toString().uppercase()
                     val altitude = if (provider == "G") location.altitude else viewModel.gpsAltitude.value
-                    
+
                     viewModel.updateGpsLocation(lat, lng, altitude, provider)
                 }
                 
                 // 设置服务 Binder 引用到 ViewModel
                 val binderJob = lifecycleScope.launch {
                     // 等待服务连接
-                    while (!::mServiceBinder.isInitialized) {
+                    while (!::serviceBinder.isInitialized) {
                         kotlinx.coroutines.delay(100)
                     }
-                    viewModel.serviceBinder.value = mServiceBinder
+                    viewModel.serviceBinder.value = serviceBinder
                 }
 
                 // 权限检查并开启位置更新
@@ -196,25 +199,25 @@ class MainActivity : ComponentActivity() {
                         context, Manifest.permission.ACCESS_FINE_LOCATION
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
-                    mLocationManager.requestLocationUpdates(
+                    locationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER,
                         1000L,
                         0f,
-                        mLocationListener
+                        locationListener
                     )
                     
-                    mLocationManager.requestLocationUpdates(
+                    locationManager.requestLocationUpdates(
                         LocationManager.NETWORK_PROVIDER,
                         2000L,
                         0f,
-                        mLocationListener
+                        locationListener
                     )
                 }
                 
                 // 清理
                 onDispose {
                     binderJob.cancel()
-                    mLocationManager.removeUpdates(mLocationListener)
+                    locationManager.removeUpdates(locationListener)
                 }
             }
             
@@ -239,7 +242,7 @@ class MainActivity : ComponentActivity() {
     private fun startMockLocation() {
         val intent = Intent(this, MockLocationService::class.java)
         startForegroundService(intent)
-        bindService(intent, mConnection, BIND_AUTO_CREATE)
+        bindService(intent, connection, BIND_AUTO_CREATE)
     }
 
     /**
@@ -247,8 +250,8 @@ class MainActivity : ComponentActivity() {
      */
     private fun stopMockLocation() {
         try {
-            if (::mConnection.isInitialized) {
-                unbindService(mConnection)
+            if (::connection.isInitialized) {
+                unbindService(connection)
             }
             val serviceMockLocation = Intent(this, MockLocationService::class.java)
             stopService(serviceMockLocation)
