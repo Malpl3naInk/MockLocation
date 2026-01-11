@@ -1,5 +1,6 @@
 package ink.moling.mocklocation.ui
 
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,17 +46,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.openlocationcode.OpenLocationCode
+import ink.moling.mocklocation.SettingsActivity
 import ink.moling.mocklocation.data.db.MockPointEntity
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
-import ink.moling.mocklocation.ui.components.dialog.AddPointDialog
-import ink.moling.mocklocation.ui.components.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.components.ExpandableCard
-import ink.moling.mocklocation.ui.components.dialog.ImportExportDialog
 import ink.moling.mocklocation.ui.components.PointModeView
 import ink.moling.mocklocation.ui.components.RectangleFloatingActionButton
 import ink.moling.mocklocation.ui.components.RouteModeView
+import ink.moling.mocklocation.ui.components.dialog.AddPointDialog
+import ink.moling.mocklocation.ui.components.dialog.ErrorDialog
+import ink.moling.mocklocation.ui.components.dialog.ImportExportDialog
 import ink.moling.mocklocation.utils.PrefsHelper
 import ink.moling.mocklocation.viewmodel.MainViewModel
 
@@ -200,8 +202,9 @@ fun MainScreen(
                 }
             },
             onSettings = {
-                // 测试设置模拟位置
-                viewModel.setMockPosition(53.4519076, -3.0029668, 48.0)
+                context.startActivity(
+                    Intent(context, SettingsActivity::class.java)
+                )
             }
         )
     }
@@ -222,7 +225,7 @@ fun MockSettingsCard(
     val isRouteMode = currentMode == "Route"
 
     ExpandableCard(
-        modifier = Modifier.height(if (isRouteMode) 300.dp else 150.dp),
+        modifier = Modifier.height(if (isRouteMode) 350.dp else 150.dp),
         title = "Mock settings [ $currentMode ]"
     ) {
         // 模式切换开关
@@ -352,16 +355,16 @@ fun LocationServiceInfo(
             Column(modifier = Modifier.padding(all = 12.dp)) {
                 Text(
                     text = fusedLocation?.let {
-                        "@%.5f,%.5f#%.2f".format(
+                        "@%.6f,%.6f#%.2f".format(
                             it.lat,
                             it.lng,
                             it.alt ?: 0.0f
                         )
-                    } ?: "@0.00000,0.00000#0.00"
+                    } ?: "@0.000000,0.000000#0.00"
                 )
                 Text(
                     text = fusedLocation?.let {
-                        OpenLocationCode.encode(it.lat, it.lng)
+                        OpenLocationCode.encode(it.lat, it.lng, 11)
                     } ?: ""
                 )
             }

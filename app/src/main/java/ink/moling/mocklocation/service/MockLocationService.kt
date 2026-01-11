@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package ink.moling.mocklocation.service
 
 import android.annotation.SuppressLint

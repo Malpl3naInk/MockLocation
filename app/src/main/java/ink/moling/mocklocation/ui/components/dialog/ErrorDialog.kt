@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
  * 错误对话框
  */
 @Composable
+@Suppress("DEPRECATION")
 fun ErrorDialog(
     onDismiss: () -> Unit,
     title: String,

@@ -1,6 +1,11 @@
 package ink.moling.mocklocation.ui.components
 
+import android.app.Activity
+import android.content.Intent
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -30,14 +36,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
+import ink.moling.mocklocation.WaypointActivity
 import ink.moling.mocklocation.data.models.RouteItem
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.utils.FileHelper
+import ink.moling.mocklocation.utils.loadRouteFromFile
 import ink.moling.mocklocation.viewmodel.MainViewModel
 import org.json.JSONObject
-import java.io.File
 
 /**
  * 路径模式视图组件
@@ -48,57 +54,65 @@ fun RouteModeView(
     refreshTrigger: Int,
     onImportExportClick: () -> Unit
 ) {
+    val context = LocalContext.current
     var currentRouteObject by remember { mutableStateOf<RouteObject?>(null) }
+    val waypointActivityLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            currentRouteObject = viewModel.selectedMockRoute?.file?.let { loadRouteFromFile(it) }
+        }
+    }
     
     // 初始加载选中的路径
     LaunchedEffect(viewModel.selectedMockRoute) {
-        currentRouteObject = viewModel.selectedMockRoute?.file?.let { loadRouteFromJson(it) }
+        currentRouteObject = viewModel.selectedMockRoute?.file?.let { loadRouteFromFile(it) }
     }
     
     RouteSelector(
         viewModel = viewModel,
         refreshTrigger = refreshTrigger,
         onFileSelected = { item ->
-            currentRouteObject = loadRouteFromJson(item.file)
+            currentRouteObject = loadRouteFromFile(item.file)
         },
         onFileDeleted = {
             currentRouteObject = null
         }
     )
 
-    Row {
-        // 路径散点图
-        LatLngScatter(
-            modifier = Modifier.weight(0.8f),
-            paddingDp = 0.dp,
-            cardPadding = 8.dp,
-            routeObject = currentRouteObject,
-            pointRadius = 1.dp
-        )
+    Column {
+        Row(modifier = Modifier.weight(0.8f)) {
+            // 路径散点图
+            LatLngScatter(
+                modifier = Modifier.weight(0.8f),
+                paddingDp = 0.dp,
+                cardPadding = 8.dp,
+                routeObject = currentRouteObject,
+                pointRadius = 1.dp
+            )
 
-        // 操作按钮列
-        RouteActionButtons(
-            onRouteClick = onImportExportClick
-        )
-    }
-}
-
-/**
- * 从 JSON 加载路径数据（使用 RouteObject 数据模型）
- */
-private fun loadRouteFromJson(file: File): RouteObject? {
-    return try {
-        val jsonText = FileHelper.readText(file)
-        val gson = Gson()
-        val routeObject = gson.fromJson(jsonText, RouteObject::class.java)
-        
-        Log.d("RouteModeView", "Loaded route: ${routeObject.name}, type: ${routeObject.meta.type}, version: ${routeObject.meta.version}")
-        Log.d("RouteModeView", "Loaded ${routeObject.points.size} points")
-        
-        routeObject
-    } catch (e: Exception) {
-        Log.e("RouteModeView", "Error loading route from JSON: ${e.message}", e)
-        null
+            // 操作按钮列
+            RouteActionButtons(
+                onRouteClick = onImportExportClick
+            )
+        }
+        Button(
+            onClick = {
+                if (currentRouteObject == null) {
+                    Toast.makeText(context, "Select a route", Toast.LENGTH_SHORT).show()
+                } else {
+                    waypointActivityLauncher.launch(
+                        Intent(context, WaypointActivity::class.java).apply {
+                            putExtra("selectedRoute",
+                                viewModel.selectedMockRoute?.file?.absolutePath
+                            )
+                        }
+                    )
+                }
+            }
+        ) {
+            Text("Waypoints")
+        }
     }
 }
 
@@ -151,6 +165,7 @@ fun RouteSelector(
         },
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
     ) {
+        @Suppress("DEPRECATION")
         OutlinedTextField(
             value = selectedName,
             onValueChange = {},
