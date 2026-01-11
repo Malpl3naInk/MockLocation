@@ -148,17 +148,21 @@ private fun mapPointsToCanvasInternal(
 fun LatLngScatter(
     modifier: Modifier = Modifier,
     routeObject: RouteObject? = null,
-    pointRadius: Dp = 6.dp,
+    pointRadius: Dp = 3.dp,
     pointColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     strokeWidthDp: Dp = 1.dp,
-    paddingDp: Dp = 8.dp,            // 绘图 Padding
-    cardPadding: Dp = 16.dp,         // Card 内部 Padding
+    paddingDp: Dp = 8.dp,                                               // 绘图 Padding
+    cardPadding: Dp = 16.dp,                                            // Card 内部 Padding
+    highlightPointId: Int? = null,                                      // 需要高亮的点的 ID（null 表示无高亮）
+    highlightBorderColor: Color = MaterialTheme.colorScheme.outline,    // 高亮边框颜色
+    highlightBorderWidth: Dp = 1.dp,                                    // 高亮边框宽度
     onPointClick: ((index: Int, point: RoutePoint) -> Unit)? = null
 ) {
     val density = LocalDensity.current
     val prPx = with(density) { pointRadius.toPx() }
     val strokePx = with(density) { strokeWidthDp.toPx() }
     val paddingPx = with(density) { paddingDp.toPx() }
+    val highlightBorderPx = with(density) { highlightBorderWidth.toPx() }
 
     // 从 RouteObject 获取点列表
     val points = routeObject?.points ?: emptyList()
@@ -205,6 +209,15 @@ fun LatLngScatter(
             )
 
             // 连接线（只有两端点类型相同时才使用类型颜色，否则使用默认颜色）
+            val hasHighlight = highlightPointId != null
+            
+            // 获取高亮点的连接关系
+            val highlightedConnections = if (hasHighlight) {
+                points.find { it.id == highlightPointId }?.connects?.toSet() ?: emptySet()
+            } else {
+                emptySet()
+            }
+            
             for (i in points.indices) {
                 val startPoint = points[i]
                 val start = mapped[i]
@@ -220,10 +233,19 @@ fun LatLngScatter(
                     val endType = endPoint.getPointType()
                     
                     // 只有两端点类型相同时使用类型颜色，否则使用默认颜色（R）
-                    val lineColor = if (startType == endType) {
+                    val baseLineColor = if (startType == endType) {
                         startType.getColor()
                     } else {
                         PointType.R.getColor()
+                    }
+                    
+                    // 如果有高亮点，判断该连接线是否与高亮点相关
+                    val lineColor = if (hasHighlight) {
+                        val isRelatedToHighlight = startPoint.id == highlightPointId || 
+                                                   endPoint.id == highlightPointId
+                        if (isRelatedToHighlight) baseLineColor else baseLineColor.copy(alpha = 0.2f)
+                    } else {
+                        baseLineColor
                     }
                     
                     val path = Path().apply {
@@ -234,9 +256,30 @@ fun LatLngScatter(
                 }
             }
 
-            // 点
-            for (pt in mapped) {
-                drawCircle(pointColor, prPx, pt)
+            // 点（先绘制高亮边框，再绘制点本身）
+            for (i in mapped.indices) {
+                val pt = mapped[i]
+                val pointId = points[i].id
+                // 判断该点是否应该高亮（是高亮点本身或其连接的点）
+                val isHighlighted = pointId == highlightPointId || pointId in highlightedConnections
+                
+                // 绘制当前选择点边框
+                if (isHighlighted && pointId == highlightPointId) {
+                    drawCircle(
+                        color = highlightBorderColor,
+                        radius = prPx + highlightBorderPx + 3,
+                        center = pt,
+                        style = Stroke(width = highlightBorderPx)
+                    )
+                }
+                
+                // 绘制点本身，如果有高亮且当前点不需要高亮，降低亮度
+                val finalPointColor = if (hasHighlight && !isHighlighted) {
+                    pointColor.copy(alpha = 0.2f)
+                } else {
+                    pointColor
+                }
+                drawCircle(finalPointColor, prPx, pt)
             }
         }
     }

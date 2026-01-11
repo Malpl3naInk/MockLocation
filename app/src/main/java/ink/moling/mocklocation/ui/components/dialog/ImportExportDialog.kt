@@ -127,6 +127,7 @@ fun ImportExportDialog(
         title = { Text("Manage routes") },
         text = {
             Column {
+                @Suppress("DEPRECATION")
                 TabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = Color.Transparent
@@ -246,7 +247,7 @@ private fun RouteFileList() {
                         )
                     }
             )
-
+            @Suppress("DEPRECATION")
             Divider(thickness = 0.5.dp)
         }
     }

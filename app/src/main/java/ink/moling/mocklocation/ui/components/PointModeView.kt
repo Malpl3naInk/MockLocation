@@ -61,7 +61,7 @@ fun PointModeView(
                 .weight(1f)
                 .padding(end = 8.dp)
         ) {
-
+            @Suppress("DEPRECATION")
             OutlinedTextField(
                 value = viewModel.selectedMockPoint?.name ?: "",
                 onValueChange = {},

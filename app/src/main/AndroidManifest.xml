@@ -40,6 +40,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:theme="@style/Theme.MockLocation">
+        </activity>
+        <activity
+            android:name=".WaypointActivity"
+            android:theme="@style/Theme.MockLocation">
+        </activity>
         <service
             android:name=".service.MockLocationService"
             android:exported="false" />
