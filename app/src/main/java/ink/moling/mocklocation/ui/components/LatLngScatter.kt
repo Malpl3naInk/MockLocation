@@ -156,6 +156,9 @@ fun LatLngScatter(
     highlightPointId: Int? = null,                                      // 需要高亮的点的 ID（null 表示无高亮）
     highlightBorderColor: Color = MaterialTheme.colorScheme.outline,    // 高亮边框颜色
     highlightBorderWidth: Dp = 1.dp,                                    // 高亮边框宽度
+    currentLocation: Pair<Double, Double>? = null,                      // 当前位置 (lat, lng)
+    currentLocationColor: Color = Color(0xFFFF5722),             // 当前位置点颜色
+    currentLocationRadius: Dp = 3.dp,                                   // 当前位置点半径
     onPointClick: ((index: Int, point: RoutePoint) -> Unit)? = null
 ) {
     val density = LocalDensity.current
@@ -163,6 +166,7 @@ fun LatLngScatter(
     val strokePx = with(density) { strokeWidthDp.toPx() }
     val paddingPx = with(density) { paddingDp.toPx() }
     val highlightBorderPx = with(density) { highlightBorderWidth.toPx() }
+    val currentLocationPx = with(density) { currentLocationRadius.toPx() }
 
     // 从 RouteObject 获取点列表
     val points = routeObject?.points ?: emptyList()
@@ -280,6 +284,52 @@ fun LatLngScatter(
                     pointColor
                 }
                 drawCircle(finalPointColor, prPx, pt)
+            }
+
+            // 绘制当前位置
+            currentLocation?.let { (lat, lng) ->
+                val m = latLngToMercator(lat, lng)
+                
+                // 计算当前位置在画布上的原始坐标
+                val availW = (size.width - paddingPx * 2).coerceAtLeast(0f)
+                val availH = (size.height - paddingPx * 2).coerceAtLeast(0f)
+                
+                val xRange = (bounds.maxLng - bounds.minLng).toFloat().coerceAtLeast(1e-12f)
+                val yRange = (bounds.maxLat - bounds.minLat).toFloat().coerceAtLeast(1e-12f)
+                
+                val scale = min(availW / xRange, availH / yRange)
+                val drawW = xRange * scale
+                val drawH = yRange * scale
+                
+                val offsetX = paddingPx + (availW - drawW) / 2f
+                val offsetY = paddingPx + (availH - drawH) / 2f
+                
+                var x = ((m.x - bounds.minLng).toFloat() * scale) + offsetX
+                var y = (drawH - (m.y - bounds.minLat).toFloat() * scale) + offsetY
+                
+                // 计算绘制区域的边界
+                val minX = paddingPx
+                val maxX = size.width - paddingPx
+                val minY = paddingPx
+                val maxY = size.height - paddingPx
+                
+                // 如果当前位置超出边界，将其限制在边框上
+                x = x.coerceIn(minX, maxX)
+                y = y.coerceIn(minY, maxY)
+                
+                val currentPos = Offset(x, y)
+                
+                // 绘制当前位置点（外圈白色边框，内圈颜色）
+                drawCircle(
+                    color = Color.White,
+                    radius = currentLocationPx + 2f,
+                    center = currentPos
+                )
+                drawCircle(
+                    color = currentLocationColor,
+                    radius = currentLocationPx,
+                    center = currentPos
+                )
             }
         }
     }

@@ -39,9 +39,10 @@ import ink.moling.mocklocation.ui.components.LatLngScatter
 fun WaypointScreen(
     selectedRoute: RouteObject
 ) {
-    var selectedRouteName by remember { mutableStateOf("") }
+    var selectedRouteName       by remember { mutableStateOf("") }
     var highlightedRoutePointId by remember { mutableStateOf<Int?>(null) }
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var routePointRadius        by remember { mutableStateOf(3.dp) }
+    var selectedTab             by remember { mutableIntStateOf(0) }
     val tabs = listOf("Route Points", "Waypoints")
     selectedRouteName = selectedRoute.name
 
@@ -81,6 +82,7 @@ fun WaypointScreen(
                     LatLngScatter(
                         modifier = Modifier.fillMaxSize(),
                         routeObject = selectedRoute,
+                        pointRadius = routePointRadius,
                         highlightPointId = highlightedRoutePointId
                     )
                 }
@@ -97,6 +99,11 @@ fun WaypointScreen(
                             selected = selectedTab == index,
                             onClick = {
                                 selectedTab = index
+                                routePointRadius = when (index) {
+                                    0 -> 3.dp
+                                    1 -> 0.dp
+                                    else -> 3.dp
+                                }
                             },
                             text = { Text(title) }
                         )
