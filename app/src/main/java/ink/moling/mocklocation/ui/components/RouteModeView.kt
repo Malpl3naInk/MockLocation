@@ -88,7 +88,11 @@ fun RouteModeView(
                 paddingDp = 0.dp,
                 cardPadding = 8.dp,
                 routeObject = currentRouteObject,
-                pointRadius = 1.dp
+                pointRadius = 1.dp,
+                currentLocation = Pair(
+                    viewModel.fusedLocation.value?.lat ?: 51.476853,
+                    viewModel.fusedLocation.value?.lng ?: 0.0
+                )
             )
 
             // 操作按钮列
