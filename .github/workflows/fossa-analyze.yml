@@ -1,0 +1,76 @@
+name: FOSSA Scan
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  fossa:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整 Git 历史以便 FOSSA 分析
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle  # 添加 Gradle 缓存
+
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-wrapper-
+
+      - name: Cache Gradle Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/build-cache-*
+          key: ${{ runner.os }}-gradle-build-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-build-
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Create local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Build project to resolve dependencies
+        run: ./gradlew assembleDebug --build-cache --parallel --daemon --no-watch-fs
+
+      - name: Install FOSSA CLI
+        run: |
+          curl -fsSL https://get.fossa.com/install.sh | bash
+          echo "$HOME/.fossa/bin" >> $GITHUB_PATH
+
+      - name: Verify FOSSA CLI
+        run: fossa --version
+
+      - name: Run FOSSA Analyze (Gradle)
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        run: |
+          fossa analyze \
+            --debug \
+            --branch ${{ github.ref_name }}
+
+      - name: Run FOSSA Test (optional, policy check)
+        if: github.event_name == 'pull_request'
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        run: |
+          fossa test
+        continue-on-error: true  # 不阻止 PR，仅作为警告

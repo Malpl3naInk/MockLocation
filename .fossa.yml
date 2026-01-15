@@ -1,0 +1,18 @@
+version: 3
+
+project:
+  id: mocklocation
+  name: MockLocation
+
+targets:
+  only:
+    - type: gradle
+      path: .
+
+paths:
+  exclude:
+    - build/
+    - .gradle/
+    - app/build/
+    - "**/*.apk"
+    - "**/*.jar"
