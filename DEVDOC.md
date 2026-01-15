@@ -20,3 +20,8 @@ MocakLocation
 │  └─extensions
 └─viewmodel
 ```
+
+## Service
+
+### LocationService
+

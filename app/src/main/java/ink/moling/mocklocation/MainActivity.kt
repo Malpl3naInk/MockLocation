@@ -2,12 +2,15 @@ package ink.moling.mocklocation
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +23,7 @@ import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.ui.MainScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.viewmodel.MainViewModel
+import androidx.core.net.toUri
 
 class MainActivity : ComponentActivity() {
     private lateinit var connection: ServiceConnection
@@ -40,7 +44,7 @@ class MainActivity : ComponentActivity() {
         ActivityCompat.checkSelfPermission(this, permission) ==
                 PackageManager.PERMISSION_GRANTED
 
-    private fun requestPermissions() {
+    private fun requestCommonPermissions() {
         val perms = mutableListOf<String>()
         // 前台定位
         if (!hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -67,10 +71,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun requestOverlayPermission() {
+        if (!Settings.canDrawOverlays(this)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                "package:${this.packageName}".toUri()
+            )
+            startActivity(intent)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        requestPermissions()
+        requestCommonPermissions()
+        requestOverlayPermission()
 
         setContent {
             val viewModel: MainViewModel = viewModel()
