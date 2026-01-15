@@ -32,6 +32,34 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-wrapper-
+
+      - name: Cache Gradle Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/build-cache-*
+          key: ${{ runner.os }}-gradle-build-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-build-
+
+      - name: Cache Kotlin Compiler
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.kotlin
+          key: ${{ runner.os }}-kotlin-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-kotlin-
+
       - name: Decode Keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_FILE_BASE64 }}
@@ -49,9 +77,9 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            ./gradlew assembleRelease -PACTION -PVERSION_SUFFIX=${{ inputs.version_suffix }}
+            ./gradlew assembleRelease -PACTION -PVERSION_SUFFIX=${{ inputs.version_suffix }} --build-cache --parallel --daemon --no-watch-fs
           else
-            ./gradlew assembleRelease -PACTION -PVERSION_SUFFIX=alpha
+            ./gradlew assembleRelease -PACTION -PVERSION_SUFFIX=alpha --build-cache --parallel --daemon --no-watch-fs
           fi
 
       - name: Upload APK
