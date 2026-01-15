@@ -16,3 +16,8 @@ paths:
     - app/build/
     - "**/*.apk"
     - "**/*.jar"
+
+# Gradle 特定配置
+gradle:
+  # 禁用 configuration cache 以兼容 FOSSA CLI
+  gradle-options: "--no-configuration-cache"

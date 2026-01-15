@@ -87,3 +87,77 @@ jobs:
         with:
           name: app-release-${{ github.event_name == 'workflow_dispatch' && inputs.version_suffix || 'alpha' }}
           path: app/build/outputs/apk/release/*.apk
+
+  # FOSSA 依赖扫描 - 在构建成功后执行
+  fossa:
+    runs-on: ubuntu-latest
+    needs: build  # 依赖于 build job 成功
+    # 只在 push 到主分支或 PR 时运行，跳过手动触发
+    if: github.event_name != 'workflow_dispatch'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整 Git 历史以便 FOSSA 分析
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-wrapper-
+
+      - name: Cache Gradle Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/build-cache-*
+          key: ${{ runner.os }}-gradle-build-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-build-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Create local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Resolve dependencies for FOSSA analysis
+        run: ./gradlew :app:dependencies --build-cache --daemon
+
+      - name: Install FOSSA CLI
+        run: |
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | sudo bash
+          echo "$HOME/.fossa/bin" >> $GITHUB_PATH
+
+      - name: Verify FOSSA CLI
+        run: fossa --version
+
+      - name: Run FOSSA Analyze
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        run: |
+          fossa analyze \
+            --debug \
+            --branch ${{ github.ref_name }} \
+            --gradle-options "--no-configuration-cache"
+
+      - name: Run FOSSA Test (Policy Check)
+        if: github.event_name == 'pull_request'
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        run: |
+          fossa test
+        continue-on-error: true  # 不阻止 PR，仅作为警告
