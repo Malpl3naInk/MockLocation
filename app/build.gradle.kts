@@ -5,6 +5,34 @@ plugins {
     kotlin("kapt")
 }
 
+// ===== Version Build =====
+fun gitCommitHash(): String {
+    return try {
+        val output = providers.exec {
+            commandLine("git", "rev-parse", "--short", "HEAD")
+        }.standardOutput.asText.get().trim()
+        output
+    } catch (_: Exception) {
+        "unknown"
+    }
+}
+
+fun gitCommitCount(): Int {
+    return try {
+        val output = providers.exec {
+            commandLine("git", "rev-list", "--count", "HEAD")
+        }.standardOutput.asText.get().trim()
+        output.toInt()
+    } catch (_: Exception) {
+        0
+    }
+}
+
+// ===== Version Base =====
+val versionMajor = 1
+val versionMinor = 0
+val versionPatch = 0
+
 android {
     namespace = "ink.moling.mocklocation"
     compileSdk {
@@ -15,14 +43,43 @@ android {
         applicationId = "ink.moling.mocklocation"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = gitCommitCount()
+        versionName = "$versionMajor.$versionMinor.$versionPatch"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = System.getenv("KEYSTORE_FILE")?.let { file(it) }
+                ?: findProperty("KEYSTORE_FILE")?.let { file(it.toString()) }
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+                ?: findProperty("KEYSTORE_PASSWORD")?.toString()
+            keyAlias = System.getenv("KEY_ALIAS")
+                ?: findProperty("KEY_ALIAS")?.toString()
+            keyPassword = System.getenv("KEY_PASSWORD")
+                ?: findProperty("KEY_PASSWORD")?.toString()
+        }
+    }
+
     buildTypes {
+        val isAction = project.hasProperty("ACTION")
+        val versionSuffix = findProperty("VERSION_SUFFIX")?.toString() ?: "alpha"
+
+        val versionPre = if (isAction) "-$versionSuffix" else ""
+        val versionBuild    = if (isAction) {
+            "+git.${gitCommitHash()}"
+        } else {
+            "+local.${gitCommitCount()}"
+        }
+        debug {
+            versionNameSuffix = versionPre + versionBuild
+        }
         release {
+            signingConfig = signingConfigs.getByName("release")
+            if (isAction) {
+                versionNameSuffix = versionPre + versionBuild
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
