@@ -7,18 +7,13 @@ import ink.moling.mocklocation.data.db.AppDatabase
 import ink.moling.mocklocation.data.db.MockPointEntity
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.RouteItem
-import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
-import ink.moling.mocklocation.service.MockLocationService
+import ink.moling.mocklocation.service.locationService.LocationService
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -30,7 +25,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val mockStatus = MockServiceStatusRepository.state
 
     val serviceBinder =
-        MutableStateFlow<MockLocationService.MockLocationServiceBinder?>(null)
+        MutableStateFlow<LocationService.MockLocationServiceBinder?>(null)
 
     private val _needStartService = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val needStartService = _needStartService.asSharedFlow()
@@ -38,9 +33,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var pendingAction: (() -> Unit)? = null
 
     fun onServiceBinderReady(
-        binder: MockLocationService.MockLocationServiceBinder
+        binder: LocationService.MockLocationServiceBinder
     ) {
         serviceBinder.value = binder
+
+        // 订阅位置流
+        viewModelScope.launch {
+            binder.locationFlow().collect { location ->
+                _location.value = location
+            }
+        }
+
         pendingAction?.invoke()
         pendingAction = null
     }
@@ -68,69 +71,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // =====================================================
-    // 3. 定位候选（GPS / Network）
+    // 3. 位置数据流（来自 MockLocationService）
     // =====================================================
 
-    private val _gpsFlow = MutableStateFlow<CandidateLocation?>(null)
-    val gpsFlow: StateFlow<CandidateLocation?> = _gpsFlow.asStateFlow()
-
-    private val _netFlow = MutableStateFlow<CandidateLocation?>(null)
-    val netFlow: StateFlow<CandidateLocation?> = _netFlow.asStateFlow()
-
-    private var lastGpsAltitude: Double? = null
-
-    fun updateGpsCandidate(c: CandidateLocation) {
-        _gpsFlow.value = c
-        c.alt?.let { lastGpsAltitude = it }
-    }
-
-    fun updateNetCandidate(c: CandidateLocation) {
-        _netFlow.value = c
-    }
+    private val _location = MutableStateFlow<CandidateLocation?>(null)
+    
+    /**
+     * 当前位置流，来自 MockLocationService
+     * - 未模拟时：显示真实位置（GPS/Network 融合）
+     * - 模拟时：显示模拟位置
+     */
+    val location: StateFlow<CandidateLocation?> = _location.asStateFlow()
 
     // =====================================================
-    // 4. 定位融合（页面最终只看这个）
+    // 4. Mock 行为（命令 Service）
     // =====================================================
 
-    private fun chooseBest(
-        gps: CandidateLocation?,
-        net: CandidateLocation?
-    ): CandidateLocation? {
-        return when {
-            gps == null -> net
-            net == null -> gps
-            gps.accuracy <= net.accuracy -> gps
-            else -> net
-        }
-    }
-
-    private fun finalizeAltitude(
-        chosen: CandidateLocation
-    ): CandidateLocation {
-        val alt = when (chosen.source) {
-            Source.GPS -> chosen.alt
-            Source.NETWORK -> lastGpsAltitude
-        }
-        return chosen.copy(alt = alt)
-    }
-
-    val fusedLocation: StateFlow<CandidateLocation?> =
-        combine(gpsFlow, netFlow) { gps, net ->
-            chooseBest(gps, net)
-        }
-            .map { chosen ->
-                chosen?.let { finalizeAltitude(it) }
-            }
-            .stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5_000),
-                null
-            )
-
-    // =====================================================
-    // 5. Mock 行为（命令 Service）
-    // =====================================================
-
+    /**
+     * 设置模拟位置（静态点）
+     */
     fun setMockPosition(lat: Double, lng: Double, alt: Double) {
         val binder = serviceBinder.value
         if (binder == null) {
@@ -143,8 +102,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         binder.setStaticPoint(lat, lng, alt)
     }
 
+    /**
+     * 停止模拟位置，恢复真实位置
+     */
+    fun stopMockPosition() {
+        serviceBinder.value?.stopSimulation()
+    }
+
     // =====================================================
-    // 6. 本地路径点存储
+    // 5. 本地路径点存储
     // =====================================================
 
     private val mockPointDao by lazy {

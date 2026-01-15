@@ -48,8 +48,10 @@
             android:name=".WaypointActivity"
             android:theme="@style/Theme.MockLocation">
         </activity>
+
         <service
-            android:name=".service.MockLocationService"
+            android:name=".service.locationService.LocationService"
+            android:foregroundServiceType="location"
             android:exported="false" />
     </application>
 

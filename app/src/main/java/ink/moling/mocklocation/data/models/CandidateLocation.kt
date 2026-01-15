@@ -1,6 +1,6 @@
 package ink.moling.mocklocation.data.models
 
-enum class Source { GPS, NETWORK }
+enum class Source { GPS, NETWORK, MOCK }
 
 data class CandidateLocation(
     val lat: Double,

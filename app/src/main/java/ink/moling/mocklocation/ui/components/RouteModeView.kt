@@ -90,8 +90,8 @@ fun RouteModeView(
                 routeObject = currentRouteObject,
                 pointRadius = 1.dp,
                 currentLocation = Pair(
-                    viewModel.fusedLocation.value?.lat ?: 51.476853,
-                    viewModel.fusedLocation.value?.lng ?: 0.0
+                    viewModel.location.value?.lat ?: 51.476853,
+                    viewModel.location.value?.lng ?: 0.0
                 )
             )
 
