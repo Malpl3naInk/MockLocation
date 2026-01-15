@@ -148,11 +148,13 @@ jobs:
       - name: Run FOSSA Analyze
         env:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+          # 禁用 Gradle Configuration Cache 以兼容 FOSSA CLI
         run: |
+          export GRADLE_OPTS="-Dorg.gradle.configuration-cache=false"
+          ./gradlew --stop
           fossa analyze \
             --debug \
-            --branch ${{ github.ref_name }} \
-            --gradle-options "--no-configuration-cache"
+            --branch ${{ github.ref_name }}
 
       - name: Run FOSSA Test (Policy Check)
         if: github.event_name == 'pull_request'
