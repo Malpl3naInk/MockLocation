@@ -1,13 +1,21 @@
 name: FOSSA Scan
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
+  # 在 Android CI 工作流完成后自动触发
+  workflow_run:
+    workflows: ["Android CI"]
+    types:
+      - completed
+    branches: [main, master]
+  
+  # 保留手动触发选项
+  workflow_dispatch:
 
 jobs:
   fossa:
     runs-on: ubuntu-latest
+    # 只在前置工作流成功时执行（如果是 workflow_run 触发）
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout repository
@@ -48,12 +56,13 @@ jobs:
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-      - name: Build project to resolve dependencies
-        run: ./gradlew assembleDebug --build-cache --parallel --daemon --no-watch-fs
+      - name: Resolve dependencies for FOSSA analysis
+        # 下载并解析所有依赖，但不执行完整构建，节省时间
+        run: ./gradlew :app:dependencies --build-cache --daemon
 
       - name: Install FOSSA CLI
         run: |
-          curl -fsSL https://get.fossa.com/install.sh | bash
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | sudo bash
           echo "$HOME/.fossa/bin" >> $GITHUB_PATH
 
       - name: Verify FOSSA CLI
@@ -68,7 +77,8 @@ jobs:
             --branch ${{ github.ref_name }}
 
       - name: Run FOSSA Test (optional, policy check)
-        if: github.event_name == 'pull_request'
+        # 在 PR 触发的构建完成后运行，或手动触发时跳过
+        if: github.event.workflow_run.event == 'pull_request'
         env:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
         run: |
