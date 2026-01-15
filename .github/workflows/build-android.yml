@@ -1,0 +1,61 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+  workflow_dispatch:  # 添加手动触发
+    inputs:
+      version_suffix:
+        description: 'Version suffix'
+        required: false
+        default: 'beta'
+        type: choice
+        options:
+          - alpha
+          - beta
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整的 git 历史，用于 gitCommitCount
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_FILE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/keystore.jks
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build Release APK
+        env:
+          KEYSTORE_FILE: ${{ github.workspace }}/keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ./gradlew assembleRelease -PACTION -PVERSION_SUFFIX=${{ inputs.version_suffix }}
+          else
+            ./gradlew assembleRelease -PACTION -PVERSION_SUFFIX=alpha
+          fi
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ github.event_name == 'workflow_dispatch' && inputs.version_suffix || 'alpha' }}
+          path: app/build/outputs/apk/release/*.apk
