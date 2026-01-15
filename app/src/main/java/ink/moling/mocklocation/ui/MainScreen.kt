@@ -80,7 +80,7 @@ fun MainScreen(
     val focusManager = LocalFocusManager.current
 
     val mockStatus by viewModel.mockStatus.collectAsState()
-    val fusedLocation by viewModel.fusedLocation.collectAsState()
+    val location by viewModel.location.collectAsState()
     val isImportExportDialogOpen by viewModel.isImportExportDialogOpen.collectAsState()
     val isAddPointDialogOpen by viewModel.isAddPointDialogOpen.collectAsState()
     
@@ -143,7 +143,7 @@ fun MainScreen(
             // 位置服务信息显示
             LocationServiceInfo(
                 mockStatus = mockStatus,
-                fusedLocation = fusedLocation
+                location = location
             )
             
             // 模拟设置卡片（包含点位和路径模式）
@@ -187,18 +187,13 @@ fun MainScreen(
                 }
 
                 if (mockStatus == MockServiceState.Enabled || mockStatus is MockServiceState.Error) {
+                    // 停止模拟
+                    focusManager.clearFocus()
                     onStopMockLocation()
-                    MockServiceStatusRepository.state.value = MockServiceState.Disabled
                 } else if (mockStatus == MockServiceState.Disabled) {
+                    // 启动模拟
                     focusManager.clearFocus()
                     onStartMockLocation()
-                    if (mode == "Point") {
-                        val point = selected as MockPointEntity
-                        viewModel.setMockPosition(point.latitude, point.longitude, 48.0)
-                    } else {
-                        /* TODO */
-                    }
-                    MockServiceStatusRepository.state.value = MockServiceState.Initializing
                 }
             },
             onSettings = {
@@ -332,7 +327,7 @@ fun ModeToggleSwitch(
 @Composable
 fun LocationServiceInfo(
     mockStatus: MockServiceState,
-    fusedLocation: CandidateLocation?
+    location: CandidateLocation?
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -354,7 +349,7 @@ fun LocationServiceInfo(
             }
             Column(modifier = Modifier.padding(all = 12.dp)) {
                 Text(
-                    text = fusedLocation?.let {
+                    text = location?.let {
                         "@%.6f,%.6f#%.2f".format(
                             it.lat,
                             it.lng,
@@ -363,7 +358,7 @@ fun LocationServiceInfo(
                     } ?: "@0.000000,0.000000#0.00"
                 )
                 Text(
-                    text = fusedLocation?.let {
+                    text = location?.let {
                         OpenLocationCode.encode(it.lat, it.lng, 11)
                     } ?: ""
                 )
