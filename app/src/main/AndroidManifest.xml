@@ -2,21 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Android Q 新增的权限。允许用户授予对两个不同范围的位置访问权限：在使用中（仅限前景）或始终（前景和后台） -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <!-- 允许一个程序访问CellID或WiFi热点来获取粗略的位置 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- 通过GPS得到精确位置 -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <!-- 允许程序访问Wi-Fi网络状态信息 -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!-- 允许程序访问有关GSM网络信息 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- 允许程序发送通知 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- 允许程序创建前台服务 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- 允许程序创建模拟位置提供用于测试 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission
         android:name="android.permission.ACCESS_MOCK_LOCATION"
         tools:ignore="MockLocation,ProtectedPermissions" />
@@ -52,6 +45,9 @@
         <service
             android:name=".service.locationService.LocationService"
             android:foregroundServiceType="location"
+            android:exported="false" />
+        <service
+            android:name=".service.JoystickService"
             android:exported="false" />
     </application>
 

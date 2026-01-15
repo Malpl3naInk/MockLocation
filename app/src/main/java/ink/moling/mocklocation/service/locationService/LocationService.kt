@@ -2,14 +2,17 @@
 
 package ink.moling.mocklocation.service.locationService
 
+import android.Manifest
 import android.app.Service
 import android.content.Intent
 import android.location.LocationManager
 import android.os.Binder
 import android.os.IBinder
+import androidx.annotation.RequiresPermission
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
+import ink.moling.mocklocation.service.locationService.controller.JoystickServiceController
 import ink.moling.mocklocation.service.locationService.controller.MockLocationController
 import ink.moling.mocklocation.service.locationService.controller.NotificationController
 import ink.moling.mocklocation.service.locationService.controller.RealLocationController
@@ -26,6 +29,7 @@ class LocationService : Service() {
     private lateinit var realCtrl: RealLocationController
     private lateinit var mockCtrl: MockLocationController
     private lateinit var notifyCtrl: NotificationController
+    private lateinit var joystickCtrl: JoystickServiceController
 
     // 状态管理
     private lateinit var locationStateHolder: LocationStateHolder
@@ -38,6 +42,7 @@ class LocationService : Service() {
     private val binder = MockLocationServiceBinder()
     override fun onBind(intent: Intent?): IBinder = binder
 
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onCreate() {
         super.onCreate()
 
@@ -56,6 +61,7 @@ class LocationService : Service() {
             isMocking = { mockCtrl.isRunning() }
         ) { locationStateHolder.updateFromRealLocation(it) }
         notifyCtrl = NotificationController(this)
+        joystickCtrl = JoystickServiceController(this)
 
         // 只启动真实位置监听，模拟控制器在需要时才启动
         realCtrl.start()
@@ -86,6 +92,9 @@ class LocationService : Service() {
             // 设置模拟器并启动模拟控制器
             mockCtrl.setSimulator(StaticPointSimulator(lat, lng, alt))
             mockCtrl.start()
+
+            // 启动悬浮摇杆
+            joystickCtrl.start()
             
             // 停止真实位置监听，重置卡尔曼滤波器
             realCtrl.stop()
@@ -108,9 +117,13 @@ class LocationService : Service() {
             simulator = PathSimulator(path, speedMps)
         }*/
 
+        @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
         fun stopSimulation() {
             // 停止模拟控制器
             mockCtrl.stop()
+
+            // 关闭悬浮摇杆
+            joystickCtrl.stop()
 
             providerMgr.teardown()
             

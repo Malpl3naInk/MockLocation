@@ -118,6 +118,7 @@ dependencies {
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.savedstate.ktx)
     kapt(libs.androidx.room.compiler)
 
     // Gson for JSON serialization
@@ -125,6 +126,9 @@ dependencies {
 
     // Google Open Location Code
     implementation(libs.google.openlocationcode)
+
+    // LifecycleService
+    implementation(libs.androidx.lifecycle.service)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
