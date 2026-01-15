@@ -4,11 +4,6 @@ project:
   id: mocklocation
   name: MockLocation
 
-targets:
-  only:
-    - type: gradle
-      path: .
-
 paths:
   exclude:
     - build/
@@ -16,3 +11,13 @@ paths:
     - app/build/
     - "**/*.apk"
     - "**/*.jar"
+
+analyze:
+  modules:
+    - name: app-runtime
+      type: gradle
+      path: app
+      options:
+        gradle:
+          configurations:
+            - releaseRuntimeClasspath
