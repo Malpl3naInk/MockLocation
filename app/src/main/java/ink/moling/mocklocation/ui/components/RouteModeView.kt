@@ -36,7 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import ink.moling.mocklocation.WaypointActivity
+import ink.moling.mocklocation.activity.WaypointActivity
 import ink.moling.mocklocation.data.models.RouteItem
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.repository.MockServiceState
@@ -249,7 +249,7 @@ fun RouteActionButtons(
             Icon(
                 Icons.Outlined.Route,
                 contentDescription = "Route",
-                tint = Color.White
+                // tint = Color.White
             )
         }
 
@@ -262,7 +262,7 @@ fun RouteActionButtons(
             Icon(
                 Icons.Outlined.Edit,
                 contentDescription = "Edit",
-                tint = Color.White
+                // tint = Color.White
             )
         }
 
@@ -275,7 +275,7 @@ fun RouteActionButtons(
             Icon(
                 Icons.Outlined.Add,
                 contentDescription = "New",
-                tint = Color.White
+                // tint = Color.White
             )
         }
     }

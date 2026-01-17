@@ -126,7 +126,7 @@ fun PointModeView(
             Icon(
                 Icons.Outlined.Add,
                 contentDescription = "Add point",
-                tint = Color.White
+                // tint = Color.White
             )
         }
     }

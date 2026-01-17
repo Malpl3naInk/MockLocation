@@ -2,7 +2,26 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.license.report)
     kotlin("kapt")
+}
+
+licenseReport {
+    // Generate reports
+    generateCsvReport = false
+    generateHtmlReport = true
+    generateJsonReport = true
+    generateTextReport = false
+
+    // Copy reports - These options are ignored for Java projects
+    copyCsvReportToAssets = false
+    copyHtmlReportToAssets = false
+    copyJsonReportToAssets = true
+    copyTextReportToAssets = false
+    useVariantSpecificAssetDirs = false
+
+    // Show versions in the report - default is false
+    showVersions = true
 }
 
 // ===== Version Build =====

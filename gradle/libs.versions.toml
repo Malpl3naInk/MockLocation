@@ -15,6 +15,7 @@ gson = "2.10.1"
 openlocationcode = "1.0.4"
 lifecycleService = "2.8.7"
 savedstateKtx = "1.4.0"
+licenseReport = "0.9.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,4 +48,4 @@ androidx-savedstate-ktx = { group = "androidx.savedstate", name = "savedstate-kt
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
+license-report = { id = "com.jaredsburrows.license", version.ref = "licenseReport" }
