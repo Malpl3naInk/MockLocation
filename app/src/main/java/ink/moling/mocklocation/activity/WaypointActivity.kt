@@ -1,4 +1,4 @@
-package ink.moling.mocklocation
+package ink.moling.mocklocation.activity
 
 import android.os.Bundle
 import android.util.Log

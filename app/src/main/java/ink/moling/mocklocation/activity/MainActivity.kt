@@ -1,12 +1,10 @@
-package ink.moling.mocklocation
+package ink.moling.mocklocation.activity
 
 import android.Manifest
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -24,6 +22,7 @@ import ink.moling.mocklocation.ui.MainScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.viewmodel.MainViewModel
 import androidx.core.net.toUri
+import ink.moling.mocklocation.R
 
 class MainActivity : ComponentActivity() {
     private lateinit var connection: ServiceConnection

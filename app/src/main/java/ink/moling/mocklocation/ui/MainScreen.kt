@@ -46,8 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.openlocationcode.OpenLocationCode
-import ink.moling.mocklocation.SettingsActivity
-import ink.moling.mocklocation.data.db.MockPointEntity
+import ink.moling.mocklocation.activity.SettingsActivity
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.repository.MockServiceState
 import ink.moling.mocklocation.data.repository.MockServiceStatusRepository

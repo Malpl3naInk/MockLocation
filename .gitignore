@@ -15,3 +15,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+open_source_licenses.json
