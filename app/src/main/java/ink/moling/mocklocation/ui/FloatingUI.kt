@@ -4,7 +4,9 @@ import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,8 +26,9 @@ fun FloatingUI(
 ) {
     Box(
         modifier = Modifier
-            .size(56.dp)
-            .background(Color.Black.copy(alpha = 0.7f), CircleShape)
+            .height(112.dp)
+            .width(224.dp)
+            .background(Color.Black.copy(alpha = 0.7f))
             .pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()  // 消费事件，防止穿透

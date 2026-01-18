@@ -15,13 +15,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.service.locationService.LocationService
-import ink.moling.mocklocation.ui.MainScreen
+import ink.moling.mocklocation.ui.screen.MainScreen
+import ink.moling.mocklocation.ui.components.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.components.dialog.RequestPermissionDialog
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.utils.PermissionHelper
@@ -215,6 +217,17 @@ class MainActivity : ComponentActivity() {
                                 showOverlayPermissionDialog = false
                                 // 用户取消，不请求悬浮窗权限
                             }
+                        )
+                    }
+                    
+                    // 显示错误对话框
+                    val errorInfo by viewModel.errorInfo.collectAsState()
+                    errorInfo?.let { error ->
+                        ErrorDialog(
+                            onDismiss = { viewModel.clearError() },
+                            title = error.title,
+                            text = error.message,
+                            stackTrace = error.stackTrace
                         )
                     }
                     

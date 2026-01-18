@@ -13,8 +13,8 @@ import android.os.SystemClock
 import android.util.Log
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.Source
-import ink.moling.mocklocation.utils.LocationSimulator
-import ink.moling.mocklocation.utils.SimulatedLocation
+import ink.moling.mocklocation.utils.simulators.LocationSimulator
+import ink.moling.mocklocation.utils.simulators.SimulatedLocation
 
 const val HANDLER_MSG_ID = 0
 const val SERVICE_MOCK_LOC_HANDLER_NAME = "ServiceMockLocation"

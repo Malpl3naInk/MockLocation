@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import ink.moling.mocklocation.ui.WaypointScreen
+import ink.moling.mocklocation.ui.screen.WaypointScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.utils.loadRouteFromFile
 import java.io.File

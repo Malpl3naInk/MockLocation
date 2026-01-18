@@ -4,17 +4,22 @@ import android.location.Criteria
 import android.location.LocationManager
 import android.location.provider.ProviderProperties
 import android.os.Build
+import java.io.PrintWriter
+import java.io.StringWriter
 
 class TestProviderManager(
-    private val locationManager: LocationManager
+    private val locationManager: LocationManager,
+    private val onError: ((title: String, message: String, stackTrace: String) -> Unit)? = null
 ) {
 
-    fun setup() {
+    fun setup(): Boolean {
         removeGps()
-        addGps()
+        if (!addGps()) return false
 
         removeNetwork()
-        addNetwork()
+        if (!addNetwork()) return false
+        
+        return true
     }
 
     fun teardown() {
@@ -24,7 +29,7 @@ class TestProviderManager(
 
     // -------- GPS --------
 
-    private fun addGps() {
+    private fun addGps(): Boolean {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 locationManager.addTestProvider(
@@ -47,8 +52,14 @@ class TestProviderManager(
             locationManager.setTestProviderEnabled(
                 LocationManager.GPS_PROVIDER, true
             )
+            return true
         } catch (e: Exception) {
-            throw RuntimeException("GPS test provider setup failed", e)
+            onError?.invoke(
+                "GPS Provider Error",
+                "Failed to setup GPS test provider: ${e.message}",
+                getStackTraceString(e)
+            ) ?: throw RuntimeException("GPS test provider setup failed", e)
+            return false
         }
     }
 
@@ -65,7 +76,7 @@ class TestProviderManager(
 
     // -------- Network --------
 
-    private fun addNetwork() {
+    private fun addNetwork(): Boolean {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 locationManager.addTestProvider(
@@ -88,8 +99,14 @@ class TestProviderManager(
             locationManager.setTestProviderEnabled(
                 LocationManager.NETWORK_PROVIDER, true
             )
+            return true
         } catch (e: Exception) {
-            throw RuntimeException("Network test provider setup failed", e)
+            onError?.invoke(
+                "Network Provider Error",
+                "Failed to setup Network test provider: ${e.message}",
+                getStackTraceString(e)
+            ) ?: throw RuntimeException("Network test provider setup failed", e)
+            return false
         }
     }
 
@@ -102,5 +119,12 @@ class TestProviderManager(
                 LocationManager.NETWORK_PROVIDER
             )
         } catch (_: Exception) {}
+    }
+    
+    private fun getStackTraceString(e: Exception): String {
+        val sw = StringWriter()
+        val pw = PrintWriter(sw)
+        e.printStackTrace(pw)
+        return sw.toString()
     }
 }

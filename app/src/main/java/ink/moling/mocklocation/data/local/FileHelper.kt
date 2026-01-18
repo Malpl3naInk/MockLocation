@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.utils
+package ink.moling.mocklocation.data.local
 
 import android.content.Context
 import android.net.Uri

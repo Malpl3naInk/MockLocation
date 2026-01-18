@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui
+package ink.moling.mocklocation.ui.screen
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable

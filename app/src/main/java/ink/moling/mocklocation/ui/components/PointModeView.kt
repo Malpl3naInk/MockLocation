@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ink.moling.mocklocation.data.repository.MockServiceState
+import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.viewmodel.MainViewModel
 
 /**

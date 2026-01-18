@@ -3,12 +3,13 @@ package ink.moling.mocklocation.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import ink.moling.mocklocation.data.db.AppDatabase
-import ink.moling.mocklocation.data.db.MockPointEntity
+import ink.moling.mocklocation.data.local.db.AppDatabase
+import ink.moling.mocklocation.data.local.db.MockPointEntity
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.RouteItem
-import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
+import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.service.locationService.LocationService
+import ink.moling.mocklocation.data.local.PrefsHelper
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +18,45 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
+    
+    // =====================================================
+    // 数据库访问
+    // =====================================================
+    
+    private val mockPointDao by lazy {
+        AppDatabase
+            .getInstance(getApplication())
+            .mockPointDao()
+    }
+    
+    // =====================================================
+    // 选中的 Mock 目标（UI Selection）
+    // =====================================================
+    
+    var selectedMockPoint: MockPointEntity? = null
+        set(value) {
+            field = value
+            PrefsHelper.setSelectedPointId(getApplication(), value?.id)
+        }
+    
+    var selectedMockRoute: RouteItem? = null
+        set(value) {
+            field = value
+            PrefsHelper.setSelectedRoute(getApplication(), value)
+        }
+    
+    init {
+        // 从 SharedPreferences 恢复上次选择的模拟路径
+        selectedMockRoute = PrefsHelper.getSelectedRoute(getApplication())
+        
+        // 从 SharedPreferences 恢复上次选择的模拟点 ID，然后从数据库查询
+        val savedPointId = PrefsHelper.getSelectedPointId(getApplication())
+        if (savedPointId != null) {
+            viewModelScope.launch {
+                selectedMockPoint = mockPointDao.getById(savedPointId)
+            }
+        }
+    }
 
     // =====================================================
     // 1. Mock Service / 生命周期相关
@@ -43,6 +83,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _location.value = location
             }
         }
+        
+        // 订阅错误流
+        viewModelScope.launch {
+            binder.errorFlow().collect { error ->
+                _errorInfo.value = error
+            }
+        }
 
         pendingAction?.invoke()
         pendingAction = null
@@ -57,10 +104,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _isAddPointDialogOpen = MutableStateFlow(false)
     val isAddPointDialogOpen = _isAddPointDialogOpen.asStateFlow()
-
-    // 当前选中的 Mock 目标（UI Selection）
-    var selectedMockPoint: MockPointEntity? = null
-    var selectedMockRoute: RouteItem? = null
+    
+    private val _errorInfo = MutableStateFlow<LocationService.ErrorInfo?>(null)
+    val errorInfo = _errorInfo.asStateFlow()
 
     fun setImportExportDialogOpen(open: Boolean) {
         _isImportExportDialogOpen.value = open
@@ -68,6 +114,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setAddPointDialogOpen(open: Boolean) {
         _isAddPointDialogOpen.value = open
+    }
+    
+    fun clearError() {
+        _errorInfo.value = null
+        serviceBinder.value?.clearError()
     }
 
     // =====================================================
@@ -112,12 +163,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // =====================================================
     // 5. 本地路径点存储
     // =====================================================
-
-    private val mockPointDao by lazy {
-        AppDatabase
-            .getInstance(getApplication())
-            .mockPointDao()
-    }
 
     private val _points = MutableStateFlow<List<MockPointEntity>>(emptyList())
     val points: StateFlow<List<MockPointEntity>> = _points.asStateFlow()
