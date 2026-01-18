@@ -33,14 +33,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.activity.WaypointActivity
 import ink.moling.mocklocation.data.models.RouteItem
 import ink.moling.mocklocation.data.models.RouteObject
-import ink.moling.mocklocation.data.repository.MockServiceState
-import ink.moling.mocklocation.utils.FileHelper
+import ink.moling.mocklocation.data.local.repository.MockServiceState
+import ink.moling.mocklocation.data.local.FileHelper
 import ink.moling.mocklocation.utils.loadRouteFromFile
 import ink.moling.mocklocation.viewmodel.MainViewModel
 import org.json.JSONObject

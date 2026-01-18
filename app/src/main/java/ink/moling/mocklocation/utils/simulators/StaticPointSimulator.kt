@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.utils
+package ink.moling.mocklocation.utils.simulators
 
 class StaticPointSimulator(
     private var lat: Double,

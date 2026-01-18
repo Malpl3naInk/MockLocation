@@ -10,8 +10,8 @@ import android.os.Binder
 import android.os.IBinder
 import androidx.annotation.RequiresPermission
 import ink.moling.mocklocation.data.models.CandidateLocation
-import ink.moling.mocklocation.data.repository.MockServiceState
-import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
+import ink.moling.mocklocation.data.local.repository.MockServiceState
+import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.service.locationService.controller.JoystickServiceController
 import ink.moling.mocklocation.service.locationService.controller.MockLocationController
 import ink.moling.mocklocation.service.locationService.controller.NotificationController
@@ -20,7 +20,8 @@ import ink.moling.mocklocation.service.locationService.controller.TestProviderMa
 import ink.moling.mocklocation.service.locationService.state.LocationMode
 import ink.moling.mocklocation.service.locationService.state.LocationStateHolder
 import ink.moling.mocklocation.utils.KalmanFilter
-import ink.moling.mocklocation.utils.StaticPointSimulator
+import ink.moling.mocklocation.utils.simulators.StaticPointSimulator
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class LocationService : Service() {
@@ -37,6 +38,15 @@ class LocationService : Service() {
     
     // 系统服务
     private lateinit var locationManager: LocationManager
+    
+    // 错误状态
+    data class ErrorInfo(
+        val title: String,
+        val message: String,
+        val stackTrace: String
+    )
+    
+    private val _errorState = MutableStateFlow<ErrorInfo?>(null)
     
     // 数据绑定
     private val binder = MockLocationServiceBinder()
@@ -83,11 +93,36 @@ class LocationService : Service() {
     inner class MockLocationServiceBinder : Binder() {
         fun locationFlow(): StateFlow<CandidateLocation?> =
             locationStateHolder.state
+        
+        fun errorFlow(): StateFlow<ErrorInfo?> = _errorState
+        
+        fun clearError() {
+            _errorState.value = null
+        }
 
         fun setStaticPoint(lat: Double, lng: Double, alt: Double) {
             // 创建 TestProvider
-            providerMgr = TestProviderManager(locationManager)
-            providerMgr.setup()
+            providerMgr = TestProviderManager(
+                locationManager = locationManager,
+                onError = { title, message, stackTrace ->
+                    _errorState.value = ErrorInfo(title, message, stackTrace)
+                }
+            )
+            
+            // 尝试设置 TestProvider
+            val setupSuccess = providerMgr.setup()
+            
+            if (!setupSuccess) {
+                // 设置失败，清理并保持在真实定位模式
+                providerMgr.teardown()
+                // 确保真实位置监听正在运行
+                realCtrl.start()
+                // 更新通知显示为空闲状态
+                notifyCtrl.updateMode(LocationMode.Idle)
+                // 保持状态为已禁用
+                MockServiceStatusRepository.state.value = MockServiceState.Disabled
+                return
+            }
 
             // 设置模拟器并启动模拟控制器
             mockCtrl.setSimulator(StaticPointSimulator(lat, lng, alt))

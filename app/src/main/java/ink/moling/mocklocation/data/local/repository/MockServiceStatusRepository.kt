@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.data.repository
+package ink.moling.mocklocation.data.local.repository
 
 import kotlinx.coroutines.flow.MutableStateFlow
 

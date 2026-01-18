@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.data.db
+package ink.moling.mocklocation.data.local.db
 
 import android.content.Context
 import androidx.room.Database

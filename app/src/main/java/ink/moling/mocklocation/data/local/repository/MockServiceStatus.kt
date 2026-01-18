@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.data.repository
+package ink.moling.mocklocation.data.local.repository
 
 sealed class MockServiceState {
     object Disabled : MockServiceState()

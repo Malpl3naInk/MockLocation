@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui
+package ink.moling.mocklocation.ui.screen
 
 import android.content.Intent
 import android.widget.Toast
@@ -48,8 +48,8 @@ import androidx.compose.ui.unit.sp
 import com.google.openlocationcode.OpenLocationCode
 import ink.moling.mocklocation.activity.SettingsActivity
 import ink.moling.mocklocation.data.models.CandidateLocation
-import ink.moling.mocklocation.data.repository.MockServiceState
-import ink.moling.mocklocation.data.repository.MockServiceStatusRepository
+import ink.moling.mocklocation.data.local.repository.MockServiceState
+import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.ui.components.ExpandableCard
 import ink.moling.mocklocation.ui.components.PointModeView
 import ink.moling.mocklocation.ui.components.RectangleFloatingActionButton
@@ -57,7 +57,7 @@ import ink.moling.mocklocation.ui.components.RouteModeView
 import ink.moling.mocklocation.ui.components.dialog.AddPointDialog
 import ink.moling.mocklocation.ui.components.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.components.dialog.ImportExportDialog
-import ink.moling.mocklocation.utils.PrefsHelper
+import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.viewmodel.MainViewModel
 
 /**

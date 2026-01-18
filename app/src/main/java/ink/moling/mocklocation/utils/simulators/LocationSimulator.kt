@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.utils
+package ink.moling.mocklocation.utils.simulators
 
 interface LocationSimulator {
     /** 每一次 tick 调用，返回下一帧的位置 */

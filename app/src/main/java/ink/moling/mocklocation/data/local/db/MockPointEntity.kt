@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.data.db
+package ink.moling.mocklocation.data.local.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
