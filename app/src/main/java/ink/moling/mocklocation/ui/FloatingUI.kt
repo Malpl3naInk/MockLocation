@@ -30,7 +30,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.abs
+import ink.moling.mocklocation.utils.azimuthToDirection
 import kotlin.math.atan2
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -247,7 +247,7 @@ fun FloatingUI(
                     speedPercent = (joystickSpeed * 100).toInt()
                 }
                 Text(
-                    "方向: ${angle}° 速度: ${speedPercent}%",
+                    "${azimuthToDirection(angle)} ${angle}° 速度: ${speedPercent}%",
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 10.sp
                 )

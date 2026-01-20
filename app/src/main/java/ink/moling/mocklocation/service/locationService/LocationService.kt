@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 class LocationService : Service() {
     // 控制器
-    private lateinit var providerMgr: TestProviderManager
+    private var providerMgr: TestProviderManager? = null
     private lateinit var realCtrl: RealLocationController
     private lateinit var mockCtrl: MockLocationController
     private lateinit var notifyCtrl: NotificationController
@@ -61,6 +61,16 @@ class LocationService : Service() {
         // 初始化系统服务
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
 
+        // 初始化 TestProviderManager 并清理可能残留的 TestProvider
+        providerMgr = TestProviderManager(
+            locationManager = locationManager,
+            onError = { title, message, stackTrace ->
+                _errorState.value = ErrorInfo(title, message, stackTrace)
+            }
+        )
+        // 清理可能由于上次应用异常退出而残留的 TestProvider
+        providerMgr?.teardown()
+
         // 初始化控制器
         mockCtrl = MockLocationController(
             locationManager = locationManager
@@ -85,7 +95,7 @@ class LocationService : Service() {
         mockCtrl.stop()
         realCtrl.stop()
         notifyCtrl.stopForeground()
-        providerMgr.teardown()
+        providerMgr?.teardown()
         MockServiceStatusRepository.state.value = MockServiceState.Disabled
         super.onDestroy()
     }
@@ -100,21 +110,14 @@ class LocationService : Service() {
             _errorState.value = null
         }
 
+        @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
         fun setStaticPoint(lat: Double, lng: Double, alt: Double) {
-            // 创建 TestProvider
-            providerMgr = TestProviderManager(
-                locationManager = locationManager,
-                onError = { title, message, stackTrace ->
-                    _errorState.value = ErrorInfo(title, message, stackTrace)
-                }
-            )
-            
             // 尝试设置 TestProvider
-            val setupSuccess = providerMgr.setup()
+            val setupSuccess = providerMgr?.setup() ?: false
             
             if (!setupSuccess) {
                 // 设置失败，清理并保持在真实定位模式
-                providerMgr.teardown()
+                providerMgr?.teardown()
                 // 确保真实位置监听正在运行
                 realCtrl.start()
                 // 更新通知显示为空闲状态
@@ -160,7 +163,7 @@ class LocationService : Service() {
             // 关闭悬浮摇杆
             joystickCtrl.stop()
 
-            providerMgr.teardown()
+            providerMgr?.teardown()
             
             // 重启真实位置监听，重置卡尔曼滤波器
             realCtrl.start()
