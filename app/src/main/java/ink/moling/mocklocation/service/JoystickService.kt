@@ -2,7 +2,6 @@ package ink.moling.mocklocation.service
 
 import android.content.Intent
 import android.graphics.PixelFormat
-import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.WindowManager
@@ -50,6 +49,18 @@ class JoystickService : LifecycleService(), SavedStateRegistryOwner {
     }
 
     private fun showFloatingWindow() {
+        params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = 20
+            y = 300
+        }
+        
         composeView = ComposeView(this).apply {
             // 关键：手动设置三个 ViewTree owners
             setViewTreeLifecycleOwner(this@JoystickService)
@@ -68,38 +79,11 @@ class JoystickService : LifecycleService(), SavedStateRegistryOwner {
                 FloatingUI(
                     windowManager = windowManager,
                     composeView = composeView,
-                    params = layoutParams()
+                    params = params
                 )
             }
         }
 
-        params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            x = 0
-            y = 300
-        }
-
         windowManager.addView(composeView, params)
     }
-
-    private fun layoutParams(): WindowManager.LayoutParams {
-        return WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            x = 0
-            y = 300
-        }
-    }
-
 }
