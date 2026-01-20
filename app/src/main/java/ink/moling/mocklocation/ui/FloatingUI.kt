@@ -36,7 +36,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
-private val PI: Float = Math.PI.toFloat()
+private const val PI: Float = Math.PI.toFloat()
 
 @Composable
 fun JoystickControl(
