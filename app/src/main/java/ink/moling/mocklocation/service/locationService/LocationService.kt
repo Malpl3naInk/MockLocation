@@ -165,6 +165,9 @@ class LocationService : Service() {
 
             providerMgr?.teardown()
             
+            // 重置位置状态，允许真实位置更新 UI
+            locationStateHolder.stopMock()
+            
             // 重启真实位置监听，重置卡尔曼滤波器
             realCtrl.start()
             kf.reset()
