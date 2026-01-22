@@ -149,6 +149,9 @@ dependencies {
     // LifecycleService
     implementation(libs.androidx.lifecycle.service)
 
+    // Android Native Library
+    implementation(project(":native"))
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

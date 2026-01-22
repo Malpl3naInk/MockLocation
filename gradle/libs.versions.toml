@@ -16,6 +16,8 @@ openlocationcode = "1.0.4"
 lifecycleService = "2.8.7"
 savedstateKtx = "1.4.0"
 licenseReport = "0.9.8"
+appcompat = "1.7.1"
+material = "1.13.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,9 +45,12 @@ google-gson = { group = "com.google.code.gson", name = "gson", version.ref = "gs
 google-openlocationcode = { group = "com.google.openlocationcode", name = "openlocationcode", version.ref = "openlocationcode" }
 androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycleService" }
 androidx-savedstate-ktx = { group = "androidx.savedstate", name = "savedstate-ktx", version.ref = "savedstateKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 license-report = { id = "com.jaredsburrows.license", version.ref = "licenseReport" }
+android-library = { id = "com.android.library", version.ref = "agp" }

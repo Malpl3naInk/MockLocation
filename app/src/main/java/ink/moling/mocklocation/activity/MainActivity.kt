@@ -16,15 +16,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ink.moling.mocklocation.NativeLib
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.service.locationService.LocationService
-import ink.moling.mocklocation.ui.screen.MainScreen
 import ink.moling.mocklocation.ui.components.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.components.dialog.RequestPermissionDialog
+import ink.moling.mocklocation.ui.screen.MainScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.utils.PermissionHelper
 import ink.moling.mocklocation.utils.PermissionInfo
@@ -154,6 +155,10 @@ class MainActivity : ComponentActivity() {
         
         // 检查权限
         checkAndRequestPermissions()
+
+        // 测试 JNI 调用
+        val native = NativeLib()
+        Log.d(TAG, native.stringFromJNI())
 
         setContent {
             val viewModel: MainViewModel = viewModel()
