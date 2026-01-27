@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.service
+package ink.moling.mocklocation.service.joystickService
 
 import android.content.Intent
 import android.graphics.PixelFormat
@@ -60,7 +60,7 @@ class JoystickService : LifecycleService(), SavedStateRegistryOwner {
             x = 20
             y = 300
         }
-        
+
         composeView = ComposeView(this).apply {
             // 关键：手动设置三个 ViewTree owners
             setViewTreeLifecycleOwner(this@JoystickService)
