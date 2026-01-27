@@ -2,7 +2,7 @@ package ink.moling.mocklocation.service.locationService.controller
 
 import android.content.Context
 import android.content.Intent
-import ink.moling.mocklocation.service.JoystickService
+import ink.moling.mocklocation.service.joystickService.JoystickService
 
 class JoystickServiceController(
     private val context: Context

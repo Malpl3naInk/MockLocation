@@ -9,9 +9,10 @@ import android.location.LocationManager
 import android.os.Binder
 import android.os.IBinder
 import androidx.annotation.RequiresPermission
-import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
+import ink.moling.mocklocation.data.models.CandidateLocation
+import ink.moling.mocklocation.service.joystickService.state.JoystickStateHolder
 import ink.moling.mocklocation.service.locationService.controller.JoystickServiceController
 import ink.moling.mocklocation.service.locationService.controller.MockLocationController
 import ink.moling.mocklocation.service.locationService.controller.NotificationController
@@ -127,7 +128,10 @@ class LocationService : Service() {
                 return
             }
 
-            // 设置模拟器并启动模拟控制器
+            // 重置摇杆状态
+            JoystickStateHolder.reset()
+            
+            // 设置模拟器并启动模拟控制器（支持摇杆动态移动）
             mockCtrl.setSimulator(StaticPointSimulator(lat, lng, alt))
             mockCtrl.start()
 
@@ -157,6 +161,9 @@ class LocationService : Service() {
 
         @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
         fun stopSimulation() {
+            // 重置摇杆状态
+            JoystickStateHolder.reset()
+            
             // 停止模拟控制器
             mockCtrl.stop()
 
