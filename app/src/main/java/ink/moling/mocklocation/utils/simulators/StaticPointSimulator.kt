@@ -1,19 +1,85 @@
 package ink.moling.mocklocation.utils.simulators
 
+import android.util.Log
+import ink.moling.mocklocation.service.joystickService.state.JoystickStateHolder
+import kotlin.math.cos
+import kotlin.math.sin
+
+/**
+ * 静态点位模拟器，支持摇杆控制动态移动
+ * 
+ * @param lat 初始纬度
+ * @param lng 初始经度
+ * @param alt 初始海拔
+ * @param maxSpeedMps 最大速度（米/秒），默认为 5 m/s (约18 km/h，步行速度)
+ */
 class StaticPointSimulator(
     private var lat: Double,
     private var lng: Double,
-    private var alt: Double
+    private var alt: Double,
+    private var maxSpeedMps: Double = 5.0
 ) : LocationSimulator {
+    
+    private var currentBearing: Float = 0f
+    private var currentSpeed: Double = 0.0
+    
+    // 地球半径（米）
+    private val earthRadiusM = 6371000.0
 
     override fun next(deltaTimeMs: Long): SimulatedLocation {
-        return SimulatedLocation(
+        val joystickState = JoystickStateHolder.state.value
+        
+        // 如果摇杆有移动
+        if (joystickState.speed > 0.01f) {
+            // 计算实际速度（米/秒）
+            currentSpeed = maxSpeedMps * joystickState.speed
+            
+            // 更新方位角（转换为度数），当摇杆移动时同步方向
+            currentBearing = Math.toDegrees(joystickState.direction.toDouble()).toFloat()
+            Log.d("StaticPointSimulator", "direction(rad)=${joystickState.direction}, bearing(deg)=$currentBearing, speed=$currentSpeed")
+            
+            // 计算移动距离（米）
+            val deltaTimeS = deltaTimeMs / 1000.0
+            val distanceM = currentSpeed * deltaTimeS
+            
+            // 根据方向和距离计算新的经纬度
+            // 方向角：0为北，顺时针增加
+            val direction = joystickState.direction
+            
+            // 计算纬度变化
+            // 北方向为负Y轴，所以使用 cos
+            val deltaLat = distanceM * cos(direction.toDouble()) / earthRadiusM
+            lat += Math.toDegrees(deltaLat)
+            
+            // 计算经度变化
+            // 东方向为正X轴，所以使用 sin
+            val deltaLng = distanceM * sin(direction.toDouble()) / 
+                          (earthRadiusM * cos(Math.toRadians(lat)))
+            lng += Math.toDegrees(deltaLng)
+            
+            // 限制经纬度范围
+            lat = lat.coerceIn(-90.0, 90.0)
+            lng = when {
+                lng > 180.0 -> lng - 360.0
+                lng < -180.0 -> lng + 360.0
+                else -> lng
+            }
+        } else {
+            // 摇杆静止时，速度设为极小值（而不是0），这样 bearing 才会被系统识别为有效
+            // 如果 currentBearing 不为0（有过移动），则保持最小速度让方向显示
+            // 如果从未移动过（currentBearing 为0），则速度设为0
+            currentSpeed = if (currentBearing != 0f) 0.01 else 0.0
+        }
+        
+        val result = SimulatedLocation(
             lat = lat,
             lng = lng,
             alt = alt,
-            bearing = 0f,
-            speed = 0.0
+            bearing = currentBearing,  // 始终返回当前方向（移动时更新，静止时保持）
+            speed = currentSpeed
         )
+        
+        return result
     }
 
     fun updatePoint(lat: Double, lng: Double, alt: Double) {
@@ -21,4 +87,16 @@ class StaticPointSimulator(
         this.lng = lng
         this.alt = alt
     }
+    
+    /**
+     * 设置最大速度（米/秒）
+     */
+    fun setMaxSpeed(speedMps: Double) {
+        maxSpeedMps = speedMps.coerceAtLeast(0.1) // 最小速度 0.1 m/s
+    }
+    
+    /**
+     * 获取当前位置
+     */
+    fun getCurrentPosition() = Triple(lat, lng, alt)
 }

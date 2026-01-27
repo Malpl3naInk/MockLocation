@@ -48,7 +48,7 @@
             android:foregroundServiceType="location"
             android:exported="false" />
         <service
-            android:name=".service.JoystickService"
+            android:name=".service.joystickService.JoystickService"
             android:exported="false" />
     </application>
 

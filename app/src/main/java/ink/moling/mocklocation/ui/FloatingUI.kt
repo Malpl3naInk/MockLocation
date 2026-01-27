@@ -1,5 +1,6 @@
 package ink.moling.mocklocation.ui
 
+import android.util.Log
 import android.view.WindowManager
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -30,6 +31,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ink.moling.mocklocation.service.joystickService.state.JoystickStateHolder
 import ink.moling.mocklocation.utils.azimuthToDirection
 import kotlin.math.atan2
 import kotlin.math.min
@@ -245,9 +247,10 @@ fun FloatingUI(
                 if (joystickSpeed > 0) {
                     angle = Math.toDegrees(joystickDirection.toDouble()).toInt()
                     speedPercent = (joystickSpeed * 100).toInt()
+                    Log.d("FloatingUI", "angle=$angle")
                 }
                 Text(
-                    "${azimuthToDirection(angle)} ${angle}° 速度: ${speedPercent}%",
+                    "${azimuthToDirection(angle)} ${angle}° Spd: ${speedPercent}%",
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 10.sp
                 )
@@ -260,7 +263,10 @@ fun FloatingUI(
                 onMove = { direction, speed ->
                     joystickDirection = direction
                     joystickSpeed = speed
-                    // TODO: 在这里可以根据方向和速度更新模拟位置
+                    // 更新全局摇杆状态，供 StaticPointSimulator 使用
+                    // 注意：direction 是弧度，直接传递，不要转换成度数
+                    JoystickStateHolder.update(direction, speed)
+                    Log.d("FloatingUI", "direction(rad)=$direction, speed=$speed")
                 }
             )
             
