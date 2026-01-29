@@ -11,13 +11,11 @@ import kotlin.math.sin
  * @param lat 初始纬度
  * @param lng 初始经度
  * @param alt 初始海拔
- * @param maxSpeedMps 最大速度（米/秒），默认为 5 m/s (约18 km/h，步行速度)
  */
 class StaticPointSimulator(
     private var lat: Double,
     private var lng: Double,
     private var alt: Double,
-    private var maxSpeedMps: Double = 5.0
 ) : LocationSimulator {
     
     private var currentBearing: Float = 0f
@@ -32,7 +30,7 @@ class StaticPointSimulator(
         // 如果摇杆有移动
         if (joystickState.speed > 0.01f) {
             // 计算实际速度（米/秒）
-            currentSpeed = maxSpeedMps * joystickState.speed
+            currentSpeed = joystickState.maxSpeed * joystickState.speed
             
             // 更新方位角（转换为度数），当摇杆移动时同步方向
             currentBearing = Math.toDegrees(joystickState.direction.toDouble()).toFloat()
@@ -65,10 +63,7 @@ class StaticPointSimulator(
                 else -> lng
             }
         } else {
-            // 摇杆静止时，速度设为极小值（而不是0），这样 bearing 才会被系统识别为有效
-            // 如果 currentBearing 不为0（有过移动），则保持最小速度让方向显示
-            // 如果从未移动过（currentBearing 为0），则速度设为0
-            currentSpeed = if (currentBearing != 0f) 0.01 else 0.0
+            currentSpeed = 0.0
         }
         
         val result = SimulatedLocation(
@@ -86,13 +81,6 @@ class StaticPointSimulator(
         this.lat = lat
         this.lng = lng
         this.alt = alt
-    }
-    
-    /**
-     * 设置最大速度（米/秒）
-     */
-    fun setMaxSpeed(speedMps: Double) {
-        maxSpeedMps = speedMps.coerceAtLeast(0.1) // 最小速度 0.1 m/s
     }
     
     /**
