@@ -1,7 +1,7 @@
 package ink.moling.mocklocation.utils.simulators
 
-import android.util.Log
 import ink.moling.mocklocation.service.joystickService.state.JoystickStateHolder
+import ink.moling.mocklocation.utils.logger.Logger
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -34,7 +34,7 @@ class StaticPointSimulator(
             
             // 更新方位角（转换为度数），当摇杆移动时同步方向
             currentBearing = Math.toDegrees(joystickState.direction.toDouble()).toFloat()
-            Log.d("StaticPointSimulator", "direction(rad)=${joystickState.direction}, bearing(deg)=$currentBearing, speed=$currentSpeed")
+            Logger.d("StaticPointSimulator", "direction(rad)=${joystickState.direction}, bearing(deg)=$currentBearing, speed=$currentSpeed")
             
             // 计算移动距离（米）
             val deltaTimeS = deltaTimeMs / 1000.0

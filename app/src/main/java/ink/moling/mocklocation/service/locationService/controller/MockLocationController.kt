@@ -10,9 +10,9 @@ import android.os.HandlerThread
 import android.os.Message
 import android.os.Process
 import android.os.SystemClock
-import android.util.Log
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.Source
+import ink.moling.mocklocation.utils.logger.Logger
 import ink.moling.mocklocation.utils.simulators.LocationSimulator
 import ink.moling.mocklocation.utils.simulators.SimulatedLocation
 
@@ -113,7 +113,7 @@ class MockLocationController(
         } catch (_: IllegalArgumentException) {
             // is not a test provider → 忽略
         } catch (e: Exception) {
-            Log.e("MockLoc_Ctrl", "inject failed", e)
+            Logger.e("MockLoc_Ctrl", "inject failed", e)
         }
     }
 

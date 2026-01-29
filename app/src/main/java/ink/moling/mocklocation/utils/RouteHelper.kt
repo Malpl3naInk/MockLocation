@@ -2,11 +2,11 @@ package ink.moling.mocklocation.utils
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import ink.moling.mocklocation.data.local.FileHelper
 import ink.moling.mocklocation.data.models.RouteObject
+import ink.moling.mocklocation.utils.logger.Logger
 import java.io.File
 
 /**
@@ -18,12 +18,12 @@ fun loadRouteFromFile(file: File): RouteObject? {
         val gson = Gson()
         val routeObject = gson.fromJson(jsonText, RouteObject::class.java)
 
-        Log.d("RouteModeView", "Loaded route: ${routeObject.name}, type: ${routeObject.meta.type}, version: ${routeObject.meta.version}")
-        Log.d("RouteModeView", "Loaded ${routeObject.points.size} points")
+        Logger.d("RouteModeView", "Loaded route: ${routeObject.name}, type: ${routeObject.meta.type}, version: ${routeObject.meta.version}")
+        Logger.d("RouteModeView", "Loaded ${routeObject.points.size} points")
 
         routeObject
     } catch (e: Exception) {
-        Log.e("RouteModeView", "Error loading route from JSON: ${e.message}", e)
+        Logger.e("RouteModeView", "Error loading route from JSON: ${e.message}", e)
         null
     }
 }
@@ -100,7 +100,7 @@ fun validateRouteFile(context: Context, uri: Uri): ValidationResult {
         routeObject.points.forEachIndexed { index, point ->
             point.connects.forEach { connectId ->
                 if (connectId !in pointIds) {
-                    Log.w(
+                    Logger.w(
                         "ImportExportDialog",
                         "Warning: Point ${point.id} connects to non-existent point $connectId"
                     )
@@ -108,7 +108,7 @@ fun validateRouteFile(context: Context, uri: Uri): ValidationResult {
             }
         }
 
-        Log.d(
+        Logger.d(
             "ImportExportDialog",
             "Validation passed: ${routeObject.name}, ${routeObject.points.size} points, type: ${routeObject.meta.type}"
         )
@@ -119,7 +119,7 @@ fun validateRouteFile(context: Context, uri: Uri): ValidationResult {
         )
 
     } catch (e: Exception) {
-        Log.e("ImportExportDialog", "Validation error", e)
+        Logger.e("ImportExportDialog", "Validation error", e)
         return ValidationResult(false, errorMessage = "Unexpected error: ${e.message}")
     }
 }
