@@ -1,8 +1,9 @@
 # MockLocation
 
-[DEV DOC](DEVDOC.md) | [ACTION DOC](.github/workflows/README.md)
+ - [Workflow README](.github/workflows/README.md)
+ - [Development](#Development)
 
-## 功能特性
+## Features
 
 ### 摇杆位置模拟
 应用支持通过摇杆控制实时移动模拟位置：
@@ -17,35 +18,82 @@
 - `JoystickState`：使用 StateFlow 在 UI 和模拟器之间共享摇杆状态
 - `FloatingUI`：提供摇杆控制界面，实时显示方向角度和速度百分比
 
+## Development
+
+### Project Structure
+
+```
+MocakLocation
+├─activity
+├─data
+│  ├─local
+│  │  ├─db
+│  │  └─repository
+│  └─models
+├─service
+│  ├─joystickService
+│  │  └─state
+│  └─locationService
+│      ├─controller
+│      └─state
+├─ui
+│  ├─components
+│  │  └─dialog
+│  ├─screen
+│  └─theme
+├─utils
+│  ├─extensions
+│  ├─logger
+│  └─simulators
+└─viewmodel
+```
+
 ## Roadmap
 
 ### Feature requests from [ZCShou/GoGoGo](https://github.com/ZCShou/GoGoGo/issues)
 
-| Issue                                               | Subject                                                      |
-|-----------------------------------------------------|--------------------------------------------------------------|
-| [#355](https://github.com/ZCShou/GoGoGo/issues/355) | [功能] 路线模拟功能请求                                      |
-| [#350](https://github.com/ZCShou/GoGoGo/issues/350) | [Feature] 建议可以隐藏悬浮窗                                 |
-| [#346](https://github.com/ZCShou/GoGoGo/issues/346) | [Feature] 最小化悬浮窗                                       |
-| [#335](https://github.com/ZCShou/GoGoGo/issues/335) | [Feature] 提供ios版本                                        |
-| [#331](https://github.com/ZCShou/GoGoGo/issues/331) | [Feature] 添加地图复位回正，指向正北的功能                    |
-| [#325](https://github.com/ZCShou/GoGoGo/issues/325) | 可以加入对arm v7的支持吗？                                    |
-| [#314](https://github.com/ZCShou/GoGoGo/issues/314) | [Feature] New function，哥哥可否添加一个悬浮框开启关闭的功能？ |
-| [#304](https://github.com/ZCShou/GoGoGo/issues/304) | [Feature] New function (请求摇杆隐藏/缩小)                   |
-| [#284](https://github.com/ZCShou/GoGoGo/issues/284) | [Feature] 通过root或者lsposed实现功能，避免使用开发者选项     |
-| [#279](https://github.com/ZCShou/GoGoGo/issues/279) | [Feature] 不移动摇杆时增加随机极小范围运动的选项             |
-| [#254](https://github.com/ZCShou/GoGoGo/issues/254) | [Feature] 可否增加设置模拟精度的选项？                        |
-| [#234](https://github.com/ZCShou/GoGoGo/issues/234) | [Feature] New function (root 权限一键选择模拟位置信息应用)   |
-| [#185](https://github.com/ZCShou/GoGoGo/issues/185) | 悬浮窗关闭功能                                               |
-| [#176](https://github.com/ZCShou/GoGoGo/issues/176) | [Feature] 添加 ADB 定位控制功能                              |
-| [#133](https://github.com/ZCShou/GoGoGo/issues/133) | 增加线路模拟导航功能                                         |
-| [#118](https://github.com/ZCShou/GoGoGo/issues/118) | [Feature] Add English language support                       |
-| [#116](https://github.com/ZCShou/GoGoGo/issues/116) | [Feature] 考虑加root吗                                       |
-| [#103](https://github.com/ZCShou/GoGoGo/issues/103) | [Feature] 请问有高度模拟吗？                                  |
-| [#88](https://github.com/ZCShou/GoGoGo/issues/88)   | [Feature] 能否加入多地图选择的功能，比如支持 mapbox           |
-| [#77](https://github.com/ZCShou/GoGoGo/issues/77)   | [Feature] 摇杆移动添加控制整体完成时间功能                   |
-| [#50](https://github.com/ZCShou/GoGoGo/issues/50)   | [Feature] 加入基站伪装以实现更全面的虚拟定位                 |
-| [#46](https://github.com/ZCShou/GoGoGo/issues/46)   | [Feature] New function (能否模拟步频等)                      |
-| [#35](https://github.com/ZCShou/GoGoGo/issues/35)   | [Feature] 关于摇杆的一些建议（大小、路径点等）                  |
+| Status | Issue                                               | Subject                                                      |
+|:------:|-----------------------------------------------------|--------------------------------------------------------------|
+| [x]    | [#355](https://github.com/ZCShou/GoGoGo/issues/355) | [功能] 路线模拟功能请求                                      |
+| [ ]    | [#350](https://github.com/ZCShou/GoGoGo/issues/350) | [Feature] 建议可以隐藏悬浮窗                                 |
+| [ ]    | [#346](https://github.com/ZCShou/GoGoGo/issues/346) | [Feature] 最小化悬浮窗                                       |
+| [ ]    | [#335](https://github.com/ZCShou/GoGoGo/issues/335) | [Feature] 提供ios版本                                        |
+| [ ]    | [#331](https://github.com/ZCShou/GoGoGo/issues/331) | [Feature] 添加地图复位回正，指向正北的功能                    |
+| [ ]    | [#325](https://github.com/ZCShou/GoGoGo/issues/325) | 可以加入对arm v7的支持吗？                                    |
+| [ ]    | [#314](https://github.com/ZCShou/GoGoGo/issues/314) | [Feature] New function，哥哥可否添加一个悬浮框开启关闭的功能？ |
+| [ ]    | [#304](https://github.com/ZCShou/GoGoGo/issues/304) | [Feature] New function (请求摇杆隐藏/缩小)                   |
+| [ ]    | [#284](https://github.com/ZCShou/GoGoGo/issues/284) | [Feature] 通过root或者lsposed实现功能，避免使用开发者选项     |
+| [ ]    | [#279](https://github.com/ZCShou/GoGoGo/issues/279) | [Feature] 不移动摇杆时增加随机极小范围运动的选项             |
+| [ ]    | [#254](https://github.com/ZCShou/GoGoGo/issues/254) | [Feature] 可否增加设置模拟精度的选项？                        |
+| [ ]    | [#234](https://github.com/ZCShou/GoGoGo/issues/234) | [Feature] New function (root 权限一键选择模拟位置信息应用)   |
+| [ ]    | [#185](https://github.com/ZCShou/GoGoGo/issues/185) | 悬浮窗关闭功能                                               |
+| [ ]    | [#176](https://github.com/ZCShou/GoGoGo/issues/176) | [Feature] 添加 ADB 定位控制功能                              |
+| [x]    | [#133](https://github.com/ZCShou/GoGoGo/issues/133) | 增加线路模拟导航功能                                         |
+| [x]    | [#118](https://github.com/ZCShou/GoGoGo/issues/118) | [Feature] Add English language support                       |
+| [ ]    | [#116](https://github.com/ZCShou/GoGoGo/issues/116) | [Feature] 考虑加root吗                                       |
+| [ ]    | [#103](https://github.com/ZCShou/GoGoGo/issues/103) | [Feature] 请问有高度模拟吗？                                  |
+| [ ]    | [#88](https://github.com/ZCShou/GoGoGo/issues/88)   | [Feature] 能否加入多地图选择的功能，比如支持 mapbox           |
+| [ ]    | [#77](https://github.com/ZCShou/GoGoGo/issues/77)   | [Feature] 摇杆移动添加控制整体完成时间功能                   |
+| [ ]    | [#50](https://github.com/ZCShou/GoGoGo/issues/50)   | [Feature] 加入基站伪装以实现更全面的虚拟定位                 |
+| [ ]    | [#46](https://github.com/ZCShou/GoGoGo/issues/46)   | [Feature] New function (能否模拟步频等)                      |
+| [ ]    | [#35](https://github.com/ZCShou/GoGoGo/issues/35)   | [Feature] 关于摇杆的一些建议（大小、路径点等）                  |
 
+## Dependences
+
+| Dependency                        | Version        | Purpose                           |
+|------------------------------------|---------------|-----------------------------------|
+| Core KTX                           | 1.17.0        | Kotlin extensions                 |
+| Jetpack Compose BOM                | 2024.09.00    | UI toolkit                        |
+| Activity Compose                   | 1.12.0        | Activity-Compose integration      |
+| Material3                          | 1.4.0         | UI Components                     |
+| Lifecycle ViewModel                | 2.8.7         | MVVM Architecture                 |
+| Lifecycle Runtime                  | 2.10.0        | Lifecycle management              |
+| Lifecycle Service                  | 2.8.7         | Service lifecycle support         |
+| SavedState KTX                     | 1.4.0         | State preservation                |
+| Room                               | 2.6.1         | Database storage                  |
+| Gson                               | 2.10.1        | JSON serialization                |
+| Google Open Location Code          | 1.0.4         | Plus codes support                |
+
+> 依赖版本以 `build.gradle` 文件为准。
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B30142%2Fmocklocation.svg?type=large&issueType=license)](https://app.fossa.com/projects/custom%2B30142%2Fmocklocation?ref=badge_large&issueType=license)
