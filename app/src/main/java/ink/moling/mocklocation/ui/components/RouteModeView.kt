@@ -2,7 +2,6 @@ package ink.moling.mocklocation.ui.components
 
 import android.app.Activity
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,11 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.activity.WaypointActivity
+import ink.moling.mocklocation.data.local.FileHelper
+import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.models.RouteItem
 import ink.moling.mocklocation.data.models.RouteObject
-import ink.moling.mocklocation.data.local.repository.MockServiceState
-import ink.moling.mocklocation.data.local.FileHelper
 import ink.moling.mocklocation.utils.loadRouteFromFile
+import ink.moling.mocklocation.utils.logger.Logger
 import ink.moling.mocklocation.viewmodel.MainViewModel
 import org.json.JSONObject
 
@@ -151,7 +151,7 @@ fun RouteSelector(
         if (selectedName.isNotEmpty()) {
             val stillExists = routeItems.any { it.displayName == selectedName }
             if (!stillExists) {
-                Log.d("RouteSelector", "Selected file deleted: $selectedName")
+                Logger.d("RouteSelector", "Selected file deleted: $selectedName")
                 onFileDeleted()
             }
         }
@@ -203,7 +203,7 @@ fun RouteSelector(
                             try {
                                 // 检查文件是否存在
                                 if (!item.file.exists()) {
-                                    Log.e("RouteSelector", "File not found: ${item.file.absolutePath}")
+                                    Logger.e("RouteSelector", "File not found: ${item.file.absolutePath}")
                                     onFileDeleted()
                                     return@LongPressDeleteMenuItem
                                 }
@@ -211,7 +211,7 @@ fun RouteSelector(
                                 viewModel.selectedMockRoute = item
                                 onFileSelected(item.copy())
                             } catch (e: Exception) {
-                                Log.e("RouteSelector", "Error reading file: ${e.message}")
+                                Logger.e("RouteSelector", "Error reading file: ${e.message}")
                                 onFileDeleted()
                             }
                         },

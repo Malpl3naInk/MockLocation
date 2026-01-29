@@ -151,7 +151,7 @@ fun FloatingUI(
                     realSpeed = (joystickState.maxSpeed * joystickSpeed)
                 }
                 Text(
-                    "${azimuthToDirection(angle)} ${angle}° Spd: ${"%.2f".format(realSpeed)}m/s",
+                    "${azimuthToDirection(angle)} ${angle}° ${"%.2f".format(realSpeed)}m/s",
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 10.sp
                 )

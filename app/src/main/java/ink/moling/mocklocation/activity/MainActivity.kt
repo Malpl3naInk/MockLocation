@@ -29,6 +29,9 @@ import ink.moling.mocklocation.ui.screen.MainScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.utils.PermissionHelper
 import ink.moling.mocklocation.utils.PermissionInfo
+import ink.moling.mocklocation.utils.logger.CrashHandler
+import ink.moling.mocklocation.utils.logger.Logger
+import ink.moling.mocklocation.utils.logger.LoggerFile
 import ink.moling.mocklocation.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
@@ -49,35 +52,35 @@ class MainActivity : ComponentActivity() {
     // 前台权限和通知权限申请（第一步）
     private val requestForegroundPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
-            Log.d(TAG, "Permission results: $results")
+            Logger.d(TAG, "Permission results: $results")
             
             // 检查是否获得了必需的定位权限
             hasRequiredPermissions = PermissionHelper.hasForegroundLocationPermissions(this)
             
             // 如果前台权限已授予，请求后台权限
             if (hasRequiredPermissions) {
-                Log.d(TAG, "Foreground permissions granted, requesting background permission")
+                Logger.d(TAG, "Foreground permissions granted, requesting background permission")
                 requestBackgroundLocationIfNeeded()
             } else {
-                Log.w(TAG, "Foreground permissions denied")
+                Logger.w(TAG, "Foreground permissions denied")
             }
         }
     
     // 后台定位权限申请（第二步，仅 Android 10+）
     private val requestBackgroundPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            Log.d(TAG, "Background location permission: $granted")
+            Logger.d(TAG, "Background location permission: $granted")
         }
 
     /**
      * 检查并请求权限
      */
     private fun checkAndRequestPermissions() {
-        Log.d(TAG, "Checking permissions...")
+        Logger.d(TAG, "Checking permissions...")
         
         // 检查是否已有所有必需的前台权限
         if (PermissionHelper.hasForegroundLocationPermissions(this)) {
-            Log.d(TAG, "Already have required permissions")
+            Logger.d(TAG, "Already have required permissions")
             hasRequiredPermissions = true
             // 检查并请求后台定位权限
             requestBackgroundLocationIfNeeded()
@@ -87,7 +90,7 @@ class MainActivity : ComponentActivity() {
                 .filter { it.permission != Manifest.permission.ACCESS_BACKGROUND_LOCATION }
             
             if (missingPermissions.isNotEmpty()) {
-                Log.d(TAG, "Missing permissions: ${missingPermissions.map { it.name }}")
+                Logger.d(TAG, "Missing permissions: ${missingPermissions.map { it.name }}")
                 // 显示权限说明对话框
                 pendingPermissions = missingPermissions
                 showPermissionDialog = true
@@ -101,7 +104,7 @@ class MainActivity : ComponentActivity() {
     private fun performPermissionRequest() {
         val permissionsToRequest = PermissionHelper.getForegroundPermissionsToRequest(this)
         if (permissionsToRequest.isNotEmpty()) {
-            Log.d(TAG, "Requesting permissions: ${permissionsToRequest.joinToString()}")
+            Logger.d(TAG, "Requesting permissions: ${permissionsToRequest.joinToString()}")
             requestForegroundPermissions.launch(permissionsToRequest.toTypedArray())
         }
     }
@@ -112,7 +115,7 @@ class MainActivity : ComponentActivity() {
     private fun requestBackgroundLocationIfNeeded() {
         /* TODO: Check background location if strictly needed */
         if (PermissionHelper.needsBackgroundLocationPermission(this) && false) {
-            Log.d(TAG, "Requesting background location permission")
+            Logger.d(TAG, "Requesting background location permission")
             requestBackgroundPermission.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
         }
         // 请求悬浮窗权限
@@ -124,7 +127,7 @@ class MainActivity : ComponentActivity() {
      */
     private fun requestOverlayPermissionIfNeeded() {
         if (PermissionHelper.needsOverlayPermission(this)) {
-            Log.d(TAG, "Need overlay permission")
+            Logger.d(TAG, "Need overlay permission")
             val missingSpecialPermissions = PermissionHelper.getMissingSpecialPermissions(this)
             if (missingSpecialPermissions.isNotEmpty()) {
                 // 显示悬浮窗权限说明对话框
@@ -145,7 +148,7 @@ class MainActivity : ComponentActivity() {
             )
             startActivity(intent)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to open overlay permission settings", e)
+            Logger.e(TAG, "Failed to open overlay permission settings", e)
         }
     }
 
@@ -156,9 +159,20 @@ class MainActivity : ComponentActivity() {
         // 检查权限
         checkAndRequestPermissions()
 
+        // 初始化 logger 本地文件
+        LoggerFile.init(this)
+
+        // 设置自定义 Crash handler
+        val default =
+            Thread.getDefaultUncaughtExceptionHandler()
+
+        Thread.setDefaultUncaughtExceptionHandler(
+            CrashHandler(default)
+        )
+
         // 测试 JNI 调用
         val native = NativeLib()
-        Log.d(TAG, native.stringFromJNI())
+        Logger.d(TAG, native.stringFromJNI())
 
         setContent {
             val viewModel: MainViewModel = viewModel()
@@ -177,9 +191,9 @@ class MainActivity : ComponentActivity() {
 
             // 启动并绑定服务 - 当权限状态变为已授予时自动启动
             LaunchedEffect(hasRequiredPermissions) {
-                Log.d(TAG, "LaunchedEffect triggered, hasRequiredPermissions: $hasRequiredPermissions")
+                Logger.d(TAG, "LaunchedEffect triggered, hasRequiredPermissions: $hasRequiredPermissions")
                 if (hasRequiredPermissions) {
-                    Log.d(TAG, "Starting and binding service")
+                    Logger.d(TAG, "Starting and binding service")
                     startAndBindService()
                 }
             }

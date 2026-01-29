@@ -1,7 +1,6 @@
 package ink.moling.mocklocation.activity
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
@@ -13,6 +12,7 @@ import androidx.compose.ui.Modifier
 import ink.moling.mocklocation.ui.screen.WaypointScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.utils.loadRouteFromFile
+import ink.moling.mocklocation.utils.logger.Logger
 import java.io.File
 
 class WaypointActivity : ComponentActivity() {
@@ -27,7 +27,7 @@ class WaypointActivity : ComponentActivity() {
         }
 
         val selectedRoute = intent.getStringExtra("selectedRoute")
-        Log.d("WaypointActivity", "selectedRoute=$selectedRoute")
+        Logger.d("WaypointActivity", "selectedRoute=$selectedRoute")
         val route = loadRouteFromFile(File(selectedRoute!!))
 
         setContent {

@@ -1,7 +1,6 @@
 package ink.moling.mocklocation.ui.components.dialog
 
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +37,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.data.local.FileHelper
+import ink.moling.mocklocation.utils.logger.Logger
 import ink.moling.mocklocation.utils.validateRouteFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -83,18 +83,18 @@ fun ImportExportDialog(
                         "Route imported: ${validationResult.routeName}",
                         Toast.LENGTH_SHORT
                     ).show()
-                    Log.d("ImportExportDialog", "Route imported successfully: ${validationResult.routeName}")
+                    Logger.d("ImportExportDialog", "Route imported successfully: ${validationResult.routeName}")
                 } else {
                     Toast.makeText(
                         context,
                         "Invalid route file: ${validationResult.errorMessage}",
                         Toast.LENGTH_LONG
                     ).show()
-                    Log.e("ImportExportDialog", "Validation failed: ${validationResult.errorMessage}")
+                    Logger.e("ImportExportDialog", "Validation failed: ${validationResult.errorMessage}")
                 }
             }
         } catch (e: Exception) {
-            Log.e("ImportExportDialog", "Error during validation/import", e)
+            Logger.e("ImportExportDialog", "Error during validation/import", e)
             Toast.makeText(
                 context,
                 "Error: ${e.message}",

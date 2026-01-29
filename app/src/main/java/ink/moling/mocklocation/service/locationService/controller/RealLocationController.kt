@@ -4,11 +4,11 @@ import android.Manifest
 import android.content.Context
 import android.location.LocationListener
 import android.location.LocationManager
-import android.util.Log
 import androidx.annotation.RequiresPermission
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.utils.KalmanFilter
+import ink.moling.mocklocation.utils.logger.Logger
 
 class RealLocationController(
     private val context: Context,
@@ -28,7 +28,7 @@ class RealLocationController(
             else -> return@LocationListener
         }
 
-        Log.d(
+        Logger.d(
             "RealLocationController",
             "Location: Lat=${location.latitude}, Lng=${location.longitude}, t=${location.time}"
         )
@@ -44,7 +44,7 @@ class RealLocationController(
             } else {
                 location.latitude to location.longitude
             }
-        Log.d(
+        Logger.d(
             "RealLocationController",
             "Filtered: Lat=$lat, Lng=$lng, t=${location.time}"
         )
