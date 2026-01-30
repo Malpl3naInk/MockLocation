@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -86,7 +87,7 @@ fun LongPressDeleteMenuItem(
                     .fillMaxWidth(progress.value)
                     .fillMaxHeight()
                     .background(
-                        Color(0xFFFF5252).copy(alpha = progress.value * 0.8f)
+                        MaterialTheme.colorScheme.error.copy(alpha = progress.value * 0.8f)
                     )
             ) {
                 Icon(

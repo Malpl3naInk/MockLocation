@@ -23,11 +23,13 @@ import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShareLocation
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +42,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -47,9 +50,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.openlocationcode.OpenLocationCode
 import ink.moling.mocklocation.activity.SettingsActivity
-import ink.moling.mocklocation.data.models.CandidateLocation
+import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
+import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.ui.components.ExpandableCard
 import ink.moling.mocklocation.ui.components.PointModeView
 import ink.moling.mocklocation.ui.components.RectangleFloatingActionButton
@@ -57,7 +61,6 @@ import ink.moling.mocklocation.ui.components.RouteModeView
 import ink.moling.mocklocation.ui.components.dialog.AddPointDialog
 import ink.moling.mocklocation.ui.components.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.components.dialog.ImportExportDialog
-import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.viewmodel.MainViewModel
 
 /**
@@ -314,7 +317,10 @@ fun ModeToggleSwitch(
         Switch(
             modifier = Modifier.padding(horizontal = 10.dp),
             checked = isRouteMode,
-            onCheckedChange = onModeChange
+            onCheckedChange = onModeChange,
+            colors = SwitchDefaults.colors(
+                uncheckedTrackColor = Color.Transparent
+            )
         )
         Text("Route")
     }
@@ -328,7 +334,12 @@ fun LocationServiceInfo(
     mockStatus: MockServiceState,
     location: CandidateLocation?
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             when (mockStatus) {
                 MockServiceState.Enabled -> {
