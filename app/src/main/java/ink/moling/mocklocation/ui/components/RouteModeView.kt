@@ -21,6 +21,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -173,7 +174,7 @@ fun RouteSelector(
             value = selectedName,
             onValueChange = {},
             readOnly = true,
-            enabled = (viewModel.mockStatus.value != MockServiceState.Enabled),
+            enabled = isMockDisabled,
             label = { Text("Select route") },
             trailingIcon = {
                 // 点击图标切换下拉展开
@@ -186,6 +187,7 @@ fun RouteSelector(
 
         ExposedDropdownMenu(
             expanded = isExpanded,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
             onDismissRequest = { isExpanded = false }
         ) {
             if (routeItems.isEmpty()) {

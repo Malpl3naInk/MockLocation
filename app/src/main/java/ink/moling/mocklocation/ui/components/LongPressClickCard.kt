@@ -51,7 +51,7 @@ fun LongPressClickCard(
     text: String,
     modifier: Modifier = Modifier,
     pressDuration: Int = 1000,
-    progressColor: Color = MaterialTheme.colorScheme.primary,
+    progressColor: Color = MaterialTheme.colorScheme.error,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
@@ -80,8 +80,8 @@ fun LongPressClickCard(
         modifier = modifier
             .fillMaxWidth()
             .height(64.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         shape = RoundedCornerShape(12.dp)
     ) {

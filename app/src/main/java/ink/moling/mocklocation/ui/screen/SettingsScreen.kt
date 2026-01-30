@@ -84,8 +84,7 @@ fun SettingsScreen() {
                     LongPressClickCard(
                         Icons.Outlined.BugReport,
                         contentDescription = "Crash test",
-                        text = "Crash test",
-                        progressColor = Color(0xFFFF5252)
+                        text = "Crash test"
                     ) {
                         throw RuntimeException("Crash test")
                     }

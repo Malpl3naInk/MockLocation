@@ -19,6 +19,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -125,6 +126,7 @@ fun ImportExportDialog(
             }
         },
         title = { Text("Manage routes") },
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
         text = {
             Column {
                 @Suppress("DEPRECATION")

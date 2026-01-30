@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +47,7 @@ fun AddPointDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add point") },
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
         text = {
             Column {
                 GPSTextField(
