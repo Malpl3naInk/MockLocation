@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,8 +22,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ink.moling.mocklocation.NativeLib
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.service.locationService.LocationService
-import ink.moling.mocklocation.ui.components.dialog.ErrorDialog
-import ink.moling.mocklocation.ui.components.dialog.RequestPermissionDialog
+import ink.moling.mocklocation.ui.dialog.ErrorDialog
+import ink.moling.mocklocation.ui.dialog.RequestPermissionDialog
 import ink.moling.mocklocation.ui.screen.MainScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.utils.PermissionHelper

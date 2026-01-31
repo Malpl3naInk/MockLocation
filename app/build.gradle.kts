@@ -93,6 +93,7 @@ android {
         }
         debug {
             versionNameSuffix = versionPre + versionBuild
+            applicationIdSuffix = ".dev"
         }
         release {
             signingConfig = signingConfigs.getByName("release")

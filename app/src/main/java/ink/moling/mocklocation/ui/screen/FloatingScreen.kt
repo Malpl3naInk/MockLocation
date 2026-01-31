@@ -38,7 +38,7 @@ import ink.moling.mocklocation.utils.azimuthToDirection
 import kotlin.math.roundToInt
 
 @Composable
-fun FloatingUI(
+fun FloatingScreen(
     windowManager: WindowManager,
     composeView: ComposeView,
     params: WindowManager.LayoutParams

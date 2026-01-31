@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui.components
+package ink.moling.mocklocation.ui.views
 
 import android.app.Activity
 import android.content.Intent
@@ -40,6 +40,8 @@ import ink.moling.mocklocation.data.local.FileHelper
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.models.RouteItem
 import ink.moling.mocklocation.data.models.RouteObject
+import ink.moling.mocklocation.ui.components.LatLngScatter
+import ink.moling.mocklocation.ui.components.LongPressDeleteMenuItem
 import ink.moling.mocklocation.utils.loadRouteFromFile
 import ink.moling.mocklocation.utils.logger.Logger
 import ink.moling.mocklocation.viewmodel.MainViewModel
@@ -205,7 +207,10 @@ fun RouteSelector(
                             try {
                                 // 检查文件是否存在
                                 if (!item.file.exists()) {
-                                    Logger.e("RouteSelector", "File not found: ${item.file.absolutePath}")
+                                    Logger.e(
+                                        "RouteSelector",
+                                        "File not found: ${item.file.absolutePath}"
+                                    )
                                     onFileDeleted()
                                     return@LongPressDeleteMenuItem
                                 }
