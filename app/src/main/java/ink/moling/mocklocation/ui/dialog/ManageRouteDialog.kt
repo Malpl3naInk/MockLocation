@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui.components.dialog
+package ink.moling.mocklocation.ui.dialog
 
 import android.net.Uri
 import android.widget.Toast

@@ -25,12 +25,12 @@ private val LightColorScheme = lightColorScheme(
     inversePrimary      = Color(0xFF82B1FF),
 
     secondary           = Color(0xFF455A64),
-    onSecondary         = Color.White,
+    onSecondary         = Color.Gray,
     secondaryContainer  = Color(0xFFCFD8DC),
     onSecondaryContainer = Color(0xFF102027),
 
     tertiary            = Color(0xFF00838F),
-    onTertiary          = Color.White,
+    onTertiary          = Color.Gray,
     tertiaryContainer   = Color(0xFFB2EBF2),
     onTertiaryContainer = Color(0xFF00363A),
 
@@ -41,7 +41,7 @@ private val LightColorScheme = lightColorScheme(
 
     background          = Color(0xFFF9FAFC),
     onBackground        = Color(0xFF1A1C1E),
-    surface             = Color.White,
+    surface             = Color(0xFFF5F5F5),
     onSurface           = Color(0xFF1A1C1E),
     surfaceVariant      = Color(0xFFE3E8EE),
     onSurfaceVariant    = Color(0xFF42474E),

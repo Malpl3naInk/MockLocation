@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui.components.dialog
+package ink.moling.mocklocation.ui.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

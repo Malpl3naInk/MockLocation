@@ -8,10 +8,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +39,7 @@ fun SettingsScreen() {
                 Text(
                     modifier = Modifier.padding(vertical = 6.dp),
                     text = "General",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSecondary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -56,7 +56,7 @@ fun SettingsScreen() {
                 Text(
                     modifier = Modifier.padding(vertical = 6.dp),
                     text = "About",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSecondary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -74,7 +74,7 @@ fun SettingsScreen() {
                     Text(
                         modifier = Modifier.padding(vertical = 6.dp),
                         text = "Debug",
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSecondary,
                         fontWeight = FontWeight.Bold
                     )
                 }

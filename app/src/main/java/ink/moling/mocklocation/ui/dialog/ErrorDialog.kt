@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui.components.dialog
+package ink.moling.mocklocation.ui.dialog
 
 import android.widget.Toast
 import androidx.compose.foundation.combinedClickable
@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
@@ -44,7 +43,7 @@ fun ErrorDialog(
                 Text(text)
                 Text(
                     stackTrace,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp)

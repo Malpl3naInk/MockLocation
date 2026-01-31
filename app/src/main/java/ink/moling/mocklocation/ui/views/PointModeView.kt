@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui.components
+package ink.moling.mocklocation.ui.views
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,10 +25,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ink.moling.mocklocation.data.local.repository.MockServiceState
+import ink.moling.mocklocation.ui.components.LongPressDeleteMenuItem
 import ink.moling.mocklocation.viewmodel.MainViewModel
 
 /**
@@ -97,7 +97,7 @@ fun PointModeView(
                                     Text(
                                         text = "%.8f, %.8f".format(point.latitude, point.longitude),
                                         fontSize = 12.sp,
-                                        color = Color.Gray
+                                        color = MaterialTheme.colorScheme.onSecondary
                                     )
                                 }
                             },

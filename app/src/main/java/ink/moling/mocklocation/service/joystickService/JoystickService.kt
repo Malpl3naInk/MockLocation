@@ -16,7 +16,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import ink.moling.mocklocation.ui.FloatingUI
+import ink.moling.mocklocation.ui.FloatingScreen
 
 class JoystickService : LifecycleService(), SavedStateRegistryOwner {
     private lateinit var windowManager: WindowManager
@@ -76,7 +76,7 @@ class JoystickService : LifecycleService(), SavedStateRegistryOwner {
             })
 
             setContent {
-                FloatingUI(
+                FloatingScreen(
                     windowManager = windowManager,
                     composeView = composeView,
                     params = params
