@@ -33,6 +33,7 @@ fun IconPillSelector(
     icons: List<ImageVector>,
     selectedIndex: Int,
     onSelectedChange: (Int) -> Unit,
+    enabled: Boolean = true,
     iconSize: Dp = 24.dp,
     spacing: Dp = 16.dp,  // 图标左右间距
     padding: Dp = 4.dp   // 胶囊内边距
@@ -73,7 +74,7 @@ fun IconPillSelector(
                         .clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
-                        ) { onSelectedChange(index) },
+                        ) { if (enabled) onSelectedChange(index) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
