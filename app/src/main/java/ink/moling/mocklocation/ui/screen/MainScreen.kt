@@ -25,7 +25,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.delete
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowDropUp
 import androidx.compose.material.icons.outlined.Delete
@@ -34,8 +39,10 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.LocationSearching
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
@@ -48,6 +55,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,15 +64,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ink.moling.mocklocation.data.local.repository.MockServiceState
@@ -72,6 +84,7 @@ import ink.moling.mocklocation.ui.components.IconPillSelector
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import ink.moling.mocklocation.ui.dialog.ErrorDialog
 import ink.moling.mocklocation.viewmodel.MainViewModel
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 /**
@@ -137,9 +150,9 @@ fun MainScreen(
 //        )
 //    }
 
+    val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 2 }
     var selectedSimulation by remember { mutableIntStateOf(0) }
-    val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val sheetState = scaffoldState.bottomSheetState
     val scaffoldExpanded by remember {
@@ -147,6 +160,36 @@ fun MainScreen(
             sheetState.targetValue == SheetValue.Expanded ||
                     sheetState.currentValue == SheetValue.Expanded
         }
+    }
+    var editingSimPoint by remember { mutableStateOf(false) }
+    var isPointModified by remember { mutableStateOf(false) }
+    var isCreatingPoint by remember { mutableStateOf(false) }
+    var cachedPointName = "<Placeholder>"
+    var cachedPointLat = 0.0
+    var cachedPointLng = 0.0
+    var cachedPointAlt = 0.0
+    val pointNameState = rememberTextFieldState(cachedPointName)
+    val pointLatState = rememberTextFieldState("%.6f".format(cachedPointLat))
+    val pointLngState = rememberTextFieldState("%.6f".format(cachedPointLng))
+    val pointAltState = rememberTextFieldState("%.2f".format(cachedPointAlt))
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            listOf(
+                pointNameState.text.toString(),
+                pointLatState.text.toString(),
+                pointLngState.text.toString(),
+                pointAltState.text.toString()
+            )
+        }
+            .distinctUntilChanged()
+            .collect { values ->
+                val (name, lat, lng, alt) = values
+                isPointModified =
+                    name != cachedPointName ||
+                    lat != "%.6f".format(cachedPointLat) ||
+                    lng != "%.6f".format(cachedPointLng) ||
+                    alt != "%.2f".format(cachedPointAlt)
+            }
     }
 
     BottomSheetScaffold(
@@ -173,7 +216,23 @@ fun MainScreen(
                             Spacer(modifier = Modifier.weight(1f))
 
                             IconButton(onClick = {
-
+                                isCreatingPoint = true
+                                isPointModified = true
+                                editingSimPoint = true
+                                /* Cache current point details */
+                                cachedPointName = pointNameState.text.toString()
+                                cachedPointLat = pointLatState.text.toString().toDouble()
+                                cachedPointLng = pointLngState.text.toString().toDouble()
+                                cachedPointAlt = pointAltState.text.toString().toDouble()
+                                /* Clear text editor */
+                                pointNameState.edit { delete(0, length) }
+                                pointLatState.edit { delete(0, length) }
+                                pointLngState.edit { delete(0, length) }
+                                pointAltState.edit { delete(0, length) }
+                                /* Collapse bottom sheet */
+                                scope.launch {
+                                    scaffoldState.bottomSheetState.partialExpand()
+                                }
                             }) {
                                 Icon(
                                     Icons.Outlined.Add,
@@ -185,7 +244,7 @@ fun MainScreen(
                         LazyColumn(
                             modifier = Modifier.padding(vertical = 12.dp)
                         ) {
-                            repeat(50) {
+                            repeat(30) {
                                 item {
                                     Card(
                                         onClick = {
@@ -199,10 +258,16 @@ fun MainScreen(
                                         Column(
                                             modifier = Modifier.padding(4.dp)
                                         ) {
-                                            Text("Point #$it")
+                                            Text(
+                                                "Point #$it",
+                                                modifier = Modifier
+                                                    .padding(horizontal = 6.dp)
+                                            )
                                             Text(
                                                 "@0.000000,0.000000",
-                                                color = MaterialTheme.colorScheme.onSecondary
+                                                color = MaterialTheme.colorScheme.onSecondary,
+                                                modifier = Modifier
+                                                    .padding(horizontal = 6.dp)
                                             )
                                         }
                                     }
@@ -240,6 +305,34 @@ fun MainScreen(
                                 )
                             }
                         }
+
+                        LazyColumn(
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        ) {
+                            repeat(50) {
+                                item {
+                                    Card(
+                                        onClick = {
+
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = Color.Transparent
+                                        )
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(4.dp)
+                                        ) {
+                                            Text(
+                                                "Map #$it",
+                                                modifier = Modifier
+                                                    .padding(vertical = 8.dp, horizontal = 6.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -249,7 +342,7 @@ fun MainScreen(
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = !scaffoldExpanded
+                userScrollEnabled = !scaffoldExpanded && !editingSimPoint
             ) { page ->
                 when (page) {
                     0 -> {
@@ -359,7 +452,11 @@ fun MainScreen(
                                         )
                                         Text(
                                             /* Point / Route -> <name> */
-                                            "Point > <Placeholder>"
+                                            text = when(selectedSimulation) {
+                                                0 -> "${"Point"} > ${pointNameState.text}"
+                                                1 -> "${"Route"} > <Placeholder>"
+                                                else -> "?"
+                                            }
                                         )
                                     }
 
@@ -447,6 +544,7 @@ fun MainScreen(
                                         Icons.Outlined.LocationOn,
                                         Icons.Outlined.Route
                                     ),
+                                    enabled = !editingSimPoint,
                                     selectedIndex = selectedSimulation,
                                     onSelectedChange = { selectedSimulation = it }
                                 )
@@ -471,9 +569,27 @@ fun MainScreen(
                                                     modifier = Modifier,
                                                     color = MaterialTheme.colorScheme.onSecondary
                                                 )
-                                                Text(
-                                                    "<Placeholder>"
-                                                )
+                                                if (editingSimPoint) {
+                                                    TextField(
+                                                        state = pointNameState,
+                                                        lineLimits = TextFieldLineLimits.SingleLine,
+                                                        modifier = Modifier
+                                                            .padding(
+                                                                start = 6.dp,
+                                                                end = 6.dp,
+                                                                bottom = 6.dp
+                                                            )
+                                                            .fillMaxWidth(),
+                                                        colors = TextFieldDefaults.colors(
+                                                            unfocusedContainerColor = Color.Transparent,
+                                                            focusedContainerColor = Color.Transparent
+                                                        )
+                                                    )
+                                                } else {
+                                                    Text(
+                                                        pointNameState.text.toString()
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -492,12 +608,93 @@ fun MainScreen(
                                             Column {
                                                 Text(
                                                     "Location",
-                                                    modifier = Modifier,
                                                     color = MaterialTheme.colorScheme.onSecondary
                                                 )
-                                                Text(
-                                                    "@0.000000,0.000000"
-                                                )
+                                                if (editingSimPoint) {
+                                                    Column(
+                                                        modifier = Modifier.padding(
+                                                            start = 8.dp,
+                                                            end = 2.dp,
+                                                            top = 2.dp,
+                                                            bottom = 2.dp
+                                                        )
+                                                    ) {
+                                                        Text(
+                                                            "Latitude",
+                                                            color = MaterialTheme.colorScheme.onSecondary
+                                                        )
+                                                        TextField(
+                                                            state = pointLatState,
+                                                            lineLimits = TextFieldLineLimits.SingleLine,
+                                                            modifier = Modifier
+                                                                .padding(
+                                                                    start = 6.dp,
+                                                                    end = 6.dp,
+                                                                    bottom = 6.dp
+                                                                )
+                                                                .fillMaxWidth(),
+                                                            colors = TextFieldDefaults.colors(
+                                                                unfocusedContainerColor = Color.Transparent,
+                                                                focusedContainerColor = Color.Transparent
+                                                            ),
+                                                            keyboardOptions = KeyboardOptions(
+                                                                keyboardType = KeyboardType.Decimal
+                                                            )
+                                                        )
+                                                        Text(
+                                                            "Longitude",
+                                                            color = MaterialTheme.colorScheme.onSecondary
+                                                        )
+                                                        TextField(
+                                                            state = pointLngState,
+                                                            lineLimits = TextFieldLineLimits.SingleLine,
+                                                            modifier = Modifier
+                                                                .padding(
+                                                                    start = 6.dp,
+                                                                    end = 6.dp,
+                                                                    bottom = 6.dp
+                                                                )
+                                                                .fillMaxWidth(),
+                                                            colors = TextFieldDefaults.colors(
+                                                                unfocusedContainerColor = Color.Transparent,
+                                                                focusedContainerColor = Color.Transparent
+                                                            ),
+                                                            keyboardOptions = KeyboardOptions(
+                                                                keyboardType = KeyboardType.Decimal
+                                                            )
+                                                        )
+                                                        Text(
+                                                            "Altitude",
+                                                            color = MaterialTheme.colorScheme.onSecondary
+                                                        )
+                                                        TextField(
+                                                            state = pointAltState,
+                                                            lineLimits = TextFieldLineLimits.SingleLine,
+                                                            modifier = Modifier
+                                                                .padding(
+                                                                    start = 6.dp,
+                                                                    end = 6.dp,
+                                                                    bottom = 6.dp
+                                                                )
+                                                                .fillMaxWidth(),
+                                                            colors = TextFieldDefaults.colors(
+                                                                unfocusedContainerColor = Color.Transparent,
+                                                                focusedContainerColor = Color.Transparent
+                                                            ),
+                                                            keyboardOptions = KeyboardOptions(
+                                                                keyboardType = KeyboardType.Decimal
+                                                            )
+                                                        )
+                                                    }
+                                                } else {
+                                                    Text(
+                                                        "@%s,%s#%s".format(
+                                                            pointLatState.text,
+                                                            pointLngState.text,
+                                                            pointAltState.text
+                                                        )
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -508,12 +705,40 @@ fun MainScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         OutlinedButton(
-                                            onClick = { },
+                                            onClick = {
+                                                if (editingSimPoint) {
+                                                    isPointModified = false
+                                                    isCreatingPoint = false
+                                                    /* Standardize location detail */
+                                                    val (lat, lng, alt) = listOf(
+                                                        pointLatState.text.toString().toDouble(),
+                                                        pointLngState.text.toString().toDouble(),
+                                                        pointAltState.text.toString().toDouble()
+                                                    )
+                                                    pointLatState.edit { replace(0, length, "%.6f".format(lat)) }
+                                                    pointLngState.edit { replace(0, length, "%.6f".format(lng)) }
+                                                    pointAltState.edit { replace(0, length, "%.2f".format(alt)) }
+                                                    /* TODO: Save point details to shared preferences */
+                                                } else {
+                                                    isPointModified = false
+                                                    /* Cache current point details */
+                                                    cachedPointName = pointNameState.text.toString()
+                                                    cachedPointLat = pointLatState.text.toString().toDouble()
+                                                    cachedPointLng = pointLngState.text.toString().toDouble()
+                                                    cachedPointAlt = pointAltState.text.toString().toDouble()
+                                                }
+                                                editingSimPoint = !editingSimPoint
+                                            },
                                             modifier = Modifier
                                                 .padding(horizontal = 6.dp),
                                             border = BorderStroke(
                                                 2.dp,
-                                                MaterialTheme.colorScheme.secondary
+                                                color = (
+                                                    if (editingSimPoint && isPointModified)
+                                                        MaterialTheme.colorScheme.primary
+                                                    else
+                                                        MaterialTheme.colorScheme.secondary
+                                                )
                                             ),
                                             contentPadding = PaddingValues(
                                                 start = 16.dp,
@@ -523,16 +748,69 @@ fun MainScreen(
                                             )
                                         ) {
                                             Icon(
-                                                Icons.Outlined.Edit,
+                                                imageVector = (
+                                                    if (editingSimPoint)
+                                                        Icons.Outlined.Save
+                                                    else
+                                                        Icons.Outlined.Edit
+                                                ),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(18.dp),
-                                                tint = MaterialTheme.colorScheme.secondary
+                                                tint = (
+                                                    if (editingSimPoint && isPointModified)
+                                                        MaterialTheme.colorScheme.primary
+                                                    else
+                                                        MaterialTheme.colorScheme.secondary
+                                                )
                                             )
                                             Spacer(Modifier.width(6.dp))
                                             Text(
-                                                "Edit",
-                                                color = MaterialTheme.colorScheme.secondary
+                                                text = (
+                                                    if (editingSimPoint)
+                                                        "Save"
+                                                    else
+                                                        "Edit"
+                                                ),
+                                                color = (
+                                                    if (editingSimPoint && isPointModified)
+                                                        MaterialTheme.colorScheme.primary
+                                                    else
+                                                        MaterialTheme.colorScheme.secondary
+                                                )
                                             )
+                                        }
+
+                                        if (editingSimPoint && !isCreatingPoint) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .padding(horizontal = 6.dp)
+                                                    .size(42.dp)
+                                                    .border(
+                                                        2.dp,
+                                                        MaterialTheme.colorScheme.secondary,
+                                                        CircleShape
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                IconButton(
+                                                    onClick = {
+                                                        editingSimPoint = false
+                                                        /* Undo edit, restore cached details */
+                                                        pointNameState.edit { replace(0, length, cachedPointName) }
+                                                        pointLatState.edit { replace(0, length, "%.6f".format(cachedPointLat)) }
+                                                        pointLngState.edit { replace(0, length, "%.6f".format(cachedPointLng)) }
+                                                        pointAltState.edit { replace(0, length, "%.2f".format(cachedPointAlt)) }
+                                                    },
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                ) {
+                                                    Icon(
+                                                        Icons.AutoMirrored.Outlined.Undo,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.secondary
+                                                    )
+                                                }
+                                            }
                                         }
 
                                         Box(
@@ -547,7 +825,19 @@ fun MainScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             IconButton(
-                                                onClick = { },
+                                                onClick = {
+                                                    if (isCreatingPoint) {
+                                                        /* Undo edit, restore cached details */
+                                                        pointNameState.edit { replace(0, length, cachedPointName) }
+                                                        pointLatState.edit { replace(0, length, "%.6f".format(cachedPointLat)) }
+                                                        pointLngState.edit { replace(0, length, "%.6f".format(cachedPointLng)) }
+                                                        pointAltState.edit { replace(0, length, "%.2f".format(cachedPointAlt)) }
+                                                        /* Disable edit mode */
+                                                        editingSimPoint = false
+                                                        isCreatingPoint = false
+                                                        isPointModified = false
+                                                    }
+                                                },
                                                 modifier = Modifier
                                                     .fillMaxSize()
                                             ) {
@@ -558,43 +848,71 @@ fun MainScreen(
                                                 )
                                             }
                                         }
+
+                                        if (editingSimPoint) {
+                                            // Fill with current location
+                                            IconButton(
+                                                onClick = {
+
+                                                }
+                                            ) {
+                                                Icon(
+                                                    Icons.Outlined.MyLocation,
+                                                    contentDescription = null
+                                                )
+                                            }
+
+                                            // Select from map
+                                            IconButton(
+                                                onClick = {
+
+                                                }
+                                            ) {
+                                                Icon(
+                                                    Icons.Outlined.Map,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
                                     }
 
                                     Spacer(modifier = Modifier.weight(1f))
 
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 24.dp),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                            contentColor = MaterialTheme.colorScheme.onSurface
-                                        ),
-                                        onClick = {
-                                            scope.launch {
-                                                scaffoldState.bottomSheetState.expand()
-                                            }
-                                        }
-                                    ) {
-                                        Row(
+                                    if (!editingSimPoint) {
+                                        Card(
                                             modifier = Modifier
-                                                .padding(vertical = 8.dp, horizontal = 16.dp),
-                                            verticalAlignment = Alignment.CenterVertically
+                                                .fillMaxWidth()
+                                                .padding(vertical = 24.dp),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                contentColor = MaterialTheme.colorScheme.onSurface
+                                            ),
+                                            onClick = {
+                                                scope.launch {
+                                                    scaffoldState.bottomSheetState.expand()
+                                                }
+                                            }
                                         ) {
-                                            Column {
-                                                Text("<Placeholder>")
-                                                Text(
-                                                    "Select target",
-                                                    color = MaterialTheme.colorScheme.onSecondary
+                                            Row(
+                                                modifier = Modifier
+                                                    .padding(vertical = 8.dp, horizontal = 16.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Column {
+                                                    Text("<Placeholder>")
+                                                    Text(
+                                                        "Select target",
+                                                        color = MaterialTheme.colorScheme.onSecondary
+                                                    )
+                                                }
+
+                                                Spacer(modifier = Modifier.weight(1f))
+
+                                                Icon(
+                                                    Icons.Outlined.ArrowDropUp,
+                                                    contentDescription = null
                                                 )
                                             }
-
-                                            Spacer(modifier = Modifier.weight(1f))
-
-                                            Icon(
-                                                Icons.Outlined.ArrowDropUp,
-                                                contentDescription = null
-                                            )
                                         }
                                     }
                                 }
@@ -709,7 +1027,7 @@ fun MainScreen(
                                             }
                                         }
 
-                                        // Export route
+                                        // Export route button
                                         IconButton(
                                             onClick = {
 
