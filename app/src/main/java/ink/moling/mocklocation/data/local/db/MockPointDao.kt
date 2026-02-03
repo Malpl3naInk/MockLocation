@@ -12,6 +12,8 @@ interface MockPointDao {
     suspend fun getAll(): List<MockPointEntity>
     @Query("SELECT * FROM saved_points WHERE id = :id")
     suspend fun getById(id: Long): MockPointEntity?
+    @Query("SELECT * FROM saved_points WHERE name LIKE '%' || :name || '%'")
+    suspend fun searchByName(name: String): List<MockPointEntity>
     @Query("DELETE FROM saved_points WHERE id = :id")
     suspend fun deleteById(id: Long)
     @Query("DELETE FROM saved_points")

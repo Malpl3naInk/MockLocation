@@ -13,11 +13,6 @@
 - 默认最大速度：5 m/s（约18 km/h，相当于步行速度）
 - 松开摇杆后自动停止移动，但保持最后的方向（bearing 不归零）
 
-### 技术实现
-- `StaticPointSimulator`：点位模拟器，支持根据摇杆输入动态计算位置变化
-- `JoystickState`：使用 StateFlow 在 UI 和模拟器之间共享摇杆状态
-- `FloatingUI`：提供摇杆控制界面，实时显示方向角度和速度百分比
-
 ## Development
 
 ### Project Structure
@@ -38,9 +33,10 @@ MocakLocation
 │      └─state
 ├─ui
 │  ├─components
-│  │  └─dialog
+│  ├─dialog
 │  ├─screen
-│  └─theme
+│  ├─theme
+│  └─views
 ├─utils
 │  ├─extensions
 │  ├─logger
@@ -48,33 +44,128 @@ MocakLocation
 └─viewmodel
 ```
 
+### Screen functions
+
+```
+screen
+├─MainScreen (主屏幕)
+│  ├─位置信息展示
+│  │  ├─当前坐标显示
+│  │  └─Plus Code显示
+│  ├─模拟模式切换 (点位/路线)
+│  ├─点位模式
+│  │  ├─点位名称编辑
+│  │  ├─坐标编辑 (经度/纬度/海拔)
+│  │  ├─保存/编辑点位
+│  │  ├─撤销修改
+│  │  ├─删除点位
+│  │  ├─使用当前位置
+│  │  ├─从地图选择
+│  │  └─已保存点位列表
+│  ├─路线模式
+│  │  ├─路线名称显示
+│  │  ├─路线地图预览
+│  │  ├─编辑路线
+│  │  ├─删除路线
+│  │  ├─导出路线
+│  │  └─已保存路线列表
+│  ├─控制功能
+│  │  ├─开始/停止模拟
+│  │  └─打开设置
+│  └─状态显示
+│     ├─模拟状态 (Idle/Mocking/Initializing)
+│     └─错误对话框
+├─WaypointScreen (路径点编辑屏幕)
+│  ├─显示模式切换 (Route/Map)
+│  ├─底部面板切换 (Waypoints/Details)
+│  ├─路径点管理
+│  │  ├─路径点列表展示
+│  │  ├─路径点坐标显示
+│  │  ├─编辑路径点位置
+│  │  ├─循环路线设置 (Loop ring)
+│  │  └─添加新路径点
+│  ├─路线详情
+│  │  ├─路线名称编辑
+│  │  └─地图模式开关
+│  └─路线地图可视化
+├─SettingsScreen (设置屏幕)
+│  ├─通用设置 (General)
+│  │  ├─设置项1 (Something)
+│  │  └─设置项2 (Something else)
+│  ├─关于 (About)
+│  │  ├─发布仓库链接
+│  │  └─开源许可证
+│  └─调试 (Debug - 仅调试版本)
+│     └─崩溃测试 (长按触发)
+└─FloatingScreen (悬浮窗屏幕)
+   ├─窗口控制
+   │  ├─拖动手柄 (移动悬浮窗)
+   │  ├─锁定/解锁摇杆
+   │  └─菜单按钮
+   ├─状态显示
+   │  ├─方向角度显示
+   │  ├─速度百分比
+   │  └─实际速度 (m/s)
+   └─摇杆控制器
+      ├─方向控制
+      └─速度控制
+```
+
 ## Roadmap
 
 ### Feature requests from [ZCShou/GoGoGo](https://github.com/ZCShou/GoGoGo/issues)
 
-- [x] [#355](https://github.com/ZCShou/GoGoGo/issues/355) - [功能] 路线模拟功能请求
-- [ ] [#350](https://github.com/ZCShou/GoGoGo/issues/350) - [Feature] 建议可以隐藏悬浮窗
-- [ ] [#346](https://github.com/ZCShou/GoGoGo/issues/346) - [Feature] 最小化悬浮窗
-- [ ] [#335](https://github.com/ZCShou/GoGoGo/issues/335) - [Feature] 提供ios版本
-- [ ] [#331](https://github.com/ZCShou/GoGoGo/issues/331) - [Feature] 添加地图复位回正，指向正北的功能
-- [ ] [#325](https://github.com/ZCShou/GoGoGo/issues/325) - 可以加入对arm v7的支持吗？
-- [ ] [#314](https://github.com/ZCShou/GoGoGo/issues/314) - [Feature] New function，哥哥可否添加一个悬浮框开启关闭的功能？
-- [ ] [#304](https://github.com/ZCShou/GoGoGo/issues/304) - [Feature] New function (请求摇杆隐藏/缩小)
-- [ ] [#284](https://github.com/ZCShou/GoGoGo/issues/284) - [Feature] 通过root或者lsposed实现功能，避免使用开发者选项
-- [ ] [#279](https://github.com/ZCShou/GoGoGo/issues/279) - [Feature] 不移动摇杆时增加随机极小范围运动的选项
-- [ ] [#254](https://github.com/ZCShou/GoGoGo/issues/254) - [Feature] 可否增加设置模拟精度的选项？
-- [ ] [#234](https://github.com/ZCShou/GoGoGo/issues/234) - [Feature] New function (root 权限一键选择模拟位置信息应用)
-- [ ] [#185](https://github.com/ZCShou/GoGoGo/issues/185) - 悬浮窗关闭功能
-- [ ] [#176](https://github.com/ZCShou/GoGoGo/issues/176) - [Feature] 添加 ADB 定位控制功能
-- [x] [#133](https://github.com/ZCShou/GoGoGo/issues/133) - 增加线路模拟导航功能
-- [x] [#118](https://github.com/ZCShou/GoGoGo/issues/118) - [Feature] Add English language support
-- [ ] [#116](https://github.com/ZCShou/GoGoGo/issues/116) - [Feature] 考虑加root吗
-- [ ] [#103](https://github.com/ZCShou/GoGoGo/issues/103) - [Feature] 请问有高度模拟吗？
-- [ ] [#88](https://github.com/ZCShou/GoGoGo/issues/88) - [Feature] 能否加入多地图选择的功能，比如支持 mapbox
-- [ ] [#77](https://github.com/ZCShou/GoGoGo/issues/77) - [Feature] 摇杆移动添加控制整体完成时间功能
-- [ ] [#50](https://github.com/ZCShou/GoGoGo/issues/50) - [Feature] 加入基站伪装以实现更全面的虚拟定位
-- [ ] [#46](https://github.com/ZCShou/GoGoGo/issues/46) - [Feature] New function (能否模拟步频等)
-- [ ] [#35](https://github.com/ZCShou/GoGoGo/issues/35) - [Feature] 关于摇杆的一些建议（大小、路径点等）
+- [x] [#355](https://github.com/ZCShou/GoGoGo/issues/355) - [路线模拟] 路线模拟功能请求
+- [ ] [#350](https://github.com/ZCShou/GoGoGo/issues/350) - [悬浮窗控制] 建议可以隐藏悬浮窗
+- [ ] [#346](https://github.com/ZCShou/GoGoGo/issues/346) - [悬浮窗控制] 最小化悬浮窗
+- [ ] [#335](https://github.com/ZCShou/GoGoGo/issues/335) - [平台支持] 提供iOS版本
+- [ ] [#331](https://github.com/ZCShou/GoGoGo/issues/331) - [地图功能] 添加地图复位回正，指向正北的功能
+- [ ] [#325](https://github.com/ZCShou/GoGoGo/issues/325) - [平台支持] 加入对ARM v7的支持
+- [ ] [#314](https://github.com/ZCShou/GoGoGo/issues/314) - [悬浮窗控制] 添加悬浮框开启关闭的功能
+- [ ] [#304](https://github.com/ZCShou/GoGoGo/issues/304) - [悬浮窗控制] 请求摇杆隐藏/缩小
+- [ ] [#284](https://github.com/ZCShou/GoGoGo/issues/284) - [权限管理] 通过Root或Lsposed实现功能，避免使用开发者选项
+- [ ] [#279](https://github.com/ZCShou/GoGoGo/issues/279) - [模拟增强] 不移动摇杆时增加随机极小范围运动的选项
+- [ ] [#254](https://github.com/ZCShou/GoGoGo/issues/254) - [模拟精度] 增加设置模拟精度的选项
+- [ ] [#234](https://github.com/ZCShou/GoGoGo/issues/234) - [权限管理] Root权限一键选择模拟位置信息应用
+- [ ] [#185](https://github.com/ZCShou/GoGoGo/issues/185) - [悬浮窗控制] 悬浮窗关闭功能
+- [ ] [#176](https://github.com/ZCShou/GoGoGo/issues/176) - [控制方式] 添加ADB定位控制功能
+- [x] [#133](https://github.com/ZCShou/GoGoGo/issues/133) - [路线模拟] 增加线路模拟导航功能
+- [x] [#118](https://github.com/ZCShou/GoGoGo/issues/118) - [国际化] 添加英语语言支持
+- [ ] [#116](https://github.com/ZCShou/GoGoGo/issues/116) - [权限管理] 考虑加入Root支持
+- [ ] [#103](https://github.com/ZCShou/GoGoGo/issues/103) - [模拟增强] 高度模拟功能
+- [ ] [#88](https://github.com/ZCShou/GoGoGo/issues/88) - [地图功能] 加入多地图选择的功能，比如支持Mapbox
+- [ ] [#77](https://github.com/ZCShou/GoGoGo/issues/77) - [路线控制] 摇杆移动添加控制整体完成时间功能
+- [ ] [#50](https://github.com/ZCShou/GoGoGo/issues/50) - [模拟增强] 加入基站伪装以实现更全面的虚拟定位
+- [ ] [#46](https://github.com/ZCShou/GoGoGo/issues/46) - [模拟增强] 模拟步频功能
+- [ ] [#35](https://github.com/ZCShou/GoGoGo/issues/35) - [悬浮窗控制] 摇杆大小调整和路径点显示
+
+### Suggested Features
+
+- [ ] [数据管理] 点位和路线的分组管理（收藏夹功能）
+- [ ] [数据管理] 历史记录功能，记录最近使用的位置
+- [ ] [用户体验] 快速切换面板，在常用位置间快速切换
+- [ ] [数据导入导出] 支持GPX格式的导入和导出
+- [ ] [数据导入导出] 支持KML格式的导入和导出
+- [ ] [地图功能] 位置搜索功能（地址搜索和POI搜索）
+- [ ] [轨迹功能] 轨迹录制和回放功能
+- [ ] [速度控制] 预设速度模板（步行、跑步、骑行、驾车等）
+- [ ] [模拟增强] 根据经纬度自动获取真实海拔数据
+- [ ] [自动化] 定时任务功能（定时启动/停止模拟）
+- [ ] [路线模拟] 多点随机模式，在多个点位之间随机切换
+- [ ] [路线模拟] 路线平滑处理，使移动轨迹更自然
+- [ ] [性能优化] 后台省电模式
+- [ ] [数据管理] 配置备份和恢复功能
+- [ ] [模拟增强] 信号强度模拟
+- [ ] [模拟增强] GPS卫星数量模拟
+- [ ] [地图功能] 离线地图支持
+- [ ] [用户体验] 主题切换功能（深色/浅色模式）
+- [ ] [悬浮窗控制] 悬浮窗透明度调节
+- [ ] [悬浮窗控制] 悬浮窗大小自定义
+- [ ] [路线控制] 路线暂停/继续功能
+- [ ] [路线控制] 路线进度显示和跳转
+- [ ] [数据管理] 点位和路线的导出分享功能
+- [ ] [安全性] 应用锁功能（密码/生物识别保护）
+
 
 ## Dependences
 
