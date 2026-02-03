@@ -1,5 +1,6 @@
 package ink.moling.mocklocation.ui.screen
 
+import android.content.Intent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,15 +38,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.ui.components.DebugOnly
+import ink.moling.mocklocation.utils.logger.LoggerFile
 
 @Composable
 fun SettingsScreen() {
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -181,30 +188,62 @@ fun SettingsScreen() {
                 }
             }
             item {
-                DebugOnly {
-                    Text(
-                        modifier = Modifier.padding(vertical = 6.dp),
-                        text = "Debug",
-                        color = MaterialTheme.colorScheme.onSecondary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    modifier = Modifier.padding(vertical = 6.dp),
+                    text = "Debug",
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    fontWeight = FontWeight.Bold
+                )
             }
             item {
-                DebugOnly {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(6.dp),
-                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.Transparent
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 0.dp
-                        )
-                    ) {
-                        Column {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.Transparent
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 0.dp
+                    )
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    val logFile =
+                                        LoggerFile.getCurrentLogFile() ?: return@clickable
+
+                                    val uri = FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.fileprovider",
+                                        logFile
+                                    )
+
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        setDataAndType(uri, "text/plain")
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+
+                                    context.startActivity(
+                                        Intent.createChooser(intent, "Open log with...")
+                                    )
+                                }
+                                .padding(12.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.Description,
+                                contentDescription = null
+                            )
+                            Text(
+                                "Export log",
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+
+                        DebugOnly {
                             val progress = remember { Animatable(0f) }
                             var pressing by remember { mutableStateOf(false) }
                             val pressDuration = 2000
@@ -229,6 +268,7 @@ fun SettingsScreen() {
                                     )
                                 }
                             }
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
