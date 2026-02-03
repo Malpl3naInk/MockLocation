@@ -1,5 +1,6 @@
 package ink.moling.mocklocation.ui.screen
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -78,11 +79,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ink.moling.mocklocation.activity.SettingsActivity
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.ui.components.IconPillSelector
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import ink.moling.mocklocation.ui.dialog.ErrorDialog
+import ink.moling.mocklocation.utils.extensions.isNumber
+import ink.moling.mocklocation.utils.extensions.isValidAlt
+import ink.moling.mocklocation.utils.extensions.isValidLat
+import ink.moling.mocklocation.utils.extensions.isValidLng
+import ink.moling.mocklocation.utils.extensions.replace
+import ink.moling.mocklocation.utils.extensions.toDouble
 import ink.moling.mocklocation.viewmodel.MainViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -134,21 +142,6 @@ fun MainScreen(
             }
         )
     }
-    
-//    // 显示导入/导出对话框
-//    if (isImportExportDialogOpen) {
-//        ImportExportDialog(
-//            onDismiss = { viewModel.setImportExportDialogOpen(false) }
-//        )
-//    }
-
-//    // 显示添加点对话框
-//    if (isAddPointDialogOpen) {
-//        AddPointDialog(
-//            viewModel = viewModel,
-//            onDismiss = { viewModel.setAddPointDialogOpen(false) }
-//        )
-//    }
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 2 }
@@ -172,6 +165,9 @@ fun MainScreen(
     val pointLatState = rememberTextFieldState("%.6f".format(cachedPointLat))
     val pointLngState = rememberTextFieldState("%.6f".format(cachedPointLng))
     val pointAltState = rememberTextFieldState("%.2f".format(cachedPointAlt))
+    var pointLatVerified by remember { mutableStateOf(true) }
+    var pointLngVerified by remember { mutableStateOf(true) }
+    var pointAltVerified by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
         snapshotFlow {
             listOf(
@@ -221,9 +217,9 @@ fun MainScreen(
                                 editingSimPoint = true
                                 /* Cache current point details */
                                 cachedPointName = pointNameState.text.toString()
-                                cachedPointLat = pointLatState.text.toString().toDouble()
-                                cachedPointLng = pointLngState.text.toString().toDouble()
-                                cachedPointAlt = pointAltState.text.toString().toDouble()
+                                cachedPointLat = pointLatState.toDouble()
+                                cachedPointLng = pointLngState.toDouble()
+                                cachedPointAlt = pointAltState.toDouble()
                                 /* Clear text editor */
                                 pointNameState.edit { delete(0, length) }
                                 pointLatState.edit { delete(0, length) }
@@ -264,7 +260,7 @@ fun MainScreen(
                                                     .padding(horizontal = 6.dp)
                                             )
                                             Text(
-                                                "@0.000000,0.000000",
+                                                "@0.000000,0.000000#0.00",
                                                 color = MaterialTheme.colorScheme.onSecondary,
                                                 modifier = Modifier
                                                     .padding(horizontal = 6.dp)
@@ -418,7 +414,14 @@ fun MainScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     IconButton(
-                                        onClick = { },
+                                        onClick = {
+                                            context.startActivity(
+                                                Intent(
+                                                    context,
+                                                    SettingsActivity::class.java
+                                                )
+                                            )
+                                        },
                                         modifier = Modifier
                                             .fillMaxSize()
                                     ) {
@@ -453,9 +456,8 @@ fun MainScreen(
                                         Text(
                                             /* Point / Route -> <name> */
                                             text = when(selectedSimulation) {
-                                                0 -> "${"Point"} > ${pointNameState.text}"
-                                                1 -> "${"Route"} > <Placeholder>"
-                                                else -> "?"
+                                                0    -> "${"Point"} > ${pointNameState.text}"
+                                                else -> "${"Route"} > <Placeholder>"
                                             }
                                         )
                                     }
@@ -467,7 +469,12 @@ fun MainScreen(
                                      * Point: Icons.Outlined.LocationOn
                                      * Route: Icons.Outlined.Route
                                      * */
-                                        Icons.Outlined.Route,
+                                        imageVector = (
+                                            when(selectedSimulation) {
+                                                0    -> Icons.Outlined.LocationOn
+                                                else -> Icons.Outlined.Route
+                                            }
+                                        ),
                                         contentDescription = null,
                                         modifier = Modifier
                                             .padding(6.dp),
@@ -626,6 +633,7 @@ fun MainScreen(
                                                         TextField(
                                                             state = pointLatState,
                                                             lineLimits = TextFieldLineLimits.SingleLine,
+                                                            isError = !pointLatVerified,
                                                             modifier = Modifier
                                                                 .padding(
                                                                     start = 6.dp,
@@ -648,6 +656,7 @@ fun MainScreen(
                                                         TextField(
                                                             state = pointLngState,
                                                             lineLimits = TextFieldLineLimits.SingleLine,
+                                                            isError = !pointLngVerified,
                                                             modifier = Modifier
                                                                 .padding(
                                                                     start = 6.dp,
@@ -670,6 +679,7 @@ fun MainScreen(
                                                         TextField(
                                                             state = pointAltState,
                                                             lineLimits = TextFieldLineLimits.SingleLine,
+                                                            isError = !pointAltVerified,
                                                             modifier = Modifier
                                                                 .padding(
                                                                     start = 6.dp,
@@ -707,25 +717,32 @@ fun MainScreen(
                                         OutlinedButton(
                                             onClick = {
                                                 if (editingSimPoint) {
+                                                    /* Verify input */
+                                                    pointLatVerified = pointLatState.isNumber() && pointLatState.isValidLat()
+                                                    pointLngVerified = pointLngState.isNumber() && pointLngState.isValidLng()
+                                                    pointAltVerified = pointAltState.isNumber() && pointAltState.isValidAlt()
+                                                    if (!pointLatVerified || !pointLngVerified || !pointAltVerified)
+                                                        return@OutlinedButton
+                                                    /* Reset UI */
                                                     isPointModified = false
                                                     isCreatingPoint = false
                                                     /* Standardize location detail */
                                                     val (lat, lng, alt) = listOf(
-                                                        pointLatState.text.toString().toDouble(),
-                                                        pointLngState.text.toString().toDouble(),
-                                                        pointAltState.text.toString().toDouble()
+                                                        pointLatState.toDouble(),
+                                                        pointLngState.toDouble(),
+                                                        pointAltState.toDouble()
                                                     )
-                                                    pointLatState.edit { replace(0, length, "%.6f".format(lat)) }
-                                                    pointLngState.edit { replace(0, length, "%.6f".format(lng)) }
-                                                    pointAltState.edit { replace(0, length, "%.2f".format(alt)) }
+                                                    pointLatState.edit { replace("%.6f".format(lat)) }
+                                                    pointLngState.edit { replace("%.6f".format(lng)) }
+                                                    pointAltState.edit { replace("%.2f".format(alt)) }
                                                     /* TODO: Save point details to shared preferences */
                                                 } else {
                                                     isPointModified = false
                                                     /* Cache current point details */
                                                     cachedPointName = pointNameState.text.toString()
-                                                    cachedPointLat = pointLatState.text.toString().toDouble()
-                                                    cachedPointLng = pointLngState.text.toString().toDouble()
-                                                    cachedPointAlt = pointAltState.text.toString().toDouble()
+                                                    cachedPointLat = pointLatState.toDouble()
+                                                    cachedPointLng = pointLngState.toDouble()
+                                                    cachedPointAlt = pointAltState.toDouble()
                                                 }
                                                 editingSimPoint = !editingSimPoint
                                             },
@@ -796,10 +813,10 @@ fun MainScreen(
                                                     onClick = {
                                                         editingSimPoint = false
                                                         /* Undo edit, restore cached details */
-                                                        pointNameState.edit { replace(0, length, cachedPointName) }
-                                                        pointLatState.edit { replace(0, length, "%.6f".format(cachedPointLat)) }
-                                                        pointLngState.edit { replace(0, length, "%.6f".format(cachedPointLng)) }
-                                                        pointAltState.edit { replace(0, length, "%.2f".format(cachedPointAlt)) }
+                                                        pointNameState.edit { replace(cachedPointName) }
+                                                        pointLatState.edit { replace("%.6f".format(cachedPointLat)) }
+                                                        pointLngState.edit { replace("%.6f".format(cachedPointLng)) }
+                                                        pointAltState.edit { replace("%.2f".format(cachedPointAlt)) }
                                                     },
                                                     modifier = Modifier
                                                         .fillMaxSize()
@@ -828,10 +845,10 @@ fun MainScreen(
                                                 onClick = {
                                                     if (isCreatingPoint) {
                                                         /* Undo edit, restore cached details */
-                                                        pointNameState.edit { replace(0, length, cachedPointName) }
-                                                        pointLatState.edit { replace(0, length, "%.6f".format(cachedPointLat)) }
-                                                        pointLngState.edit { replace(0, length, "%.6f".format(cachedPointLng)) }
-                                                        pointAltState.edit { replace(0, length, "%.2f".format(cachedPointAlt)) }
+                                                        pointNameState.edit { replace(cachedPointName) }
+                                                        pointLatState.edit { replace("%.6f".format(cachedPointLat)) }
+                                                        pointLngState.edit { replace("%.6f".format(cachedPointLng)) }
+                                                        pointAltState.edit { replace("%.2f".format(cachedPointAlt)) }
                                                         /* Disable edit mode */
                                                         editingSimPoint = false
                                                         isCreatingPoint = false
