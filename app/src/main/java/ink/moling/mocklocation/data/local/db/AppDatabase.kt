@@ -6,12 +6,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [MockPointEntity::class],
+    entities = [
+        MockPointEntity::class,
+        MockRouteEntity::class
+   ],
     version = 1,
     exportSchema = false // 禁用数据库导出 (数据库迁移用)
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun mockPointDao(): MockPointDao
+    abstract fun mockRouteDao(): MockRouteDao
 
     companion object {
         @Volatile private var instance: AppDatabase? = null

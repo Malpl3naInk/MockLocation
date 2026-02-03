@@ -77,7 +77,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -117,23 +116,9 @@ fun MainScreen(
     onStopMockLocation: () -> Unit
 ) {
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
 
     val mockStatus by viewModel.mockStatus.collectAsState()
     val location by viewModel.location.collectAsState()
-    val isImportExportDialogOpen by viewModel.isImportExportDialogOpen.collectAsState()
-    val isAddPointDialogOpen by viewModel.isAddPointDialogOpen.collectAsState()
-    
-    // 用于触发 RouteSelector 刷新的计数器
-    var refreshTrigger by remember { mutableIntStateOf(0) }
-    
-    // 监听 Dialog 关闭事件，触发刷新
-    LaunchedEffect(isImportExportDialogOpen) {
-        if (!isImportExportDialogOpen) {
-            // Dialog 关闭时触发刷新
-            refreshTrigger++
-        }
-    }
     
     // 显示权限未授予对话框
     if (mockStatus is MockServiceState.Error) {
