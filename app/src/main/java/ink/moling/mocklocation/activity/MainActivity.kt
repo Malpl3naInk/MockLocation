@@ -12,12 +12,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ink.moling.mocklocation.NativeLib
 import ink.moling.mocklocation.R
@@ -207,7 +210,9 @@ class MainActivity : ComponentActivity() {
             }
 
             MockLocationTheme {
-                Surface {
+                Surface(
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     // 显示常规权限说明对话框
                     if (showPermissionDialog) {
                         RequestPermissionDialog(
