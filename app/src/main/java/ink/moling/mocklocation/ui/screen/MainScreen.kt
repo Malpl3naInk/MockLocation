@@ -81,6 +81,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.openlocationcode.OpenLocationCode
 import ink.moling.mocklocation.activity.SettingsActivity
 import ink.moling.mocklocation.activity.WaypointActivity
 import ink.moling.mocklocation.data.local.repository.MockServiceState
@@ -141,6 +142,23 @@ fun MainScreen(
             skipHiddenState = false
         )
     )
+    var displayedCurrentLocation by remember { mutableStateOf("@51.476900,0.000500#46.0") }
+    var displayedCurrentOpenCode by remember { mutableStateOf("9C3XFXGX+PQ") }
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            listOf(
+                location.lat,
+                location.lng,
+                location.alt
+            )
+        }
+            .distinctUntilChanged()
+            .collect { values ->
+                val (lat, lng, alt) = values
+                displayedCurrentLocation = "@%.6f,%.6f#%.2f".format(lat, lng, alt)
+                displayedCurrentOpenCode = OpenLocationCode.encode(lat!!, lng!!, 11)
+            }
+    }
     val sheetState = scaffoldState.bottomSheetState
     val scaffoldExpanded by remember {
         derivedStateOf {
@@ -390,10 +408,12 @@ fun MainScreen(
                                             modifier = Modifier
                                                 .padding(6.dp)
                                         )
-                                        Text("@0.000000,0.000000#0.00")
+                                        Text(
+                                            text = displayedCurrentLocation
+                                        )
                                     }
                                     Text(
-                                        "9C3XFXGX+PQ",
+                                        text = displayedCurrentOpenCode,
                                         modifier = Modifier
                                             .padding(start = 36.dp),
                                         color = MaterialTheme.colorScheme.onSecondary
