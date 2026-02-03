@@ -102,7 +102,7 @@ class LocationService : Service() {
     }
 
     inner class MockLocationServiceBinder : Binder() {
-        fun locationFlow(): StateFlow<CandidateLocation?> =
+        fun locationFlow(): StateFlow<CandidateLocation> =
             locationStateHolder.state
         
         fun errorFlow(): StateFlow<ErrorInfo?> = _errorState

@@ -1,15 +1,16 @@
 package ink.moling.mocklocation.viewmodel
 
+import android.annotation.SuppressLint
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.data.local.db.AppDatabase
 import ink.moling.mocklocation.data.local.db.MockPointEntity
+import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.RouteItem
-import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.service.locationService.LocationService
-import ink.moling.mocklocation.data.local.PrefsHelper
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         AppDatabase
             .getInstance(getApplication())
             .mockPointDao()
+    }
+
+    private val mockPruteDao by lazy {
+        AppDatabase
+            .getInstance(getApplication())
+            .mockRouteDao()
     }
     
     // =====================================================
@@ -125,14 +132,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // 3. 位置数据流（来自 MockLocationService）
     // =====================================================
 
-    private val _location = MutableStateFlow<CandidateLocation?>(null)
+    private val _location = MutableStateFlow(CandidateLocation.Default)
     
     /**
      * 当前位置流，来自 MockLocationService
      * - 未模拟时：显示真实位置（GPS/Network 融合）
      * - 模拟时：显示模拟位置
      */
-    val location: StateFlow<CandidateLocation?> = _location.asStateFlow()
+    val location: StateFlow<CandidateLocation> = _location.asStateFlow()
 
     // =====================================================
     // 4. Mock 行为（命令 Service）
@@ -141,10 +148,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * 设置模拟位置（静态点）
      */
+    @SuppressLint("MissingPermission")
     fun setMockPosition(lat: Double, lng: Double, alt: Double) {
         val binder = serviceBinder.value
         if (binder == null) {
-            pendingAction = {
+            pendingAction = @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION]) {
                 serviceBinder.value?.setStaticPoint(lat, lng, alt)
             }
             _needStartService.tryEmit(Unit)
@@ -156,6 +164,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * 停止模拟位置，恢复真实位置
      */
+    @SuppressLint("MissingPermission")
     fun stopMockPosition() {
         serviceBinder.value?.stopSimulation()
     }

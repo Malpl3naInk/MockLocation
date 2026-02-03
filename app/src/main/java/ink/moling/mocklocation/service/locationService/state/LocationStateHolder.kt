@@ -21,9 +21,8 @@ class LocationStateHolder {
     var curAlt = DEFAULT_ALT
     var curBea = DEFAULT_BEA
 
-    private val _state =
-        MutableStateFlow<CandidateLocation?>(null)
-    val state: StateFlow<CandidateLocation?> = _state
+    private val _state = MutableStateFlow(CandidateLocation.Default)
+    val state: StateFlow<CandidateLocation> = _state
 
     private var currentSource: Source? = null
     private var mockEnabled: Boolean = false
@@ -52,6 +51,6 @@ class LocationStateHolder {
     fun stopMock() {
         mockEnabled = false
         currentSource = null
-        _state.value = null
+        _state.value = CandidateLocation.Default
     }
 }
