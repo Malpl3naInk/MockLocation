@@ -86,6 +86,7 @@ import ink.moling.mocklocation.activity.SettingsActivity
 import ink.moling.mocklocation.activity.WaypointActivity
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
+import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import ink.moling.mocklocation.ui.components.PillSelection
 import ink.moling.mocklocation.ui.components.PillSelector
@@ -96,6 +97,7 @@ import ink.moling.mocklocation.utils.extensions.isValidLat
 import ink.moling.mocklocation.utils.extensions.isValidLng
 import ink.moling.mocklocation.utils.extensions.replace
 import ink.moling.mocklocation.utils.extensions.toDouble
+import ink.moling.mocklocation.utils.logger.Logger
 import ink.moling.mocklocation.viewmodel.MainViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -154,9 +156,15 @@ fun MainScreen(
         }
             .distinctUntilChanged()
             .collect { values ->
+                if (location.source == Source.DEFAULT) return@collect
+
                 val (lat, lng, alt) = values
                 displayedCurrentLocation = "@%.6f,%.6f#%.2f".format(lat, lng, alt)
                 displayedCurrentOpenCode = OpenLocationCode.encode(lat!!, lng!!, 11)
+                Logger.d(
+                    "MainScreen",
+                    "Displayed: Lat=$lat, Lng=$lng"
+                )
             }
     }
     val sheetState = scaffoldState.bottomSheetState

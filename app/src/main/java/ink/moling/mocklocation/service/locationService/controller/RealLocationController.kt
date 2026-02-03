@@ -11,7 +11,7 @@ import ink.moling.mocklocation.utils.KalmanFilter
 import ink.moling.mocklocation.utils.logger.Logger
 
 class RealLocationController(
-    private val context: Context,
+    context: Context,
     private val kf: KalmanFilter,
     private val isMocking: () -> Boolean,
     private val output: (CandidateLocation) -> Unit
@@ -28,11 +28,6 @@ class RealLocationController(
             else -> return@LocationListener
         }
 
-        Logger.d(
-            "RealLocationController",
-            "Location: Lat=${location.latitude}, Lng=${location.longitude}, t=${location.time}"
-        )
-
         val (lat, lng) =
             if (source == Source.GPS) {
                 kf.update(
@@ -44,9 +39,10 @@ class RealLocationController(
             } else {
                 location.latitude to location.longitude
             }
+
         Logger.d(
             "RealLocationController",
-            "Filtered: Lat=$lat, Lng=$lng, t=${location.time}"
+            "${if (source == Source.GPS) "Filtered" else "Original" }: Lat=$lat, Lng=$lng"
         )
 
         output(
