@@ -1,6 +1,8 @@
 package ink.moling.mocklocation.ui.screen
 
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -59,6 +61,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -80,10 +83,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ink.moling.mocklocation.activity.SettingsActivity
+import ink.moling.mocklocation.activity.WaypointActivity
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
-import ink.moling.mocklocation.ui.components.IconPillSelector
 import ink.moling.mocklocation.ui.components.LatLngScatter
+import ink.moling.mocklocation.ui.components.PillSelection
+import ink.moling.mocklocation.ui.components.PillSelector
 import ink.moling.mocklocation.ui.dialog.ErrorDialog
 import ink.moling.mocklocation.utils.extensions.isNumber
 import ink.moling.mocklocation.utils.extensions.isValidAlt
@@ -146,7 +151,11 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 2 }
     var selectedSimulation by remember { mutableIntStateOf(0) }
-    val scaffoldState = rememberBottomSheetScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            skipHiddenState = false
+        )
+    )
     val sheetState = scaffoldState.bottomSheetState
     val scaffoldExpanded by remember {
         derivedStateOf {
@@ -186,6 +195,23 @@ fun MainScreen(
                     lng != "%.6f".format(cachedPointLng) ||
                     alt != "%.2f".format(cachedPointAlt)
             }
+    }
+    val routeName by remember { mutableStateOf("<Placeholder>") }
+    val waypointActivityLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        when (result.resultCode) {
+            WaypointActivity.RESULT_EDIT_OK -> {
+
+            }
+
+            WaypointActivity.RESULT_NEW_OK -> {
+
+            }
+            else -> {
+
+            }
+        }
     }
 
     BottomSheetScaffold(
@@ -227,7 +253,7 @@ fun MainScreen(
                                 pointAltState.edit { delete(0, length) }
                                 /* Collapse bottom sheet */
                                 scope.launch {
-                                    scaffoldState.bottomSheetState.partialExpand()
+                                    scaffoldState.bottomSheetState.hide()
                                 }
                             }) {
                                 Icon(
@@ -284,7 +310,9 @@ fun MainScreen(
                             Spacer(modifier = Modifier.weight(1f))
 
                             IconButton(onClick = {
-
+                                waypointActivityLauncher.launch(
+                                    Intent(context, WaypointActivity::class.java)
+                                )
                             }) {
                                 Icon(
                                     Icons.Outlined.Add,
@@ -333,7 +361,7 @@ fun MainScreen(
                 }
             }
         }
-    ) { _ ->
+    ) {
         Box {
             HorizontalPager(
                 state = pagerState,
@@ -454,10 +482,10 @@ fun MainScreen(
                                             color = MaterialTheme.colorScheme.onSecondary
                                         )
                                         Text(
-                                            /* Point / Route -> <name> */
                                             text = when(selectedSimulation) {
+                                                /* TODO: "Point"/"Route" i18n */
                                                 0    -> "${"Point"} > ${pointNameState.text}"
-                                                else -> "${"Route"} > <Placeholder>"
+                                                else -> "${"Route"} > $routeName"
                                             }
                                         )
                                     }
@@ -546,10 +574,10 @@ fun MainScreen(
 
                                 Spacer(modifier = Modifier.weight(1f))
 
-                                IconPillSelector(
-                                    icons = listOf(
-                                        Icons.Outlined.LocationOn,
-                                        Icons.Outlined.Route
+                                PillSelector(
+                                    items = listOf(
+                                        PillSelection(Icons.Outlined.LocationOn),
+                                        PillSelection(Icons.Outlined.Route)
                                     ),
                                     enabled = !editingSimPoint,
                                     selectedIndex = selectedSimulation,
@@ -953,7 +981,7 @@ fun MainScreen(
                                                     color = MaterialTheme.colorScheme.onSecondary
                                                 )
                                                 Text(
-                                                    "<Placeholder>"
+                                                    routeName
                                                 )
                                             }
                                         }
@@ -993,7 +1021,13 @@ fun MainScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         OutlinedButton(
-                                            onClick = { },
+                                            onClick = {
+                                                waypointActivityLauncher.launch(
+                                                    Intent(context, WaypointActivity::class.java).apply {
+                                                        putExtra("selectedRoute", routeName)
+                                                    }
+                                                )
+                                            },
                                             modifier = Modifier
                                                 .padding(horizontal = 6.dp),
                                             border = BorderStroke(
@@ -1140,7 +1174,7 @@ fun MainScreen(
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
                             scope.launch {
-                                scaffoldState.bottomSheetState.partialExpand()
+                                scaffoldState.bottomSheetState.hide()
                             }
                         }
                 )

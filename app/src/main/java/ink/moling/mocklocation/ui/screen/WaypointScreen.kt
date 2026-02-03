@@ -1,25 +1,38 @@
 package ink.moling.mocklocation.ui.screen
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.EditLocationAlt
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -29,136 +42,393 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.ui.components.LatLngScatter
+import ink.moling.mocklocation.ui.components.PillSelection
+import ink.moling.mocklocation.ui.components.PillSelector
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaypointScreen(
-    selectedRoute: RouteObject
+    selectedRoute: String
 ) {
-    var selectedRouteName       by remember { mutableStateOf("") }
-    var highlightedRoutePointId by remember { mutableStateOf<Int?>(null) }
-    var routePointRadius        by remember { mutableStateOf(3.dp) }
-    var selectedTab             by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Route Points", "Waypoints")
-    selectedRouteName = selectedRoute.name
+    val scaffoldState = rememberBottomSheetScaffoldState()
+    var selectedDisplayMode by remember { mutableIntStateOf(0) }
+    var selectedSheetDetail by remember { mutableIntStateOf(0) }
+    val routeNameState = rememberTextFieldState("<Placeholder>")
+    var isWaypointMap by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(top = 64.dp)
-        ) {
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 128.dp,
+        sheetContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+        sheetContent = {
             Column(
-                modifier = Modifier.weight(1.0f)
+                modifier = Modifier
+                    .fillMaxHeight(0.78f)
+                    .padding(
+                        bottom = 16.dp,
+                        start = 32.dp,
+                        end = 32.dp
+                    )
             ) {
-                OutlinedTextField(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    value = selectedRouteName,
-                    onValueChange = {
-                        selectedRouteName = it
-                    },
-                    label = {
-                        Text("Route name")
-                    }
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(vertical = 8.dp)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
-                            shape = RoundedCornerShape(12.dp)
-                        )
+                        .height(72.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    LatLngScatter(
-                        modifier = Modifier.fillMaxSize(),
-                        routeObject = selectedRoute,
-                        pointRadius = routePointRadius,
-                        highlightPointId = highlightedRoutePointId
+                    PillSelector(
+                        items = listOf(
+                            PillSelection(Icons.Outlined.LocationOn, "Waypoints"),
+                            PillSelection(Icons.Outlined.Description, "Details")
+                        ),
+                        selectedIndex = selectedSheetDetail,
+                        onSelectedChange = { selectedSheetDetail = it },
+                        selectedBackground = MaterialTheme.colorScheme.secondary
                     )
-                }
-            }
-            Column(
-                modifier = Modifier.weight(1.0f)
-            ) {
-                TabRow(
-                    selectedTabIndex = selectedTab,
-                    containerColor = Color.Transparent
-                ) {
-                    tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTab == index,
-                            onClick = {
-                                selectedTab = index
-                                routePointRadius = when (index) {
-                                    0 -> 3.dp
-                                    1 -> 0.dp
-                                    else -> 3.dp
-                                }
-                            },
-                            text = { Text(title) }
-                        )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    if (selectedSheetDetail == 0) {
+                        IconButton(onClick = {
+
+                        }) {
+                            Icon(
+                                Icons.Outlined.Add,
+                                contentDescription = null
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                when (selectedTab) {
-                    0 -> LazyColumn {
-                        items(selectedRoute.points) {
-                            Box(
-                                modifier = Modifier.combinedClickable(
-                                    onClick = {
-                                        highlightedRoutePointId =
-                                            if (highlightedRoutePointId != it.id) it.id else null
-                                    },
-                                    onLongClick = { /* TODO */ }
-                                )
-                            ) {
-                                Column {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
+                when (selectedSheetDetail) {
+                    0 -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(bottom = 12.dp)
+                        ) {
+                            repeat(30) { times ->
+                                item {
+                                    var isWaypointCardExpanded by remember { mutableStateOf(false) }
+                                    var isWaypointLoopable by remember { mutableStateOf(false) }
+                                    Card(
+                                        onClick = {
+                                            isWaypointCardExpanded = !isWaypointCardExpanded
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 2.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = (
+                                                if (isWaypointCardExpanded)
+                                                    MaterialTheme.colorScheme.surfaceVariant
+                                                else
+                                                    Color.Transparent
+                                            )
+                                        )
                                     ) {
-                                        Text(
-                                            "#${it.id}",
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.width(45.dp),
-                                            textAlign = TextAlign.Center
-                                        )
                                         Column(
-                                            modifier = Modifier.weight(1.0f)
+                                            modifier = Modifier.padding(4.dp)
                                         ) {
-                                            Text(it.lat.toString())
-                                            Text(it.lng.toString())
+                                            Text(
+                                                text = (
+                                                    if (isWaypointCardExpanded)
+                                                        "#$times"
+                                                    else
+                                                        "#$times - @0.000000,0.000000#0.00"
+                                                ),
+                                                modifier = Modifier
+                                                    .padding(
+                                                        horizontal = 6.dp,
+                                                        vertical = (
+                                                            if (isWaypointCardExpanded)
+                                                                6.dp
+                                                            else
+                                                                0.dp
+                                                        )
+                                                    )
+                                            )
+                                            if (isWaypointCardExpanded) {
+                                                HorizontalDivider(
+                                                    modifier = Modifier
+                                                        .padding(horizontal = 6.dp),
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+
+                                                Column(
+                                                    modifier = Modifier
+                                                        .padding(
+                                                            start = 18.dp,
+                                                            end = 6.dp
+                                                        )
+                                                ) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Text(
+                                                            "@0.000000,0.000000#0.00",
+                                                            modifier = Modifier
+                                                                .padding(horizontal = 6.dp)
+                                                        )
+
+                                                        Spacer(modifier = Modifier.weight(1f))
+
+                                                        IconButton(onClick = {
+
+                                                        }) {
+                                                            Icon(
+                                                                Icons.Outlined.EditLocationAlt,
+                                                                contentDescription = null
+                                                            )
+                                                        }
+                                                    }
+
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .padding(bottom = 6.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Checkbox(
+                                                            checked = isWaypointLoopable,
+                                                            onCheckedChange = {
+                                                                isWaypointLoopable = it
+                                                            }
+                                                        )
+                                                        Text(
+                                                            "Loop ring",
+                                                            modifier = Modifier
+                                                                .padding(horizontal = 3.dp)
+                                                        )
+                                                    }
+                                                }
+                                            } else {
+                                                Text(
+                                                    "Common road",
+                                                    color = MaterialTheme.colorScheme.onSecondary,
+                                                    modifier = Modifier
+                                                        .padding(horizontal = 6.dp)
+                                                )
+                                            }
                                         }
-                                        Text(
-                                            it.type,
-                                            modifier = Modifier.width(40.dp),
-                                            textAlign = TextAlign.Center
-                                        )
                                     }
-                                    Divider()
                                 }
                             }
                         }
                     }
-                    1 -> LazyColumn {
-                        item {
-                            Text("Waypoint")
+                    1 -> {
+                        Column(
+                            modifier = Modifier
+                                .padding(
+                                    bottom = 12.dp,
+                                    start = 8.dp,
+                                    end = 8.dp
+                                )
+                        ) {
+                            Text(
+                                "Route name",
+                                modifier = Modifier,
+                                color = MaterialTheme.colorScheme.onSecondary
+                            )
+                            TextField(
+                                state = routeNameState,
+                                lineLimits = TextFieldLineLimits.SingleLine,
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                colors = TextFieldDefaults.colors(
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedContainerColor = Color.Transparent
+                                )
+                            )
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp, horizontal = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = isWaypointMap,
+                                    onCheckedChange = { isWaypointMap = it }
+                                )
+                                Text("Map mode")
+                            }
                         }
                     }
                 }
             }
         }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            when (selectedDisplayMode) {
+                0 -> {
+                    LatLngScatter()
+                }
+                1 -> {
+
+                }
+            }
+
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 64.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                IconButton(
+                    modifier = Modifier
+                        .padding(start = 6.dp),
+                    onClick = {
+
+                    }
+                ) {
+                    Icon(
+                        Icons.Outlined.Save,
+                        contentDescription = null
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PillSelector(
+                        items = listOf(
+                            PillSelection(Icons.Outlined.Route, "Route"),
+                            PillSelection(Icons.Outlined.Map, "Map")
+                        ),
+                        selectedIndex = selectedDisplayMode,
+                        onSelectedChange = { selectedDisplayMode = it }
+                    )
+                }
+            }
+        }
     }
+//    var selectedRouteName       by remember { mutableStateOf("") }
+//    var highlightedRoutePointId by remember { mutableStateOf<Int?>(null) }
+//    var routePointRadius        by remember { mutableStateOf(3.dp) }
+//    var selectedTab             by remember { mutableIntStateOf(0) }
+//    val tabs = listOf("Route Points", "Waypoints")
+//    selectedRouteName = selectedRoute.name
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(24.dp)
+//    ) {
+//        Column(
+//            modifier = Modifier.padding(top = 64.dp)
+//        ) {
+//            Column(
+//                modifier = Modifier.weight(1.0f)
+//            ) {
+//                OutlinedTextField(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(vertical = 8.dp),
+//                    value = selectedRouteName,
+//                    onValueChange = {
+//                        selectedRouteName = it
+//                    },
+//                    label = {
+//                        Text("Route name")
+//                    }
+//                )
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(vertical = 8.dp)
+//                        .border(
+//                            width = 1.dp,
+//                            color = MaterialTheme.colorScheme.outline,
+//                            shape = RoundedCornerShape(12.dp)
+//                        )
+//                ) {
+//                    LatLngScatter(
+//                        modifier = Modifier.fillMaxSize(),
+//                        routeObject = selectedRoute,
+//                        pointRadius = routePointRadius,
+//                        highlightPointId = highlightedRoutePointId
+//                    )
+//                }
+//            }
+//            Column(
+//                modifier = Modifier.weight(1.0f)
+//            ) {
+//                TabRow(
+//                    selectedTabIndex = selectedTab,
+//                    containerColor = Color.Transparent
+//                ) {
+//                    tabs.forEachIndexed { index, title ->
+//                        Tab(
+//                            selected = selectedTab == index,
+//                            onClick = {
+//                                selectedTab = index
+//                                routePointRadius = when (index) {
+//                                    0 -> 3.dp
+//                                    1 -> 0.dp
+//                                    else -> 3.dp
+//                                }
+//                            },
+//                            text = { Text(title) }
+//                        )
+//                    }
+//                }
+//
+//                Spacer(modifier = Modifier.height(16.dp))
+//
+//                when (selectedTab) {
+//                    0 -> LazyColumn {
+//                        items(selectedRoute.points) {
+//                            Box(
+//                                modifier = Modifier.combinedClickable(
+//                                    onClick = {
+//                                        highlightedRoutePointId =
+//                                            if (highlightedRoutePointId != it.id) it.id else null
+//                                    },
+//                                    onLongClick = { /* TODO */ }
+//                                )
+//                            ) {
+//                                Column {
+//                                    Row(
+//                                        modifier = Modifier.fillMaxWidth(),
+//                                        verticalAlignment = Alignment.CenterVertically
+//                                    ) {
+//                                        Text(
+//                                            "#${it.id}",
+//                                            fontWeight = FontWeight.Bold,
+//                                            modifier = Modifier.width(45.dp),
+//                                            textAlign = TextAlign.Center
+//                                        )
+//                                        Column(
+//                                            modifier = Modifier.weight(1.0f)
+//                                        ) {
+//                                            Text(it.lat.toString())
+//                                            Text(it.lng.toString())
+//                                        }
+//                                        Text(
+//                                            it.type,
+//                                            modifier = Modifier.width(40.dp),
+//                                            textAlign = TextAlign.Center
+//                                        )
+//                                    }
+//                                    Divider()
+//                                }
+//                            }
+//                        }
+//                    }
+//                    1 -> LazyColumn {
+//                        item {
+//                            Text("Waypoint")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
