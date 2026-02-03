@@ -6,16 +6,20 @@ import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import ink.moling.mocklocation.ui.screen.WaypointScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
-import ink.moling.mocklocation.utils.loadRouteFromFile
 import ink.moling.mocklocation.utils.logger.Logger
-import java.io.File
 
 class WaypointActivity : ComponentActivity() {
+    companion object {
+        const val RESULT_EDIT_OK        = 0xE0
+        const val RESULT_EDIT_CANCELED  = 0xEC
+        const val RESULT_NEW_OK         = 0xA0
+        const val RESULT_NEW_CANCELLED  = 0xAC
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -26,18 +30,16 @@ class WaypointActivity : ComponentActivity() {
             finish()  // 手动 finish
         }
 
-        val selectedRoute = intent.getStringExtra("selectedRoute")
+        val selectedRoute = intent.getStringExtra("selectedRoute") ?: "<NEW_ROUTE>"
         Logger.d("WaypointActivity", "selectedRoute=$selectedRoute")
-        val route = loadRouteFromFile(File(selectedRoute!!))
 
         setContent {
             MockLocationTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     WaypointScreen(
-                        selectedRoute = route!!
+                        selectedRoute = selectedRoute
                     )
                 }
             }
