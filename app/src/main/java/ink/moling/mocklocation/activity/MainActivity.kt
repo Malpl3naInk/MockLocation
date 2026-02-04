@@ -13,7 +13,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -261,9 +260,9 @@ class MainActivity : ComponentActivity() {
                             // 通过 ViewModel 启动模拟（保持架构清晰）
                             viewModel.selectedMockPoint?.let { point ->
                                 viewModel.setMockPosition(
-                                    point.latitude,
-                                    point.longitude,
-                                    point.altitude
+                                    point.lat,
+                                    point.lng,
+                                    point.alt
                                 )
                             }
                         },

@@ -5,21 +5,10 @@ import ink.moling.mocklocation.data.models.Source
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-/* 默认位置常量 */
-const val DEFAULT_LAT = 51.476853
-const val DEFAULT_LNG = 0.0 // 默认经纬度(格林尼治天文台)
-const val DEFAULT_ALT = 694.0
-const val DEFAULT_BEA = 0.0f
-
 /**
  * 负责管理位置状态
  */
 class LocationStateHolder {
-    // 当前位置坐标
-    var curLat = DEFAULT_LAT
-    var curLng = DEFAULT_LNG
-    var curAlt = DEFAULT_ALT
-    var curBea = DEFAULT_BEA
 
     private val _state = MutableStateFlow(CandidateLocation.Default)
     val state: StateFlow<CandidateLocation> = _state
