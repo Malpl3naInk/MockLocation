@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class MockPointEntity (
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
-    val latitude: Double,
-    val longitude: Double,
-    val altitude: Double
+    val lat: Double,
+    val lng: Double,
+    val alt: Double
 )

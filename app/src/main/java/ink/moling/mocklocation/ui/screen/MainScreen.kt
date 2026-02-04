@@ -1,6 +1,7 @@
 package ink.moling.mocklocation.ui.screen
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -21,10 +22,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -34,6 +37,7 @@ import androidx.compose.foundation.text.input.delete
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Undo
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowDropUp
 import androidx.compose.material.icons.outlined.Delete
@@ -47,8 +51,10 @@ import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,6 +64,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -178,7 +185,12 @@ fun MainScreen(
     var editingSimPoint by remember { mutableStateOf(false) }
     var isPointModified by remember { mutableStateOf(false) }
     var isCreatingPoint by remember { mutableStateOf(false) }
-    var cachedPointName = "<Placeholder>"
+    val savedPoints by viewModel.savedPoints.collectAsState()
+    // 初始化时加载数据
+    LaunchedEffect(Unit) {
+        viewModel.getPoints()
+    }
+    var cachedPointName = "<Unselected>"
     var cachedPointLat = 0.0
     var cachedPointLng = 0.0
     var cachedPointAlt = 0.0
@@ -186,6 +198,31 @@ fun MainScreen(
     val pointLatState = rememberTextFieldState("%.6f".format(cachedPointLat))
     val pointLngState = rememberTextFieldState("%.6f".format(cachedPointLng))
     val pointAltState = rememberTextFieldState("%.2f".format(cachedPointAlt))
+    // 监听 savedPoints 变化，并初始化选中的点
+    LaunchedEffect(savedPoints) {
+        if (savedPoints.isNotEmpty()) {
+            Logger.d("MainScreen", "Saved points initialized, exists IDs: [%s]".format(
+                savedPoints.joinToString(separator = ",") { it.id.toString() }
+            ))
+            val selectedPointId = PrefsHelper.getSelectedPointId(context)
+            Logger.d("MainScreen", "Selected point ID: $selectedPointId")
+            if (selectedPointId == null || selectedPointId == -1L)
+                return@LaunchedEffect
+            val selectedPointEntity = savedPoints.find { it.id == selectedPointId }
+            if (selectedPointEntity != null) {
+                Logger.d("MainScreen", "Selected point exists: %s@%f,%f#%f".format(
+                    selectedPointEntity.name,
+                    selectedPointEntity.lat,
+                    selectedPointEntity.lng,
+                    selectedPointEntity.alt
+                ))
+                pointNameState.edit { replace(selectedPointEntity.name) }
+                pointLatState.edit { replace("%.6f".format(selectedPointEntity.lat)) }
+                pointLngState.edit { replace("%.6f".format(selectedPointEntity.lng)) }
+                pointAltState.edit { replace("%.2f".format(selectedPointEntity.alt)) }
+            }
+        }
+    }
     var pointLatVerified by remember { mutableStateOf(true) }
     var pointLngVerified by remember { mutableStateOf(true) }
     var pointAltVerified by remember { mutableStateOf(true) }
@@ -224,6 +261,75 @@ fun MainScreen(
 
             }
         }
+    }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    // 确认删除对话框
+    if (showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Warning",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = {
+                Text(
+                    text = "Confirm delete",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Delete point \"${pointNameState.text}\"?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Text(
+                        text = "This action cannot be undone.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        // 执行删除操作
+                        viewModel.deletePoint(PrefsHelper.getSelectedPointId(context)!!)
+                        PrefsHelper.setSelectedPointId(context, -1L)
+                        scope.launch {
+                            viewModel.getPoints()
+                        }
+                        pointNameState.edit { replace("<Unselected>") }
+                        pointLatState.edit { replace("%.6f".format(0.0)) }
+                        pointLngState.edit { replace("%.6f".format(0.0)) }
+                        pointAltState.edit { replace("%.2f".format(0.0)) }
+                        showDeleteConfirmDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     BottomSheetScaffold(
@@ -278,32 +384,38 @@ fun MainScreen(
                         LazyColumn(
                             modifier = Modifier.padding(vertical = 12.dp)
                         ) {
-                            repeat(30) {
-                                item {
-                                    Card(
-                                        onClick = {
-
-                                        },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = Color.Transparent
-                                        )
-                                    ) {
-                                        Column(
-                                            modifier = Modifier.padding(4.dp)
-                                        ) {
-                                            Text(
-                                                "Point #$it",
-                                                modifier = Modifier
-                                                    .padding(horizontal = 6.dp)
-                                            )
-                                            Text(
-                                                "@0.000000,0.000000#0.00",
-                                                color = MaterialTheme.colorScheme.onSecondary,
-                                                modifier = Modifier
-                                                    .padding(horizontal = 6.dp)
-                                            )
+                            items(savedPoints) { point ->
+                                Card(
+                                    onClick = {
+                                        PrefsHelper.setSelectedPointId(context, point.id)
+                                        val selectedPointEntity = savedPoints.first { it.id == point.id }
+                                        pointNameState.edit { replace(selectedPointEntity.name) }
+                                        pointLatState.edit { replace("%.6f".format(selectedPointEntity.lat)) }
+                                        pointLngState.edit { replace("%.6f".format(selectedPointEntity.lng)) }
+                                        pointAltState.edit { replace("%.2f".format(selectedPointEntity.alt)) }
+                                        scope.launch {
+                                            scaffoldState.bottomSheetState.hide()
                                         }
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color.Transparent
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(4.dp)
+                                    ) {
+                                        Text(
+                                            point.name,
+                                            modifier = Modifier
+                                                .padding(horizontal = 6.dp)
+                                        )
+                                        Text(
+                                            "@%.6f,%.6f#%.2f".format(point.lat, point.lng, point.alt),
+                                            color = MaterialTheme.colorScheme.onSecondary,
+                                            modifier = Modifier
+                                                .padding(horizontal = 6.dp)
+                                        )
                                     }
                                 }
                             }
@@ -438,7 +550,9 @@ fun MainScreen(
                                 Button(
                                     modifier = Modifier
                                         .padding(horizontal = 6.dp),
-                                    onClick = { }
+                                    onClick = {
+                                        /* TODO */
+                                    }
                                 ) {
                                     /* Start / Stop */
                                     Text("Start")
@@ -761,35 +875,50 @@ fun MainScreen(
                                     ) {
                                         OutlinedButton(
                                             onClick = {
-                                                if (editingSimPoint) {
-                                                    /* Verify input */
-                                                    pointLatVerified = pointLatState.isNumber() && pointLatState.isValidLat()
-                                                    pointLngVerified = pointLngState.isNumber() && pointLngState.isValidLng()
-                                                    pointAltVerified = pointAltState.isNumber() && pointAltState.isValidAlt()
-                                                    if (!pointLatVerified || !pointLngVerified || !pointAltVerified)
-                                                        return@OutlinedButton
-                                                    /* Reset UI */
-                                                    isPointModified = false
-                                                    isCreatingPoint = false
-                                                    /* Standardize location detail */
-                                                    val (lat, lng, alt) = listOf(
-                                                        pointLatState.toDouble(),
-                                                        pointLngState.toDouble(),
-                                                        pointAltState.toDouble()
-                                                    )
-                                                    pointLatState.edit { replace("%.6f".format(lat)) }
-                                                    pointLngState.edit { replace("%.6f".format(lng)) }
-                                                    pointAltState.edit { replace("%.2f".format(alt)) }
-                                                    /* TODO: Save point details to shared preferences */
+                                                if (PrefsHelper.getSelectedPointId(context) != null) {
+                                                    if (editingSimPoint) {
+                                                        /* Verify input */
+                                                        pointLatVerified = pointLatState.isNumber() && pointLatState.isValidLat()
+                                                        pointLngVerified = pointLngState.isNumber() && pointLngState.isValidLng()
+                                                        pointAltVerified = pointAltState.isNumber() && pointAltState.isValidAlt()
+                                                        if (!pointLatVerified || !pointLngVerified || !pointAltVerified)
+                                                            return@OutlinedButton
+                                                        /* Reset UI */
+                                                        isPointModified = false
+                                                        isCreatingPoint = false
+                                                        /* Standardize location detail */
+                                                        val (lat, lng, alt) = listOf(
+                                                            pointLatState.toDouble(),
+                                                            pointLngState.toDouble(),
+                                                            pointAltState.toDouble()
+                                                        )
+                                                        pointLatState.edit { replace("%.6f".format(lat)) }
+                                                        pointLngState.edit { replace("%.6f".format(lng)) }
+                                                        pointAltState.edit { replace("%.2f".format(alt)) }
+                                                        /* Save point details to database */
+                                                        viewModel.updatePoint(
+                                                            PrefsHelper.getSelectedPointId(context)!!,
+                                                            pointNameState.text.toString(), lat, lng, alt
+                                                        )
+                                                    } else {
+                                                        isPointModified = false
+                                                        pointLatVerified = true
+                                                        pointLngVerified = true
+                                                        pointAltVerified = true
+                                                        /* Cache current point details */
+                                                        cachedPointName = pointNameState.text.toString()
+                                                        cachedPointLat = pointLatState.toDouble()
+                                                        cachedPointLng = pointLngState.toDouble()
+                                                        cachedPointAlt = pointAltState.toDouble()
+                                                    }
+                                                    editingSimPoint = !editingSimPoint
                                                 } else {
-                                                    isPointModified = false
-                                                    /* Cache current point details */
-                                                    cachedPointName = pointNameState.text.toString()
-                                                    cachedPointLat = pointLatState.toDouble()
-                                                    cachedPointLng = pointLngState.toDouble()
-                                                    cachedPointAlt = pointAltState.toDouble()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Please select a point",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
-                                                editingSimPoint = !editingSimPoint
                                             },
                                             modifier = Modifier
                                                 .padding(horizontal = 6.dp),
@@ -898,6 +1027,10 @@ fun MainScreen(
                                                         editingSimPoint = false
                                                         isCreatingPoint = false
                                                         isPointModified = false
+                                                    } else {
+                                                        if (PrefsHelper.getSelectedPointId(context) != null) {
+                                                            showDeleteConfirmDialog = true
+                                                        }
                                                     }
                                                 },
                                                 modifier = Modifier
@@ -915,7 +1048,9 @@ fun MainScreen(
                                             // Fill with current location
                                             IconButton(
                                                 onClick = {
-
+                                                    pointLatState.edit { replace("${location.lat}") }
+                                                    pointLngState.edit { replace("${location.lng}") }
+                                                    pointAltState.edit { replace("${location.alt}") }
                                                 }
                                             ) {
                                                 Icon(
@@ -961,7 +1096,7 @@ fun MainScreen(
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Column {
-                                                    Text("<Placeholder>")
+                                                    Text(pointNameState.text.toString())
                                                     Text(
                                                         "Select target",
                                                         color = MaterialTheme.colorScheme.onSecondary

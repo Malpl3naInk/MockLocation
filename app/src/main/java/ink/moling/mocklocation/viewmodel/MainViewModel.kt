@@ -3,6 +3,7 @@ package ink.moling.mocklocation.viewmodel
 import android.annotation.SuppressLint
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.data.local.db.AppDatabase
@@ -11,6 +12,7 @@ import ink.moling.mocklocation.data.local.db.MockRouteEntity
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.service.locationService.LocationService
+import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -170,48 +172,90 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // =====================================================
-    // 5. 本地路径点存储
+    // 5. 本地路径点存储(旧)
     // =====================================================
 
-    private val _points = MutableStateFlow<List<MockPointEntity>>(emptyList())
-    val points: StateFlow<List<MockPointEntity>> = _points.asStateFlow()
+//    private val _points = MutableStateFlow<List<MockPointEntity>>(emptyList())
+//    val points: StateFlow<List<MockPointEntity>> = _points.asStateFlow()
+//
+//    fun loadPoints() {
+//        viewModelScope.launch {
+//            _points.value = mockPointDao.getAll()
+//        }
+//    }
+//
+//    fun addPoint(
+//        name: String,
+//        latitude: Double,
+//        longitude: Double,
+//        altitude: Double
+//    ) {
+//        viewModelScope.launch {
+//            mockPointDao.insert(
+//                MockPointEntity(
+//                    name = name,
+//                    lat = latitude,
+//                    longitude = longitude,
+//                    altitude = altitude
+//                )
+//            )
+//            _points.value = mockPointDao.getAll()
+//        }
+//    }
+//
+//    fun deletePoint(id: Long) {
+//        viewModelScope.launch {
+//            mockPointDao.deleteById(id)
+//            _points.value = mockPointDao.getAll()
+//        }
+//    }
 
-    fun loadPoints() {
-        viewModelScope.launch {
-            _points.value = mockPointDao.getAll()
-        }
+
+
+    private val _savedPoints = MutableStateFlow<List<MockPointEntity>>(emptyList())
+    val savedPoints: StateFlow<List<MockPointEntity>> = _savedPoints.asStateFlow()
+
+    suspend fun getPoints() {
+        _savedPoints.value = mockPointDao.getAll()
+        Logger.d("getPoints", "Exists IDs: [%s]".format(
+            _savedPoints.value.joinToString(separator = ",") { it.id.toString() }
+        ))
     }
 
     fun addPoint(
         name: String,
-        latitude: Double,
-        longitude: Double,
-        altitude: Double
+        lat: Double,
+        lng: Double,
+        alt: Double
     ) {
         viewModelScope.launch {
-            mockPointDao.insert(
-                MockPointEntity(
-                    name = name,
-                    latitude = latitude,
-                    longitude = longitude,
-                    altitude = altitude
-                )
+            val insertedId = mockPointDao.insert(
+                MockPointEntity(name = name, lat = lat, lng = lng, alt = alt)
             )
-            _points.value = mockPointDao.getAll()
+            PrefsHelper.setSelectedPointId(application, insertedId)
+            getPoints()
+        }
+    }
+
+    fun updatePoint(
+        id: Long,
+        name: String,
+        lat: Double,
+        lng: Double,
+        alt: Double
+    ) {
+        viewModelScope.launch {
+            val insertedId = mockPointDao.insert(
+                MockPointEntity(id, name, lat, lng, alt)
+            )
+            PrefsHelper.setSelectedPointId(application, insertedId)
+            getPoints()
         }
     }
 
     fun deletePoint(id: Long) {
         viewModelScope.launch {
             mockPointDao.deleteById(id)
-            _points.value = mockPointDao.getAll()
         }
     }
-
-//    fun clearAllPoints() {
-//        viewModelScope.launch {
-//            mockPointDao.clearAll()
-//            _points.value = emptyList()
-//        }
-//    }
 }
