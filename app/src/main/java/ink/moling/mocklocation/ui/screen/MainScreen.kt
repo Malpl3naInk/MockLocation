@@ -84,6 +84,7 @@ import androidx.compose.ui.unit.sp
 import com.google.openlocationcode.OpenLocationCode
 import ink.moling.mocklocation.activity.SettingsActivity
 import ink.moling.mocklocation.activity.WaypointActivity
+import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.data.models.Source
@@ -138,7 +139,7 @@ fun MainScreen(
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 2 }
-    var selectedSimulation by remember { mutableIntStateOf(0) }
+    var selectedSimulation by remember { mutableIntStateOf(PrefsHelper.getMockMode(context)) }
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
             skipHiddenState = false
@@ -594,7 +595,10 @@ fun MainScreen(
                                     ),
                                     enabled = !editingSimPoint,
                                     selectedIndex = selectedSimulation,
-                                    onSelectedChange = { selectedSimulation = it }
+                                    onSelectedChange = {
+                                        selectedSimulation = it
+                                        PrefsHelper.setMockMode(context, it)
+                                    }
                                 )
                             }
 
