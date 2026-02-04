@@ -16,7 +16,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import ink.moling.mocklocation.ui.FloatingScreen
+import ink.moling.mocklocation.ui.screen.FloatingScreen
 
 class JoystickService : LifecycleService(), SavedStateRegistryOwner {
     private lateinit var windowManager: WindowManager
@@ -57,8 +57,8 @@ class JoystickService : LifecycleService(), SavedStateRegistryOwner {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = 20
-            y = 300
+            x = 60
+            y = 900
         }
 
         composeView = ComposeView(this).apply {

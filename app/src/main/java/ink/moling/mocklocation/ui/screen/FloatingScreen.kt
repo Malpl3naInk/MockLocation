@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui
+package ink.moling.mocklocation.ui.screen
 
 import android.view.WindowManager
 import androidx.compose.foundation.background
