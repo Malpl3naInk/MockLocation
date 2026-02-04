@@ -30,11 +30,12 @@ class LocationStateHolder {
     fun updateFromRealLocation(location: CandidateLocation) {
         if (mockEnabled) return   // mock 优先级最高
 
-        // 简单策略：GPS > NETWORK
+        // 简单策略：GPS > NETWORK，同源则允许更新
         val canOverride =
             currentSource == null ||
-                    currentSource == Source.NETWORK &&
-                    location.source == Source.GPS
+                    currentSource == location.source ||
+                    (currentSource == Source.NETWORK &&
+                    location.source == Source.GPS)
 
         if (!canOverride) return
 

@@ -7,9 +7,9 @@ import androidx.lifecycle.viewModelScope
 import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.data.local.db.AppDatabase
 import ink.moling.mocklocation.data.local.db.MockPointEntity
+import ink.moling.mocklocation.data.local.db.MockRouteEntity
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.data.models.CandidateLocation
-import ink.moling.mocklocation.data.models.RouteItem
 import ink.moling.mocklocation.service.locationService.LocationService
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .mockPointDao()
     }
 
-    private val mockPruteDao by lazy {
+    private val mockRouteDao by lazy {
         AppDatabase
             .getInstance(getApplication())
             .mockRouteDao()
@@ -46,22 +46,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             PrefsHelper.setSelectedPointId(getApplication(), value?.id)
         }
     
-    var selectedMockRoute: RouteItem? = null
+    var selectedMockRoute: MockRouteEntity? = null
         set(value) {
             field = value
-            PrefsHelper.setSelectedRoute(getApplication(), value)
+            PrefsHelper.setSelectedRouteId(getApplication(), value?.id)
         }
     
     init {
-        // 从 SharedPreferences 恢复上次选择的模拟路径
-        selectedMockRoute = PrefsHelper.getSelectedRoute(getApplication())
-        
         // 从 SharedPreferences 恢复上次选择的模拟点 ID，然后从数据库查询
         val savedPointId = PrefsHelper.getSelectedPointId(getApplication())
-        if (savedPointId != null) {
-            viewModelScope.launch {
+        // 从 SharedPreferences 恢复上次选择的模拟路径
+        val savedRouteId = PrefsHelper.getSelectedRouteId(getApplication())
+        viewModelScope.launch {
+            if (savedPointId != null)
                 selectedMockPoint = mockPointDao.getById(savedPointId)
-            }
+            if (savedRouteId != null)
+                selectedMockRoute = mockRouteDao.getById(savedRouteId)
         }
     }
 
