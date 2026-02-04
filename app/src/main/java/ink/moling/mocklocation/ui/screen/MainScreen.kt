@@ -40,6 +40,7 @@ import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowDropUp
+import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Edit
@@ -51,6 +52,7 @@ import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.ShareLocation
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
@@ -315,6 +317,7 @@ fun MainScreen(
                         pointLatState.edit { replace("%.6f".format(0.0)) }
                         pointLngState.edit { replace("%.6f".format(0.0)) }
                         pointAltState.edit { replace("%.2f".format(0.0)) }
+                        viewModel.selectedMockPoint = null
                         showDeleteConfirmDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -551,11 +554,32 @@ fun MainScreen(
                                     modifier = Modifier
                                         .padding(horizontal = 6.dp),
                                     onClick = {
-                                        /* TODO */
+                                        if (mockStatus == MockServiceState.Enabled || mockStatus is MockServiceState.Error) {
+                                            // 停止模拟
+                                            onStopMockLocation()
+                                        } else if (mockStatus == MockServiceState.Disabled) {
+                                            val selected = viewModel.selectedMockPoint
+                                            if (selected == null) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Please select point",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                return@Button
+                                            }
+                                            // 启动模拟
+                                            onStartMockLocation()
+                                        }
                                     }
                                 ) {
                                     /* Start / Stop */
-                                    Text("Start")
+                                    Text(
+                                        when (mockStatus) {
+                                            MockServiceState.Disabled -> "Start"
+                                            MockServiceState.Enabled -> "Stop"
+                                            else -> "Wait..."
+                                        }
+                                    )
                                 }
 
                                 Box(
@@ -658,7 +682,11 @@ fun MainScreen(
                                         )
                                         Text(
                                             /* Idle / Mocking / Initializing */
-                                            "Idle"
+                                            when (mockStatus) {
+                                                MockServiceState.Enabled -> "Mocking"
+                                                MockServiceState.Initializing -> "Initializing"
+                                                else -> "Idle"
+                                            }
                                         )
                                     }
 
@@ -670,7 +698,11 @@ fun MainScreen(
                                      * Mocking: Icons.Outlined.ShareLocation
                                      * Initializing: Icons.Outlined.Build
                                      * */
-                                        Icons.Outlined.LocationSearching,
+                                        when (mockStatus) {
+                                            MockServiceState.Enabled -> Icons.Outlined.ShareLocation
+                                            MockServiceState.Initializing -> Icons.Outlined.Build
+                                            else -> Icons.Outlined.LocationSearching
+                                        },
                                         contentDescription = null,
                                         modifier = Modifier
                                             .padding(6.dp),

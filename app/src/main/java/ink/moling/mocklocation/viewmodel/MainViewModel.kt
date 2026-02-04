@@ -3,7 +3,6 @@ package ink.moling.mocklocation.viewmodel
 import android.annotation.SuppressLint
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.data.local.db.AppDatabase
@@ -232,7 +231,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val insertedId = mockPointDao.insert(
                 MockPointEntity(name = name, lat = lat, lng = lng, alt = alt)
             )
-            PrefsHelper.setSelectedPointId(application, insertedId)
+            selectedMockPoint = mockPointDao.getById(insertedId)
             getPoints()
         }
     }
@@ -248,7 +247,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val insertedId = mockPointDao.insert(
                 MockPointEntity(id, name, lat, lng, alt)
             )
-            PrefsHelper.setSelectedPointId(application, insertedId)
+            selectedMockPoint = mockPointDao.getById(insertedId)
             getPoints()
         }
     }
