@@ -6,13 +6,21 @@ import androidx.core.content.edit
 
 object PrefsHelper {
     private const val PREFS_NAME = "MockLocation"
+    private const val KEY_IS_FIRST_LAUNCH = "is_first_launch"
     private const val KEY_MOCK_MODE = "mock_mode"
     private const val KEY_SELECTED_POINT_ID = "selected_point_id"
     private const val KEY_SELECTED_ROUTE_ID = "selected_route_id"
-    private const val KEY_SELECTED_ROUTE_PATH = "selected_route_path"
 
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
+
+    fun getIsFirstLaunch(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_IS_FIRST_LAUNCH, true)
+    }
+
+    fun setIsFirstLaunch(context: Context) {
+        getPrefs(context).edit { putBoolean(KEY_IS_FIRST_LAUNCH, false) }
     }
 
     fun setMockMode(context: Context, value: Int) {
