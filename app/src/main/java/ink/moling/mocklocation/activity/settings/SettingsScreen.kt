@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui.screen
+package ink.moling.mocklocation.activity.settings
 
 import android.content.Intent
 import androidx.compose.animation.core.Animatable

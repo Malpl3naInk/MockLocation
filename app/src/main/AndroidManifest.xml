@@ -25,7 +25,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MockLocation">
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".activity.main.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MockLocation">
             <intent-filter>
@@ -35,11 +35,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.SettingsActivity"
+            android:name=".activity.settings.SettingsActivity"
             android:theme="@style/Theme.MockLocation">
         </activity>
         <activity
-            android:name=".activity.WaypointActivity"
+            android:name=".activity.waypoint.WaypointActivity"
             android:theme="@style/Theme.MockLocation">
         </activity>
 
