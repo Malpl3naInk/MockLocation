@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui.screen
+package ink.moling.mocklocation.activity.waypoint
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

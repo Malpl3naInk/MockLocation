@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.ui.screen
+package ink.moling.mocklocation.service.joystickService
 
 import android.view.WindowManager
 import androidx.compose.foundation.background
@@ -38,7 +38,7 @@ import ink.moling.mocklocation.utils.azimuthToDirection
 import kotlin.math.roundToInt
 
 @Composable
-fun FloatingScreen(
+fun JoystickScreen(
     windowManager: WindowManager,
     composeView: ComposeView,
     params: WindowManager.LayoutParams

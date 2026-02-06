@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.activity
+package ink.moling.mocklocation.activity.settings
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import ink.moling.mocklocation.ui.screen.SettingsScreen
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 
 class SettingsActivity : ComponentActivity() {
@@ -18,7 +17,7 @@ class SettingsActivity : ComponentActivity() {
         setContent {
             MockLocationTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.Companion.fillMaxSize()
                 ) {
                     SettingsScreen()
                 }

@@ -1,7 +1,9 @@
-package ink.moling.mocklocation.viewmodel
+package ink.moling.mocklocation.activity.main
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Application
+import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.openlocationcode.OpenLocationCode
@@ -233,7 +235,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setMockPosition(lat: Double, lng: Double, alt: Double) {
         val binder = serviceBinder.value
         if (binder == null) {
-            pendingAction = @androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION]) {
+            pendingAction = @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION]) {
                 serviceBinder.value?.setStaticPoint(lat, lng, alt)
             }
             _needStartService.tryEmit(Unit)
