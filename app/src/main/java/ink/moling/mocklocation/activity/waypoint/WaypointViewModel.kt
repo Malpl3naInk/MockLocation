@@ -1,0 +1,433 @@
+package ink.moling.mocklocation.activity.waypoint
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import ink.moling.mocklocation.data.local.db.AppDatabase
+import ink.moling.mocklocation.data.local.db.MockRouteEntity
+import ink.moling.mocklocation.data.models.PointType
+import ink.moling.mocklocation.data.models.RouteMeta
+import ink.moling.mocklocation.data.models.RouteObject
+import ink.moling.mocklocation.data.models.RoutePoint
+import ink.moling.mocklocation.data.models.RouteType
+import ink.moling.mocklocation.utils.logger.Logger
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+/**
+ * Waypoint 编辑器的 UI 状态
+ */
+data class WaypointUiState(
+    // 路线基本信息
+    val routeName: String = "<NEW_ROUTE>",
+    val isWaypointMap: Boolean = false,
+    val isNewRoute: Boolean = true,
+    val routeId: Long? = null,
+    
+    // 路点列表
+    val waypoints: List<RoutePoint> = emptyList(),
+    
+    // 编辑状态
+    val isModified: Boolean = false,
+    val selectedWaypointIndex: Int? = null,
+    
+    // UI 控制
+    val selectedDisplayMode: Int = 0,  // 0=Route, 1=Map
+    val selectedSheetDetail: Int = 0,  // 0=Waypoints, 1=Details
+    
+    // 错误状态
+    val errorMessage: String? = null
+)
+
+/**
+ * 一次性 UI 事件
+ */
+sealed class WaypointUiEvent {
+    data class ShowToast(val message: String) : WaypointUiEvent()
+    object SaveSuccess : WaypointUiEvent()
+    object ClosActivity : WaypointUiEvent()
+}
+
+class WaypointViewModel(application: Application) : AndroidViewModel(application) {
+    
+    // =====================================================
+    // 数据库访问
+    // =====================================================
+    
+    private val mockRouteDao by lazy {
+        AppDatabase
+            .getInstance(getApplication())
+            .mockRouteDao()
+    }
+    
+    // =====================================================
+    // UI 状态
+    // =====================================================
+    
+    private val _uiState = MutableStateFlow(WaypointUiState())
+    val uiState: StateFlow<WaypointUiState> = _uiState.asStateFlow()
+    
+    private val _uiEvent = MutableSharedFlow<WaypointUiEvent>(extraBufferCapacity = 1)
+    val uiEvent = _uiEvent.asSharedFlow()
+    
+    // =====================================================
+    // 初始化
+    // =====================================================
+    
+    /**
+     * 加载现有路线进行编辑
+     * 
+     * @param routeName 路线名称
+     */
+    fun loadRoute(routeName: String) {
+        if (routeName == "<NEW_ROUTE>" || routeName.isEmpty()) {
+            // 创建新路线模式
+            _uiState.update { 
+                it.copy(
+                    routeName = "",
+                    isNewRoute = true,
+                    waypoints = emptyList()
+                ) 
+            }
+            return
+        }
+        
+        viewModelScope.launch {
+            try {
+                // 通过名称搜索路线
+                val routes = mockRouteDao.searchByName(routeName)
+                val route = routes.firstOrNull { it.name == routeName }
+                
+                if (route != null) {
+                    _uiState.update { 
+                        it.copy(
+                            routeName = route.name,
+                            isNewRoute = false,
+                            routeId = route.id,
+                            waypoints = route.details.points,
+                            isWaypointMap = route.details.meta.type == RouteType.WAYPOINTS
+                        ) 
+                    }
+                    Logger.d("WaypointViewModel", "Loaded route: ${route.name}, points: ${route.details.points.size}")
+                } else {
+                    // 路线不存在，创建新路线
+                    _uiState.update { 
+                        it.copy(
+                            routeName = routeName,
+                            isNewRoute = true,
+                            waypoints = emptyList()
+                        ) 
+                    }
+                }
+            } catch (e: Exception) {
+                Logger.e("WaypointViewModel", "Failed to load route", e)
+                _uiState.update { it.copy(errorMessage = "Failed to load route: ${e.message}") }
+            }
+        }
+    }
+    
+    /**
+     * 通过 ID 加载路线
+     * 
+     * @param routeId 路线 ID
+     */
+    fun loadRouteById(routeId: Long) {
+        viewModelScope.launch {
+            try {
+                val route = mockRouteDao.getById(routeId)
+                if (route != null) {
+                    _uiState.update { 
+                        it.copy(
+                            routeName = route.name,
+                            isNewRoute = false,
+                            routeId = route.id,
+                            waypoints = route.details.points,
+                            isWaypointMap = route.details.meta.type == RouteType.WAYPOINTS
+                        ) 
+                    }
+                    Logger.d("WaypointViewModel", "Loaded route by ID: ${route.name}")
+                } else {
+                    _uiState.update { it.copy(errorMessage = "Route not found") }
+                }
+            } catch (e: Exception) {
+                Logger.e("WaypointViewModel", "Failed to load route by ID", e)
+                _uiState.update { it.copy(errorMessage = "Failed to load route: ${e.message}") }
+            }
+        }
+    }
+    
+    // =====================================================
+    // 路线操作
+    // =====================================================
+    
+    /**
+     * 保存路线
+     */
+    fun saveRoute() {
+        val state = _uiState.value
+        
+        // 验证路线名称
+        if (state.routeName.isBlank()) {
+            _uiEvent.tryEmit(WaypointUiEvent.ShowToast("Please enter a route name"))
+            return
+        }
+        
+        // 验证路点
+        if (state.waypoints.isEmpty()) {
+            _uiEvent.tryEmit(WaypointUiEvent.ShowToast("Please add at least one waypoint"))
+            return
+        }
+        
+        viewModelScope.launch {
+            try {
+                val routeObject = RouteObject(
+                    name = state.routeName,
+                    meta = RouteMeta(
+                        type = if (state.isWaypointMap) RouteType.WAYPOINTS else RouteType.ROUTE,
+                        version = 1
+                    ),
+                    points = state.waypoints
+                )
+                
+                if (state.isNewRoute) {
+                    // 创建新路线
+                    mockRouteDao.insert(
+                        MockRouteEntity(
+                            name = state.routeName,
+                            details = routeObject
+                        )
+                    )
+                    Logger.d("WaypointViewModel", "Created new route: ${state.routeName}")
+                } else {
+                    // 更新现有路线
+                    mockRouteDao.insert(
+                        MockRouteEntity(
+                            id = state.routeId ?: 0,
+                            name = state.routeName,
+                            details = routeObject
+                        )
+                    )
+                    Logger.d("WaypointViewModel", "Updated route: ${state.routeName}")
+                }
+                
+                _uiState.update { it.copy(isModified = false) }
+                _uiEvent.tryEmit(WaypointUiEvent.SaveSuccess)
+                _uiEvent.tryEmit(WaypointUiEvent.ShowToast("Route saved successfully"))
+            } catch (e: Exception) {
+                Logger.e("WaypointViewModel", "Failed to save route", e)
+                _uiEvent.tryEmit(WaypointUiEvent.ShowToast("Failed to save route: ${e.message}"))
+            }
+        }
+    }
+    
+    /**
+     * 更新路线名称
+     * 
+     * @param name 新名称
+     */
+    fun updateRouteName(name: String) {
+        _uiState.update { 
+            it.copy(
+                routeName = name,
+                isModified = true
+            ) 
+        }
+    }
+    
+    /**
+     * 切换地图模式
+     * 
+     * @param isMapMode 是否为地图模式
+     */
+    fun setMapMode(isMapMode: Boolean) {
+        _uiState.update { 
+            it.copy(
+                isWaypointMap = isMapMode,
+                isModified = true
+            ) 
+        }
+    }
+    
+    // =====================================================
+    // 路点操作
+    // =====================================================
+    
+    /**
+     * 添加新路点
+     * 
+     * @param lat 纬度
+     * @param lng 经度
+     * @param type 路点类型
+     * @param connects 连接的路点 ID 列表
+     */
+    fun addWaypoint(
+        lat: Double,
+        lng: Double,
+        type: PointType = PointType.R,
+        connects: List<Int> = emptyList()
+    ) {
+        val state = _uiState.value
+        val newId = (state.waypoints.maxOfOrNull { it.id } ?: 0) + 1
+        
+        val newPoint = RoutePoint(
+            id = newId,
+            lat = lat,
+            lng = lng,
+            type = type,
+            connects = connects
+        )
+        
+        _uiState.update { 
+            it.copy(
+                waypoints = state.waypoints + newPoint,
+                isModified = true
+            ) 
+        }
+        Logger.d("WaypointViewModel", "Added waypoint #$newId at ($lat, $lng)")
+    }
+    
+    /**
+     * 更新路点
+     * 
+     * @param index 路点索引
+     * @param lat 纬度
+     * @param lng 经度
+     * @param type 路点类型
+     * @param connects 连接的路点 ID 列表
+     */
+    fun updateWaypoint(
+        index: Int,
+        lat: Double,
+        lng: Double,
+        type: PointType? = null,
+        connects: List<Int>? = null
+    ) {
+        val state = _uiState.value
+        if (index !in state.waypoints.indices) return
+        
+        val oldPoint = state.waypoints[index]
+        val updatedPoint = oldPoint.copy(
+            lat = lat,
+            lng = lng,
+            type = type ?: oldPoint.type,
+            connects = connects ?: oldPoint.connects
+        )
+        
+        val updatedWaypoints = state.waypoints.toMutableList()
+        updatedWaypoints[index] = updatedPoint
+        
+        _uiState.update { 
+            it.copy(
+                waypoints = updatedWaypoints,
+                isModified = true
+            ) 
+        }
+        Logger.d("WaypointViewModel", "Updated waypoint #${oldPoint.id} at index $index")
+    }
+    
+    /**
+     * 删除路点
+     * 
+     * @param index 路点索引
+     */
+    fun deleteWaypoint(index: Int) {
+        val state = _uiState.value
+        if (index !in state.waypoints.indices) return
+        
+        val deletedPoint = state.waypoints[index]
+        val deletedId = deletedPoint.id
+        
+        // 删除路点并更新其他路点的连接
+        val updatedWaypoints = state.waypoints
+            .filterIndexed { i, _ -> i != index }
+            .map { point ->
+                // 移除对已删除路点的连接
+                point.copy(connects = point.connects.filter { it != deletedId })
+            }
+        
+        _uiState.update { 
+            it.copy(
+                waypoints = updatedWaypoints,
+                isModified = true,
+                selectedWaypointIndex = null
+            ) 
+        }
+        Logger.d("WaypointViewModel", "Deleted waypoint #$deletedId at index $index")
+    }
+    
+    /**
+     * 更新路点的连接
+     * 
+     * @param index 路点索引
+     * @param connects 新的连接列表
+     */
+    fun updateWaypointConnections(index: Int, connects: List<Int>) {
+        val state = _uiState.value
+        if (index !in state.waypoints.indices) return
+        
+        val oldPoint = state.waypoints[index]
+        val updatedPoint = oldPoint.copy(connects = connects)
+        
+        val updatedWaypoints = state.waypoints.toMutableList()
+        updatedWaypoints[index] = updatedPoint
+        
+        _uiState.update { 
+            it.copy(
+                waypoints = updatedWaypoints,
+                isModified = true
+            ) 
+        }
+    }
+    
+    /**
+     * 选择路点
+     * 
+     * @param index 路点索引，null 表示取消选择
+     */
+    fun selectWaypoint(index: Int?) {
+        _uiState.update { it.copy(selectedWaypointIndex = index) }
+    }
+    
+    // =====================================================
+    // UI 控制
+    // =====================================================
+    
+    /**
+     * 设置显示模式
+     * 
+     * @param mode 0=Route, 1=Map
+     */
+    fun setDisplayMode(mode: Int) {
+        _uiState.update { it.copy(selectedDisplayMode = mode) }
+    }
+    
+    /**
+     * 设置底部表单详情
+     * 
+     * @param detail 0=Waypoints, 1=Details
+     */
+    fun setSheetDetail(detail: Int) {
+        _uiState.update { it.copy(selectedSheetDetail = detail) }
+    }
+    
+    /**
+     * 清除错误消息
+     */
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+    
+    /**
+     * 检查是否有未保存的修改
+     * 
+     * @return 是否有未保存的修改
+     */
+    fun hasUnsavedChanges(): Boolean {
+        return _uiState.value.isModified
+    }
+}
