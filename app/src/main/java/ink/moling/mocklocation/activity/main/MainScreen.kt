@@ -103,25 +103,48 @@ fun MainScreen(
         }
     }
     
-    // 显示权限未授予对话框
-    if (mockStatus is MockServiceState.Error) {
+    // 显示错误对话框（优先显示 UI State 中的错误）
+    uiState.errorState?.let { error ->
         ErrorDialog(
-            title = (mockStatus as MockServiceState.Error).type,
-            text = (mockStatus as MockServiceState.Error).msg,
-            stackTrace = (mockStatus as MockServiceState.Error).stackTrace,
+            title = error.title,
+            text = error.message,
+            stackTrace = error.stackTrace,
             onDismiss = {
+                viewModel.clearError()
                 onStopMockLocation()
-                MockServiceStatusRepository.state.value = MockServiceState.Disabled
             }
         )
+    } ?: run {
+        // 向后兼容：如果 UI State 中没有错误，则检查 MockService 状态
+        if (mockStatus is MockServiceState.Error) {
+            val mockError = mockStatus as MockServiceState.Error
+            ErrorDialog(
+                title = mockError.type,
+                text = mockError.msg,
+                stackTrace = mockError.stackTrace,
+                onDismiss = {
+                    onStopMockLocation()
+                    MockServiceStatusRepository.state.value = MockServiceState.Disabled
+                }
+            )
+        }
     }
 
-    // 确认删除对话框
+    // 确认删除点对话框
     if (uiState.showDeleteConfirmDialog) {
         DeleteConfirmDialog(
             text = "Delete point \"${uiState.pointName}\"?",
             onConfirm = { viewModel.confirmDeletePoint() },
-            onDismiss = { viewModel.dismissDeleteDialog() }
+            onDismiss = { viewModel.dismissDeletePointDialog() }
+        )
+    }
+    
+    // 确认删除路线对话框
+    if (uiState.showDeleteRouteConfirmDialog) {
+        DeleteConfirmDialog(
+            text = "Delete route \"${uiState.routeName}\"?",
+            onConfirm = { viewModel.confirmDeleteRoute() },
+            onDismiss = { viewModel.dismissDeleteRouteDialog() }
         )
     }
 

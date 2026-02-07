@@ -18,3 +18,18 @@ fun RouteObject.toPointMap(): Map<Int, RoutePoint> =
  */
 fun RouteObject.toGraph(): Map<Int, List<Int>> =
     points.associate { it.id to it.connects }
+
+fun RouteObject.isValid(): Boolean {
+    // 验证必要字段
+    if (this.name.isBlank())    return false
+    if (this.points.isEmpty())  return false
+
+    // 验证点的数据
+    this.points.forEachIndexed { _, point ->
+        // 验证经纬度范围
+        if (point.lat !in -90.0..90.0)      return false
+        if (point.lng !in -180.0..180.0)    return false
+    }
+
+    return true
+}

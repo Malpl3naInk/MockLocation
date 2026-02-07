@@ -13,6 +13,7 @@ import ink.moling.mocklocation.data.local.db.MockPointEntity
 import ink.moling.mocklocation.data.local.db.MockRouteEntity
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.data.models.CandidateLocation
+import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.utils.logger.Logger
@@ -23,6 +24,15 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+/**
+ * 错误信息数据类
+ */
+data class ErrorState(
+    val title: String,
+    val message: String,
+    val stackTrace: String? = null
+)
 
 /**
  * MainScreen 的 UI 状态
@@ -45,11 +55,14 @@ data class MainUiState(
     val pointAltError: Boolean = false,
     // 对话框
     val showDeleteConfirmDialog: Boolean = false,
+    val showDeleteRouteConfirmDialog: Boolean = false,
+    val errorState: ErrorState? = null,
     // 显示位置
     val displayedLocation: String = "@51.476900,0.000500#46.0",
     val displayedOpenCode: String = "9C3XFXGX+PQ",
     // 路线名称
-    val routeName: String = "<Placeholder>"
+    val routeName: String = "<Unselected>",
+    val routeObject: RouteObject? = null
 )
 
 /**
@@ -89,11 +102,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             PrefsHelper.setSelectedPointId(getApplication(), value?.id)
         }
     
-    var selectedMockRoute: MockRouteEntity? = null
-        set(value) {
-            field = value
-            PrefsHelper.setSelectedRouteId(getApplication(), value?.id)
-        }
+    // 选中的路线（响应式状态）
+    private val _selectedMockRoute = MutableStateFlow<MockRouteEntity?>(null)
+    val selectedMockRoute: StateFlow<MockRouteEntity?> = _selectedMockRoute.asStateFlow()
+    
+    /**
+     * 设置选中的路线
+     */
+    private fun setSelectedMockRoute(route: MockRouteEntity?) {
+        _selectedMockRoute.value = route
+        PrefsHelper.setSelectedRouteId(getApplication(), route?.id)
+    }
     
     // =====================================================
     // UI 状态（需要在 init 之前声明）
@@ -125,6 +144,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _savedPoints = MutableStateFlow<List<MockPointEntity>>(emptyList())
     val savedPoints: StateFlow<List<MockPointEntity>> = _savedPoints.asStateFlow()
     
+    // 保存的路线列表
+    private val _savedRoutes = MutableStateFlow<List<MockRouteEntity>>(emptyList())
+    val savedRoutes: StateFlow<List<MockRouteEntity>> = _savedRoutes.asStateFlow()
+    
     init {
         // 从 SharedPreferences 恢复模拟模式
         val savedSimulationMode = PrefsHelper.getMockMode(getApplication())
@@ -137,6 +160,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             // 加载保存的点列表
             getPoints()
+            // 加载保存的路线列表
+            getRoutes()
             
             if (savedPointId != null) {
                 selectedMockPoint = mockPointDao.getById(savedPointId)
@@ -152,8 +177,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             }
-            if (savedRouteId != null)
-                selectedMockRoute = mockRouteDao.getById(savedRouteId)
+            
+            if (savedRouteId != null) {
+                val route = mockRouteDao.getById(savedRouteId)
+                setSelectedMockRoute(route)
+                // 更新 UI 状态中的路线名称
+                route?.let {
+                    _uiState.update { state ->
+                        state.copy(
+                            routeName = it.name,
+                            routeObject = it.details
+                        )
+                    }
+                }
+            }
         }
         
         // 监听位置变化，更新显示的位置信息
@@ -201,10 +238,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         
-        // 订阅错误流
+        // 订阅错误流并更新到 UI State
         viewModelScope.launch {
             binder.errorFlow().collect { error ->
                 _errorInfo.value = error
+                if (error != null) {
+                    showError(
+                        title = error.title,
+                        message = error.message,
+                        stackTrace = error.stackTrace
+                    )
+                }
             }
         }
 
@@ -219,7 +263,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _errorInfo = MutableStateFlow<LocationService.ErrorInfo?>(null)
     val errorInfo = _errorInfo.asStateFlow()
     
+    /**
+     * 显示错误对话框
+     * 
+     * @param title 错误标题
+     * @param message 错误消息
+     * @param stackTrace 堆栈跟踪（可选）
+     */
+    fun showError(title: String, message: String, stackTrace: String? = null) {
+        _uiState.update { 
+            it.copy(errorState = ErrorState(title, message, stackTrace))
+        }
+    }
+    
+    /**
+     * 清除错误状态
+     */
     fun clearError() {
+        _uiState.update { it.copy(errorState = null) }
         _errorInfo.value = null
         serviceBinder.value?.clearError()
     }
@@ -298,6 +359,133 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             mockPointDao.deleteById(id)
         }
+    }
+    
+    // =====================================================
+    // 5. 本地路线存储
+    // =====================================================
+    
+    /**
+     * 获取所有保存的路线
+     */
+    suspend fun getRoutes() {
+        _savedRoutes.value = mockRouteDao.getAll()
+        Logger.d("getRoutes", "Exists IDs: [%s]".format(
+            _savedRoutes.value.joinToString(separator = ",") { it.id.toString() }
+        ))
+    }
+    
+    /**
+     * 添加新路线
+     * 
+     * @param name 路线名称
+     * @param details 路线详情（RouteObject）
+     */
+    fun addRoute(name: String, details: RouteObject) {
+        viewModelScope.launch {
+            mockRouteDao.insert(
+                MockRouteEntity(name = name, details = details)
+            )
+            getRoutes()
+            // 查找新插入的路线（通过名称，因为 insert 没有返回 ID）
+            val insertedRoute = _savedRoutes.value.lastOrNull { it.name == name }
+            insertedRoute?.let {
+                setSelectedMockRoute(it)
+                _uiState.update { state ->
+                    state.copy(
+                        routeName = it.name,
+                        routeObject = it.details
+                    )
+                }
+            }
+        }
+    }
+    
+    /**
+     * 更新现有路线
+     * 
+     * @param id 路线 ID
+     * @param name 路线名称
+     * @param details 路线详情（RouteObject）
+     */
+    fun updateRoute(id: Long, name: String, details: RouteObject) {
+        viewModelScope.launch {
+            mockRouteDao.insert(
+                MockRouteEntity(id = id, name = name, details = details)
+            )
+            val route = mockRouteDao.getById(id)
+            setSelectedMockRoute(route)
+            getRoutes()
+            _uiState.update { state ->
+                state.copy(routeName = name)
+            }
+        }
+    }
+    
+    /**
+     * 删除路线
+     * 
+     * @param id 路线 ID
+     */
+    fun deleteRoute(id: Long) {
+        viewModelScope.launch {
+            mockRouteDao.deleteById(id)
+            getRoutes()
+            // 如果删除的是当前选中的路线，清除选中状态
+            if (selectedMockRoute.value?.id == id) {
+                setSelectedMockRoute(null)
+                _uiState.update { state ->
+                    state.copy(routeName = "<Unselected>")
+                }
+            }
+        }
+    }
+    
+    /**
+     * 选择一个保存的路线
+     * 
+     * @param id 路线 ID
+     */
+    fun selectRoute(id: Long) {
+        val route = _savedRoutes.value.find { it.id == id } ?: return
+        setSelectedMockRoute(route)
+        
+        _uiState.update { state ->
+            state.copy(routeName = route.name)
+        }
+        _uiEvent.tryEmit(MainUiEvent.HideBottomSheet)
+    }
+    
+    /**
+     * 按名称搜索路线
+     * 
+     * @param name 搜索关键词
+     * @return 匹配的路线列表
+     */
+    suspend fun searchRoutesByName(name: String): List<MockRouteEntity> {
+        return mockRouteDao.searchByName(name)
+    }
+    
+    /**
+     * 清除所有路线
+     */
+    fun clearAllRoutes() {
+        viewModelScope.launch {
+            mockRouteDao.clearAll()
+            getRoutes()
+            setSelectedMockRoute(null)
+            _uiState.update { state ->
+                state.copy(routeName = "<Unselected>")
+            }
+        }
+    }
+    
+    /**
+     * 检查是否有选中的路线
+     */
+    fun hasSelectedRoute(): Boolean {
+        val selectedId = PrefsHelper.getSelectedRouteId(getApplication())
+        return selectedId != null && selectedId != -1L
     }
     
     // =====================================================
@@ -461,9 +649,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     /**
-     * 显示删除确认对话框
+     * 显示删除点确认对话框
      */
-    fun showDeleteConfirmDialog() {
+    fun showDeletePointConfirmDialog() {
         val state = _uiState.value
         if (state.isCreatingPoint) {
             // 创建模式下，取消创建
@@ -477,9 +665,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     /**
-     * 关闭删除确认对话框
+     * 关闭删除点确认对话框
      */
-    fun dismissDeleteDialog() {
+    fun dismissDeletePointDialog() {
         _uiState.update { it.copy(showDeleteConfirmDialog = false) }
     }
     
@@ -502,6 +690,45 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     pointLat = "0.000000",
                     pointLng = "0.000000",
                     pointAlt = "0.00"
+                ) 
+            }
+        }
+    }
+    
+    /**
+     * 显示删除路线确认对话框
+     */
+    fun showDeleteRouteConfirmDialog() {
+        val selectedId = PrefsHelper.getSelectedRouteId(getApplication())
+        if (selectedId != null && selectedId != -1L) {
+            _uiState.update { it.copy(showDeleteRouteConfirmDialog = true) }
+        } else {
+            _uiEvent.tryEmit(MainUiEvent.ShowToast("Please select a route"))
+        }
+    }
+    
+    /**
+     * 关闭删除路线确认对话框
+     */
+    fun dismissDeleteRouteDialog() {
+        _uiState.update { it.copy(showDeleteRouteConfirmDialog = false) }
+    }
+    
+    /**
+     * 确认删除路线
+     */
+    fun confirmDeleteRoute() {
+        val selectedId = PrefsHelper.getSelectedRouteId(getApplication()) ?: return
+        viewModelScope.launch {
+            mockRouteDao.deleteById(selectedId)
+            setSelectedMockRoute(null)
+            getRoutes()
+            
+            _uiState.update { 
+                it.copy(
+                    showDeleteRouteConfirmDialog = false,
+                    routeName = "<Unselected>",
+                    routeObject = null
                 ) 
             }
         }

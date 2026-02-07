@@ -40,8 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import ink.moling.mocklocation.activity.waypoint.WaypointActivity
 import ink.moling.mocklocation.activity.main.MainViewModel
+import ink.moling.mocklocation.activity.waypoint.WaypointActivity
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import kotlinx.coroutines.launch
 
@@ -107,12 +107,18 @@ fun OptionsRouteView(
                         modifier = Modifier,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
-                    if (true/* TODO: If LatLngScatter displayed a route */) {
+                    if (uiState.routeObject != null && uiState.routeObject!!.points.isNotEmpty()) {
                         LatLngScatter(
-                            modifier = Modifier.fillMaxHeight(0.24f)
+                            modifier = Modifier.fillMaxHeight(0.28f),
+                            routeObject = uiState.routeObject,
+                            pointRadius = 0.dp
                         )
                     } else {
-                        Text("")
+                        Text(
+                            "No route data",
+                            color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.6f),
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
             }
@@ -169,7 +175,7 @@ fun OptionsRouteView(
                 contentAlignment = Alignment.Center
             ) {
                 IconButton(
-                    onClick = { },
+                    onClick = { viewModel.showDeleteRouteConfirmDialog() },
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
@@ -214,7 +220,7 @@ fun OptionsRouteView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("<Placeholder>")
+                    Text(uiState.routeName)
                     Text(
                         "Select target",
                         color = MaterialTheme.colorScheme.onSecondary
