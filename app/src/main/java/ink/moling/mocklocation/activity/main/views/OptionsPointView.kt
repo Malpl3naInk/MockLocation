@@ -312,7 +312,7 @@ fun OptionsPointView(
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
-                        onClick = { viewModel.showDeleteConfirmDialog() },
+                        onClick = { viewModel.showDeletePointConfirmDialog() },
                         modifier = Modifier
                             .fillMaxSize()
                     ) {

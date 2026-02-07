@@ -51,11 +51,6 @@ fun typeToPointType(type: String?): PointType {
     }
 }
 
-/**
- * RoutePoint 扩展函数：根据 type 字符串获取点类型
- */
-fun RoutePoint.getPointType(): PointType = typeToPointType(type)
-
 /* ---------------- Web Mercator 投影 ---------------- */
 
 private data class MercatorPoint(val x: Double, val y: Double)
@@ -225,7 +220,7 @@ fun LatLngScatter(
             for (i in points.indices) {
                 val startPoint = points[i]
                 val start = mapped[i]
-                val startType = startPoint.getPointType()
+                val startType = startPoint.type
                 
                 for (targetId in startPoint.connects) {
                     // 通过 ID 查找目标点的索引
@@ -234,7 +229,7 @@ fun LatLngScatter(
                     
                     val endPoint = points[targetIndex]
                     val end = mapped[targetIndex]
-                    val endType = endPoint.getPointType()
+                    val endType = endPoint.type
                     
                     // 只有两端点类型相同时使用类型颜色，否则使用默认颜色（R）
                     val baseLineColor = if (startType == endType) {

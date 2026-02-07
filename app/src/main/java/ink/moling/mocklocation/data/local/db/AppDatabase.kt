@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import ink.moling.mocklocation.data.models.RouteObjectConverter
 
 @Database(
     entities = [
@@ -13,6 +15,7 @@ import androidx.room.RoomDatabase
     version = 1,
     exportSchema = false // 禁用数据库导出 (数据库迁移用)
 )
+@TypeConverters(RouteObjectConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun mockPointDao(): MockPointDao
     abstract fun mockRouteDao(): MockRouteDao
