@@ -1,4 +1,4 @@
-package ink.moling.mocklocation
+package ink.moling.mocklocation.nativelib
 
 class NativeLib {
 

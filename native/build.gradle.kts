@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "ink.moling.mocklocation"
+    namespace = "ink.moling.mocklocation.nativelib"
     compileSdk {
         version = release(36)
     }
