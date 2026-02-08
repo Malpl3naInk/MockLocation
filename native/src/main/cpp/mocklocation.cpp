@@ -72,7 +72,7 @@ JNI_OnLoad(JavaVM* vm, void*) {
         return JNI_ERR;
     }
 
-    jclass cls = env->FindClass("ink/moling/mocklocation/NativeLib");
+    jclass cls = env->FindClass("ink/moling/mocklocation/nativelib/NativeLib");
     if (!cls) return JNI_ERR;
 
     // ===== Class.getDeclaredMethods =====

@@ -2,7 +2,6 @@ package ink.moling.mocklocation.activity.main
 
 import android.Manifest
 import android.content.ComponentName
-import android.content.Context.BIND_AUTO_CREATE
 import android.content.Intent
 import android.content.ServiceConnection
 import android.net.Uri
@@ -21,10 +20,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.core.content.ContextCompat.startForegroundService
 import androidx.lifecycle.viewmodel.compose.viewModel
-import ink.moling.mocklocation.NativeLib
 import ink.moling.mocklocation.R
+import ink.moling.mocklocation.nativelib.NativeLib
 import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.ui.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.dialog.RequestPermissionDialog

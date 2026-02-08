@@ -1,8 +1,7 @@
-package ink.moling.mocklocation
+package ink.moling.mocklocation.nativelib
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).
