@@ -1,6 +1,6 @@
 package ink.moling.mocklocation.utils.simulators
 
-import ink.moling.mocklocation.service.joystickService.state.JoystickStateHolder
+import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
 import ink.moling.mocklocation.utils.logger.Logger
 import kotlin.math.cos
 import kotlin.math.sin
@@ -25,7 +25,7 @@ class StaticPointSimulator(
     private val earthRadiusM = 6371000.0
 
     override fun next(deltaTimeMs: Long): SimulatedLocation {
-        val joystickState = JoystickStateHolder.state.value
+        val joystickState = OverlayStateHolder.state.value
         
         // 如果摇杆有移动
         if (joystickState.speed > 0.01f) {
@@ -66,15 +66,13 @@ class StaticPointSimulator(
             currentSpeed = 0.0
         }
         
-        val result = SimulatedLocation(
+        return SimulatedLocation(
             lat = lat,
             lng = lng,
             alt = alt,
             bearing = currentBearing,  // 始终返回当前方向（移动时更新，静止时保持）
             speed = currentSpeed
         )
-        
-        return result
     }
 
     fun updatePoint(lat: Double, lng: Double, alt: Double) {

@@ -37,8 +37,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ink.moling.mocklocation.activity.settings.SettingsActivity
 import ink.moling.mocklocation.activity.main.MainViewModel
+import ink.moling.mocklocation.activity.settings.SettingsActivity
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 
 @Composable
@@ -114,7 +114,7 @@ fun PageMainView(
                         if (!viewModel.hasSelectedPoint()) {
                             Toast.makeText(
                                 context,
-                                "Please select point",
+                                "Please select a point",
                                 Toast.LENGTH_SHORT
                             ).show()
                             return@Button

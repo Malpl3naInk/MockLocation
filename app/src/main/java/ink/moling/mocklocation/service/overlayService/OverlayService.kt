@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.service.joystickService
+package ink.moling.mocklocation.service.overlayService
 
 import android.content.Intent
 import android.graphics.PixelFormat
@@ -20,8 +20,9 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 const val ACTION_TOGGLE_JOYSTICK_VISIBILITY = "ink.moling.mocklocation.ACTION_TOGGLE_JOYSTICK_VISIBILITY"
 const val EXTRA_VISIBILITY = "extra_visibility"
+const val EXTRA_DISPLAY_MODE = "extra_display_mode"
 
-class JoystickService : LifecycleService(), SavedStateRegistryOwner {
+class OverlayService : LifecycleService(), SavedStateRegistryOwner {
     private lateinit var windowManager: WindowManager
     private lateinit var composeView: ComposeView
     private lateinit var params: WindowManager.LayoutParams
@@ -80,7 +81,7 @@ class JoystickService : LifecycleService(), SavedStateRegistryOwner {
 
         composeView = ComposeView(this).apply {
             // 关键：手动设置三个 ViewTree owners
-            setViewTreeLifecycleOwner(this@JoystickService)
+            setViewTreeLifecycleOwner(this@OverlayService)
             setViewTreeViewModelStoreOwner(object : ViewModelStoreOwner {
                 override val viewModelStore: ViewModelStore
                     get() = store
@@ -89,11 +90,11 @@ class JoystickService : LifecycleService(), SavedStateRegistryOwner {
                 override val savedStateRegistry: SavedStateRegistry
                     get() = savedStateRegistryController.savedStateRegistry
                 override val lifecycle: Lifecycle
-                    get() = this@JoystickService.lifecycle
+                    get() = this@OverlayService.lifecycle
             })
 
             setContent {
-                JoystickScreen(
+                OverlayScreen(
                     windowManager = windowManager,
                     composeView = composeView,
                     params = params

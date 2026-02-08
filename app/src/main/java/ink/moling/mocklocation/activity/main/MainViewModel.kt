@@ -206,7 +206,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             displayedOpenCode = OpenLocationCode.encode(lat, lng, 11)
                         )
                     }
-                    Logger.d("MainViewModel", "Displayed: Lat=$lat, Lng=$lng")
+                    // Logger.d("MainViewModel", "Displayed: Lat=$lat, Lng=$lng")
                 }
             }
         }
@@ -293,7 +293,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * 设置模拟位置（静态点）
      */
     @SuppressLint("MissingPermission")
-    fun setMockPosition(lat: Double, lng: Double, alt: Double) {
+    fun setMockLocation(lat: Double, lng: Double, alt: Double) {
         val binder = serviceBinder.value
         if (binder == null) {
             pendingAction = @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION]) {
@@ -305,11 +305,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         binder.setStaticPoint(lat, lng, alt)
     }
 
+    fun setMockLocation(route: RouteObject) {
+        val binder = serviceBinder.value
+        if (binder == null) {
+            serviceBinder.value
+        }
+        binder
+    }
+
     /**
      * 停止模拟位置，恢复真实位置
      */
     @SuppressLint("MissingPermission")
-    fun stopMockPosition() {
+    fun stopMockLocation() {
         serviceBinder.value?.stopSimulation()
     }
 
@@ -417,7 +425,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             setSelectedMockRoute(route)
             getRoutes()
             _uiState.update { state ->
-                state.copy(routeName = name)
+                state.copy(
+                    routeName = name,
+                    routeObject = null
+                )
             }
         }
     }
@@ -435,7 +446,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (selectedMockRoute.value?.id == id) {
                 setSelectedMockRoute(null)
                 _uiState.update { state ->
-                    state.copy(routeName = "<Unselected>")
+                    state.copy(
+                        routeName = "<Unselected>",
+                        routeObject = null
+                    )
                 }
             }
         }
@@ -451,7 +465,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         setSelectedMockRoute(route)
         
         _uiState.update { state ->
-            state.copy(routeName = route.name)
+            state.copy(
+                routeName = route.name,
+                routeObject = route.details
+            )
         }
         _uiEvent.tryEmit(MainUiEvent.HideBottomSheet)
     }

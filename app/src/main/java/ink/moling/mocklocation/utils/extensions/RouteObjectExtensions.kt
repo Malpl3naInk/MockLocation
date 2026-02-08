@@ -2,6 +2,7 @@ package ink.moling.mocklocation.utils.extensions
 
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RoutePoint
+import ink.moling.mocklocation.data.models.RouteType
 
 /**
  * Convert route points to a map indexed by point ID
@@ -32,4 +33,9 @@ fun RouteObject.isValid(): Boolean {
     }
 
     return true
+}
+
+fun RouteType.label(): String = when (this) {
+    RouteType.ROUTE -> "Route"
+    RouteType.WAYPOINTS -> "Map"
 }
