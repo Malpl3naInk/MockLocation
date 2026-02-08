@@ -2,6 +2,7 @@ package ink.moling.mocklocation.activity.main
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.Context.BIND_AUTO_CREATE
 import android.content.Intent
 import android.content.ServiceConnection
 import android.net.Uri
@@ -20,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat.startForegroundService
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ink.moling.mocklocation.NativeLib
 import ink.moling.mocklocation.R
@@ -175,6 +177,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val viewModel: MainViewModel = viewModel()
+            val uiState by viewModel.uiState.collectAsState()
 
             // 初始化服务连接（在 Composable 内部，以便访问 ViewModel）
             connection = object : ServiceConnection {
@@ -259,17 +262,22 @@ class MainActivity : ComponentActivity() {
                         appName = getString(R.string.app_name),
                         onStartMockLocation = {
                             // 通过 ViewModel 启动模拟（保持架构清晰）
-                            viewModel.selectedMockPoint?.let { point ->
-                                viewModel.setMockPosition(
-                                    point.lat,
-                                    point.lng,
-                                    point.alt
-                                )
+                            if (uiState.selectedSimulation == 0) {
+                                // 启动点位模拟
+                                viewModel.selectedMockPoint?.let { point ->
+                                    viewModel.setMockLocation(
+                                        point.lat,
+                                        point.lng,
+                                        point.alt
+                                    )
+                                }
+                            } else {
+                                // 启动路径模拟
                             }
                         },
                         onStopMockLocation = {
                             // 通过 ViewModel 停止模拟
-                            viewModel.stopMockPosition()
+                            viewModel.stopMockLocation()
                         }
                     )
                 }

@@ -1,0 +1,201 @@
+package ink.moling.mocklocation.service.overlayService
+
+import android.view.WindowManager
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.outlined.LockOpen
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.OpenWith
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ink.moling.mocklocation.R
+import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
+import ink.moling.mocklocation.ui.components.JoystickControl
+import ink.moling.mocklocation.utils.azimuthToDirection
+import kotlin.math.roundToInt
+
+@Composable
+fun OverlayScreen(
+    windowManager: WindowManager,
+    composeView: ComposeView,
+    params: WindowManager.LayoutParams
+) {
+    val joystickState = OverlayStateHolder.state.collectAsState().value
+
+    // 累积浮点数偏移量，避免丢失小数部分
+    val offsetX = remember { mutableListOf(0f) }
+    val offsetY = remember { mutableListOf(0f) }
+
+    // 悬浮窗最小化
+    var isOverlayMinimized by remember { mutableStateOf(false) }
+
+    // 摇杆状态
+    var joystickDirection by remember { mutableFloatStateOf(0f) }
+    var joystickSpeed by remember { mutableFloatStateOf(0f) }
+    var joystickLocked by remember { mutableStateOf(true) }
+
+    var angle = 0
+    var speedPercent = 0
+    var realSpeed = 0.0
+    
+    Row(
+        modifier = Modifier
+            .background(
+                Color.Black.copy(
+                    alpha = if (isOverlayMinimized) 0.1f else 0.7f
+                ),
+                shape = if (isOverlayMinimized) RoundedCornerShape(24.dp) else RectangleShape
+            )
+    ) {
+        Column {
+            // 拖动区域
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .pointerInput(Unit) {
+                        detectDragGestures { change, dragAmount ->
+                            change.consume()  // 消费事件，防止穿透
+
+                            // 累积浮点数偏移量
+                            offsetX[0] += dragAmount.x
+                            offsetY[0] += dragAmount.y
+
+                            // 计算整数偏移量
+                            val deltaX = offsetX[0].roundToInt()
+                            val deltaY = offsetY[0].roundToInt()
+
+                            // 只有当累积的偏移量达到整数像素时才更新
+                            if (deltaX != 0 || deltaY != 0) {
+                                params.x += deltaX
+                                params.y += deltaY
+                                windowManager.updateViewLayout(composeView, params)
+
+                                // 减去已经应用的整数偏移量，保留小数部分
+                                offsetX[0] -= deltaX
+                                offsetY[0] -= deltaY
+                            }
+                        }
+                    }.clickable(
+                        onClick = { isOverlayMinimized = !isOverlayMinimized },
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isOverlayMinimized) {
+                    Icon(
+                        ImageVector.vectorResource(R.drawable.ic_launcher_foreground),
+                        contentDescription = "Drag handle",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(72.dp)
+                    )
+                } else {
+                    Icon(
+                        Icons.Outlined.OpenWith,
+                        contentDescription = "Drag handle",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+            if (!isOverlayMinimized) {
+                // 摇杆锁定
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clickable(onClick = { joystickLocked = !joystickLocked }),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (joystickLocked) Icons.Filled.Lock else Icons.Outlined.LockOpen,
+                        contentDescription = "Lock joystick",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                // 菜单
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clickable(
+                            onClick = {
+
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Menu,
+                        contentDescription = "Joystick menu",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+
+        if (!isOverlayMinimized) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 信息显示区域
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (joystickSpeed > 0) {
+                        angle = Math.toDegrees(joystickDirection.toDouble()).toInt()
+                        speedPercent = (joystickSpeed * 100).toInt()
+                        realSpeed = (joystickState.maxSpeed * joystickSpeed)
+                    }
+                    Text(
+                        "${azimuthToDirection(angle)} ${angle}° ${"%.2f".format(realSpeed)}m/s",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 10.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 摇杆控制
+                JoystickControl(
+                    locked = joystickLocked,
+                    onMove = { direction, speed ->
+                        joystickDirection = direction
+                        joystickSpeed = speed
+                        // 更新全局摇杆状态，供 StaticPointSimulator 使用
+                        // 注意：direction 是弧度，直接传递，不要转换成度数
+                        OverlayStateHolder.update(direction, speed)
+                    }
+                )
+            }
+        }
+    }
+}

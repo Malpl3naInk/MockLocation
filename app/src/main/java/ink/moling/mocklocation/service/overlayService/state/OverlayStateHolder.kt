@@ -1,4 +1,4 @@
-package ink.moling.mocklocation.service.joystickService.state
+package ink.moling.mocklocation.service.overlayService.state
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * 摇杆状态单例
  * 用于在 FloatingUI 和 JoystickSimulator 之间共享摇杆状态
  */
-object JoystickStateHolder {
+object OverlayStateHolder {
     data class State(
         val direction: Float = 0f,      // 方向角度（弧度），0为北，顺时针增加
         val speed: Float = 0f,          // 速度（0-1），0为静止，1为最大速度

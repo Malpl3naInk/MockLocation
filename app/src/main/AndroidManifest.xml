@@ -48,7 +48,7 @@
             android:foregroundServiceType="location"
             android:exported="false" />
         <service
-            android:name=".service.joystickService.JoystickService"
+            android:name=".service.overlayService.OverlayService"
             android:exported="false" />
 
         <provider

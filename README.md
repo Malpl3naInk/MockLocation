@@ -20,116 +20,50 @@
 ```
 MocakLocation
 ├─activity
+│  ├─main
+│  │  └─views
+│  ├─settings
+│  └─waypoint
 ├─data
 │  ├─local
 │  │  ├─db
 │  │  └─repository
 │  └─models
 ├─service
-│  ├─joystickService
+│  ├─locationService
+│  │  ├─controller
 │  │  └─state
-│  └─locationService
-│      ├─controller
+│  └─overlayService
 │      └─state
 ├─ui
 │  ├─components
 │  ├─dialog
-│  ├─screen
-│  ├─theme
-│  └─views
-├─utils
-│  ├─extensions
-│  ├─logger
-│  └─simulators
-└─viewmodel
-```
-
-### Screen functions
-
-```
-screen
-├─MainScreen (主屏幕)
-│  ├─位置信息展示
-│  │  ├─当前坐标显示
-│  │  └─Plus Code显示
-│  ├─模拟模式切换 (点位/路线)
-│  ├─点位模式
-│  │  ├─点位名称编辑
-│  │  ├─坐标编辑 (经度/纬度/海拔)
-│  │  ├─保存/编辑点位
-│  │  ├─撤销修改
-│  │  ├─删除点位
-│  │  ├─使用当前位置
-│  │  ├─从地图选择
-│  │  └─已保存点位列表
-│  ├─路线模式
-│  │  ├─路线名称显示
-│  │  ├─路线地图预览
-│  │  ├─编辑路线
-│  │  ├─删除路线
-│  │  ├─导出路线
-│  │  └─已保存路线列表
-│  ├─控制功能
-│  │  ├─开始/停止模拟
-│  │  └─打开设置
-│  └─状态显示
-│     ├─模拟状态 (Idle/Mocking/Initializing)
-│     └─错误对话框
-├─WaypointScreen (路径点编辑屏幕)
-│  ├─显示模式切换 (Route/Map)
-│  ├─底部面板切换 (Waypoints/Details)
-│  ├─路径点管理
-│  │  ├─路径点列表展示
-│  │  ├─路径点坐标显示
-│  │  ├─编辑路径点位置
-│  │  ├─循环路线设置 (Loop ring)
-│  │  └─添加新路径点
-│  ├─路线详情
-│  │  ├─路线名称编辑
-│  │  └─地图模式开关
-│  └─路线地图可视化
-├─SettingsScreen (设置屏幕)
-│  ├─通用设置 (General)
-│  │  ├─设置项1 (Something)
-│  │  └─设置项2 (Something else)
-│  ├─关于 (About)
-│  │  ├─发布仓库链接
-│  │  └─开源许可证
-│  └─调试 (Debug - 仅调试版本)
-│     └─崩溃测试 (长按触发)
-└─FloatingScreen (悬浮窗屏幕)
-   ├─窗口控制
-   │  ├─拖动手柄 (移动悬浮窗)
-   │  ├─锁定/解锁摇杆
-   │  └─菜单按钮
-   ├─状态显示
-   │  ├─方向角度显示
-   │  ├─速度百分比
-   │  └─实际速度 (m/s)
-   └─摇杆控制器
-      ├─方向控制
-      └─速度控制
+│  └─theme
+└─utils
+    ├─extensions
+    ├─logger
+    └─simulators
 ```
 
 ## Roadmap
 
 ### Feature requests from [ZCShou/GoGoGo](https://github.com/ZCShou/GoGoGo/issues)
 
-- [x] [#355](https://github.com/ZCShou/GoGoGo/issues/355) - [路线模拟] 路线模拟功能请求
+- [ ] [#355](https://github.com/ZCShou/GoGoGo/issues/355) - [路线模拟] 路线模拟功能请求
 - [x] [#350](https://github.com/ZCShou/GoGoGo/issues/350) - [悬浮窗控制] 建议可以隐藏悬浮窗
-- [ ] [#346](https://github.com/ZCShou/GoGoGo/issues/346) - [悬浮窗控制] 最小化悬浮窗
+- [x] [#346](https://github.com/ZCShou/GoGoGo/issues/346) - [悬浮窗控制] 最小化悬浮窗
 - [ ] [#335](https://github.com/ZCShou/GoGoGo/issues/335) - [平台支持] 提供iOS版本
 - [ ] [#331](https://github.com/ZCShou/GoGoGo/issues/331) - [地图功能] 添加地图复位回正，指向正北的功能
 - [ ] [#325](https://github.com/ZCShou/GoGoGo/issues/325) - [平台支持] 加入对ARM v7的支持
 - [x] [#314](https://github.com/ZCShou/GoGoGo/issues/314) - [悬浮窗控制] 添加悬浮框开启关闭的功能
-- [ ] [#304](https://github.com/ZCShou/GoGoGo/issues/304) - [悬浮窗控制] 请求摇杆隐藏/缩小
+- [x] [#304](https://github.com/ZCShou/GoGoGo/issues/304) - [悬浮窗控制] 请求摇杆隐藏/缩小
 - [ ] [#284](https://github.com/ZCShou/GoGoGo/issues/284) - [权限管理] 通过Root或Lsposed实现功能，避免使用开发者选项
 - [ ] [#279](https://github.com/ZCShou/GoGoGo/issues/279) - [模拟增强] 不移动摇杆时增加随机极小范围运动的选项
 - [ ] [#254](https://github.com/ZCShou/GoGoGo/issues/254) - [模拟精度] 增加设置模拟精度的选项
 - [ ] [#234](https://github.com/ZCShou/GoGoGo/issues/234) - [权限管理] Root权限一键选择模拟位置信息应用
 - [x] [#185](https://github.com/ZCShou/GoGoGo/issues/185) - [悬浮窗控制] 悬浮窗关闭功能
 - [ ] [#176](https://github.com/ZCShou/GoGoGo/issues/176) - [控制方式] 添加ADB定位控制功能
-- [x] [#133](https://github.com/ZCShou/GoGoGo/issues/133) - [路线模拟] 增加线路模拟导航功能
+- [ ] [#133](https://github.com/ZCShou/GoGoGo/issues/133) - [路线模拟] 增加线路模拟导航功能
 - [x] [#118](https://github.com/ZCShou/GoGoGo/issues/118) - [国际化] 添加英语语言支持
 - [ ] [#116](https://github.com/ZCShou/GoGoGo/issues/116) - [权限管理] 考虑加入Root支持
 - [ ] [#103](https://github.com/ZCShou/GoGoGo/issues/103) - [模拟增强] 高度模拟功能

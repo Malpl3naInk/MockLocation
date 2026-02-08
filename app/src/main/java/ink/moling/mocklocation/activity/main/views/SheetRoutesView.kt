@@ -19,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,7 +38,9 @@ import com.google.gson.JsonSyntaxException
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.waypoint.WaypointActivity
 import ink.moling.mocklocation.data.models.RouteObjectJson
+import ink.moling.mocklocation.data.models.RouteType
 import ink.moling.mocklocation.utils.extensions.isValid
+import ink.moling.mocklocation.utils.extensions.label
 import kotlin.coroutines.cancellation.CancellationException
 
 @Composable
@@ -139,7 +142,16 @@ fun SheetRoutesView(
     ) {
         items(savedRoutes) { route ->
             Card(
-                onClick = { },
+                onClick = {
+                    if (route.details.meta.type == RouteType.ROUTE) {
+                        viewModel.selectRoute(route.id)
+                    } else {
+                        /*
+                         * TODO: Select start / stop / waypoint on map
+                         *  then generating route automatically
+                         */
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.Transparent
@@ -151,7 +163,17 @@ fun SheetRoutesView(
                     Text(
                         route.name,
                         modifier = Modifier
-                            .padding(vertical = 8.dp, horizontal = 6.dp)
+                            .padding(
+                                top = 4.dp,
+                                start = 6.dp,
+                                end = 6.dp
+                            )
+                    )
+                    Text(
+                        route.details.meta.type.label(),
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier
+                            .padding(horizontal = 6.dp)
                     )
                 }
             }
