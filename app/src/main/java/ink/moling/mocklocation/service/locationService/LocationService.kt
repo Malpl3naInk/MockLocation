@@ -81,8 +81,11 @@ class LocationService : Service() {
             kf = kf,
             isMocking = { mockCtrl.isRunning() }
         ) { locationStateHolder.updateFromRealLocation(it) }
-        notifyCtrl = NotificationController(this)
         joystickCtrl = JoystickServiceController(this)
+        notifyCtrl = NotificationController(
+            service = this,
+            onToggleJoystick = { isVisible -> toggleJoystick(isVisible) }
+        )
 
         // 只启动真实位置监听，模拟控制器在需要时才启动
         realCtrl.start()
@@ -101,6 +104,19 @@ class LocationService : Service() {
         super.onDestroy()
     }
 
+    /**
+     * 切换摇杆可见性
+     * 
+     * @param isVisible 新的可见性状态
+     */
+    private fun toggleJoystick(isVisible: Boolean) {
+        // 只在模拟运行时才允许切换
+        if (!mockCtrl.isRunning()) return
+        
+        // 应用新的可见性状态到 JoystickService
+        joystickCtrl.setVisibility(isVisible)
+    }
+    
     inner class MockLocationServiceBinder : Binder() {
         fun locationFlow(): StateFlow<CandidateLocation> =
             locationStateHolder.state
@@ -143,6 +159,7 @@ class LocationService : Service() {
             kf.reset()
 
             // 更新通知显示
+            notifyCtrl.setJoystickVisibility(true)
             notifyCtrl.updateMode(
                 LocationMode.Point(lat, lng)
             )
@@ -180,6 +197,7 @@ class LocationService : Service() {
             kf.reset()
 
             // 更新通知显示
+            notifyCtrl.setJoystickVisibility(false)
             notifyCtrl.updateMode(LocationMode.Idle)
 
             // 更新状态为已禁用
