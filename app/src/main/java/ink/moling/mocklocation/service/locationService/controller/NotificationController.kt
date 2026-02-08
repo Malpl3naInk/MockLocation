@@ -3,8 +3,12 @@ package ink.moling.mocklocation.service.locationService.controller
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import ink.moling.mocklocation.R
@@ -14,8 +18,12 @@ const val SERVICE_MOCK_LOC_NOTE_ID = 1
 const val SERVICE_MOCK_LOC_NOTE_CHANNEL_ID = "SERVICE_MOCK_LOC_NOTE"
 const val SERVICE_MOCK_LOC_NOTE_CHANNEL_NAME = "SERVICE_MOCK_LOC_NOTE"
 
+// Notification Actions
+const val ACTION_TOGGLE_JOYSTICK = "ink.moling.mocklocation.ACTION_TOGGLE_JOYSTICK"
+
 class NotificationController(
-    private val service: Service
+    private val service: Service,
+    private val onToggleJoystick: (Boolean) -> Unit
 ) {
 
     private val notificationManager =
@@ -23,9 +31,29 @@ class NotificationController(
                 as NotificationManager
 
     private var currentMode: LocationMode = LocationMode.Idle
+    
+    private var isJoystickVisible: Boolean = false
+    
+    // BroadcastReceiver 处理通知按钮点击
+    private val notificationReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                ACTION_TOGGLE_JOYSTICK -> {
+                    isJoystickVisible = !isJoystickVisible
+                    onToggleJoystick(isJoystickVisible)
+                    // 更新通知以反映新的状态
+                    notificationManager.notify(
+                        SERVICE_MOCK_LOC_NOTE_ID,
+                        buildNotification(currentMode)
+                    )
+                }
+            }
+        }
+    }
 
     fun startForeground() {
         createChannelIfNeeded()
+        registerReceiver()
         service.startForeground(
             SERVICE_MOCK_LOC_NOTE_ID,
             buildNotification(currentMode)
@@ -33,7 +61,38 @@ class NotificationController(
     }
 
     fun stopForeground() {
+        unregisterReceiver()
         service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+    }
+    
+    fun setJoystickVisibility(isVisible: Boolean) {
+        isJoystickVisible = isVisible
+        // 更新通知
+        notificationManager.notify(
+            SERVICE_MOCK_LOC_NOTE_ID,
+            buildNotification(currentMode)
+        )
+    }
+    
+    // 注册 BroadcastReceiver
+    private fun registerReceiver() {
+        val filter = IntentFilter().apply {
+            addAction(ACTION_TOGGLE_JOYSTICK)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            service.registerReceiver(notificationReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            service.registerReceiver(notificationReceiver, filter)
+        }
+    }
+    
+    // 注销 BroadcastReceiver
+    private fun unregisterReceiver() {
+        try {
+            service.unregisterReceiver(notificationReceiver)
+        } catch (e: IllegalArgumentException) {
+            // Receiver 未注册，忽略
+        }
     }
 
     fun updateMode(mode: LocationMode) {
@@ -73,7 +132,7 @@ class NotificationController(
         String.format("%.5f", this)
 
     private fun buildNotification(mode: LocationMode): Notification {
-        return NotificationCompat.Builder(
+        val builder = NotificationCompat.Builder(
             service,
             SERVICE_MOCK_LOC_NOTE_CHANNEL_ID
         )
@@ -99,7 +158,28 @@ class NotificationController(
                         "${mode.speedMps} m/s"
                 }
             )
-            .build()
+        
+        // 当 Point 模式启用时，添加 Joystick 切换按钮
+        if (mode is LocationMode.Point) {
+            val toggleIntent = Intent(ACTION_TOGGLE_JOYSTICK).apply {
+                setPackage(service.packageName)
+            }
+            val togglePendingIntent = PendingIntent.getBroadcast(
+                service,
+                0,
+                toggleIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            
+            val buttonText = if (isJoystickVisible) "Hide Joystick" else "Show Joystick"
+            builder.addAction(
+                0, // 无图标
+                buttonText,
+                togglePendingIntent
+            )
+        }
+        
+        return builder.build()
     }
 }
 

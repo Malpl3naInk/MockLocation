@@ -116,18 +116,18 @@ screen
 ### Feature requests from [ZCShou/GoGoGo](https://github.com/ZCShou/GoGoGo/issues)
 
 - [x] [#355](https://github.com/ZCShou/GoGoGo/issues/355) - [路线模拟] 路线模拟功能请求
-- [ ] [#350](https://github.com/ZCShou/GoGoGo/issues/350) - [悬浮窗控制] 建议可以隐藏悬浮窗
+- [x] [#350](https://github.com/ZCShou/GoGoGo/issues/350) - [悬浮窗控制] 建议可以隐藏悬浮窗
 - [ ] [#346](https://github.com/ZCShou/GoGoGo/issues/346) - [悬浮窗控制] 最小化悬浮窗
 - [ ] [#335](https://github.com/ZCShou/GoGoGo/issues/335) - [平台支持] 提供iOS版本
 - [ ] [#331](https://github.com/ZCShou/GoGoGo/issues/331) - [地图功能] 添加地图复位回正，指向正北的功能
 - [ ] [#325](https://github.com/ZCShou/GoGoGo/issues/325) - [平台支持] 加入对ARM v7的支持
-- [ ] [#314](https://github.com/ZCShou/GoGoGo/issues/314) - [悬浮窗控制] 添加悬浮框开启关闭的功能
+- [x] [#314](https://github.com/ZCShou/GoGoGo/issues/314) - [悬浮窗控制] 添加悬浮框开启关闭的功能
 - [ ] [#304](https://github.com/ZCShou/GoGoGo/issues/304) - [悬浮窗控制] 请求摇杆隐藏/缩小
 - [ ] [#284](https://github.com/ZCShou/GoGoGo/issues/284) - [权限管理] 通过Root或Lsposed实现功能，避免使用开发者选项
 - [ ] [#279](https://github.com/ZCShou/GoGoGo/issues/279) - [模拟增强] 不移动摇杆时增加随机极小范围运动的选项
 - [ ] [#254](https://github.com/ZCShou/GoGoGo/issues/254) - [模拟精度] 增加设置模拟精度的选项
 - [ ] [#234](https://github.com/ZCShou/GoGoGo/issues/234) - [权限管理] Root权限一键选择模拟位置信息应用
-- [ ] [#185](https://github.com/ZCShou/GoGoGo/issues/185) - [悬浮窗控制] 悬浮窗关闭功能
+- [x] [#185](https://github.com/ZCShou/GoGoGo/issues/185) - [悬浮窗控制] 悬浮窗关闭功能
 - [ ] [#176](https://github.com/ZCShou/GoGoGo/issues/176) - [控制方式] 添加ADB定位控制功能
 - [x] [#133](https://github.com/ZCShou/GoGoGo/issues/133) - [路线模拟] 增加线路模拟导航功能
 - [x] [#118](https://github.com/ZCShou/GoGoGo/issues/118) - [国际化] 添加英语语言支持
