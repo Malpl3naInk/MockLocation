@@ -12,15 +12,17 @@ import androidx.annotation.RequiresPermission
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.data.models.CandidateLocation
-import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
-import ink.moling.mocklocation.service.locationService.controller.JoystickServiceController
+import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.service.locationService.controller.MockLocationController
 import ink.moling.mocklocation.service.locationService.controller.NotificationController
+import ink.moling.mocklocation.service.locationService.controller.OverlayServiceController
 import ink.moling.mocklocation.service.locationService.controller.RealLocationController
 import ink.moling.mocklocation.service.locationService.controller.TestProviderManager
 import ink.moling.mocklocation.service.locationService.state.LocationMode
 import ink.moling.mocklocation.service.locationService.state.LocationStateHolder
+import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
 import ink.moling.mocklocation.utils.KalmanFilter
+import ink.moling.mocklocation.utils.MockMode
 import ink.moling.mocklocation.utils.simulators.StaticPointSimulator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +33,7 @@ class LocationService : Service() {
     private lateinit var realCtrl: RealLocationController
     private lateinit var mockCtrl: MockLocationController
     private lateinit var notifyCtrl: NotificationController
-    private lateinit var joystickCtrl: JoystickServiceController
+    private lateinit var overlayCtrl: OverlayServiceController
 
     // 状态管理
     private lateinit var locationStateHolder: LocationStateHolder
@@ -81,7 +83,7 @@ class LocationService : Service() {
             kf = kf,
             isMocking = { mockCtrl.isRunning() }
         ) { locationStateHolder.updateFromRealLocation(it) }
-        joystickCtrl = JoystickServiceController(this)
+        overlayCtrl = OverlayServiceController(this)
         notifyCtrl = NotificationController(
             service = this,
             onToggleJoystick = { isVisible -> toggleJoystick(isVisible) }
@@ -114,7 +116,7 @@ class LocationService : Service() {
         if (!mockCtrl.isRunning()) return
         
         // 应用新的可见性状态到 JoystickService
-        joystickCtrl.setVisibility(isVisible)
+        overlayCtrl.setVisibility(isVisible)
     }
     
     inner class MockLocationServiceBinder : Binder() {
@@ -144,7 +146,7 @@ class LocationService : Service() {
                 return
             }
 
-            // 重置摇杆状态
+            // 重置StateHolder状态
             OverlayStateHolder.reset()
             
             // 设置模拟器并启动模拟控制器（支持摇杆动态移动）
@@ -152,9 +154,9 @@ class LocationService : Service() {
             mockCtrl.start()
 
             // 设置显示模式
-            joystickCtrl.setMode(0)
-            // 启动悬浮摇杆
-            joystickCtrl.start()
+            overlayCtrl.setMode(MockMode.MOCK_MODE_POINT)
+            // 启动悬浮控件
+            overlayCtrl.start()
             
             // 停止真实位置监听，重置卡尔曼滤波器
             realCtrl.stop()
@@ -170,12 +172,48 @@ class LocationService : Service() {
             MockServiceStatusRepository.state.value = MockServiceState.Enabled
         }
 
-        /* TODO: Path simulation
+        /* TODO: Path simulation */
         fun setDynamicRoute(
             route: RouteObject
         ) {
-            simulator = PathSimulator(path, speedMps)
-        }*/
+            // 尝试设置 TestProvider
+            val setupSuccess = providerMgr?.setup() ?: false
+
+            if (!setupSuccess) {
+                // 设置失败，清理并保持在真实定位模式
+                providerMgr?.teardown()
+                // 确保真实位置监听正在运行
+                realCtrl.start()
+                // 更新通知显示为空闲状态
+                notifyCtrl.updateMode(LocationMode.Idle)
+                // 保持状态为已禁用
+                MockServiceStatusRepository.state.value = MockServiceState.Disabled
+                return
+            }
+
+            // 重置StateHolder状态
+            OverlayStateHolder.reset()
+
+            // TODO: 设置模拟器 DynamicRouteSimulator
+
+            // 设置显示模式
+            overlayCtrl.setMode(MockMode.MOCK_MODE_ROUTE)
+            // 启动悬浮控件
+            overlayCtrl.start()
+
+            // 停止真实位置监听，重置卡尔曼滤波器
+            realCtrl.stop()
+            kf.reset()
+
+            // 更新通知显示
+            notifyCtrl.setJoystickVisibility(true)
+            notifyCtrl.updateMode(
+                LocationMode.Route(0.0)
+            )
+
+            // 更新状态为已启用
+            MockServiceStatusRepository.state.value = MockServiceState.Enabled
+        }
 
         @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
         fun stopSimulation() {
@@ -185,8 +223,8 @@ class LocationService : Service() {
             // 停止模拟控制器
             mockCtrl.stop()
 
-            // 关闭悬浮摇杆
-            joystickCtrl.stop()
+            // 关闭悬浮控件
+            overlayCtrl.stop()
 
             providerMgr?.teardown()
             

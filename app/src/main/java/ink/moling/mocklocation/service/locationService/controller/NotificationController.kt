@@ -148,7 +148,7 @@ class NotificationController(
                     }
                 }"
             )
-            .setContentText(
+            /*.setContentText(
                 when (mode) {
                     LocationMode.Idle ->
                         "I'm a teapot!"
@@ -157,7 +157,7 @@ class NotificationController(
                     is LocationMode.Route ->
                         "${mode.speedMps} m/s"
                 }
-            )
+            )*/
         
         // 当 Point 模式启用时，添加 Joystick 切换按钮
         if (mode is LocationMode.Point) {

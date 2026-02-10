@@ -13,16 +13,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.DirectionsBike
+import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
+import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.OpenWith
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,13 +38,15 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ink.moling.mocklocation.R
+import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
-import ink.moling.mocklocation.ui.components.JoystickControl
-import ink.moling.mocklocation.utils.azimuthToDirection
+import ink.moling.mocklocation.service.overlayService.views.OverlayPointView
+import ink.moling.mocklocation.service.overlayService.views.OverlayRouteView
+import ink.moling.mocklocation.utils.MockMode
 import kotlin.math.roundToInt
 
 @Composable
@@ -48,23 +55,43 @@ fun OverlayScreen(
     composeView: ComposeView,
     params: WindowManager.LayoutParams
 ) {
-    val joystickState = OverlayStateHolder.state.collectAsState().value
+    val context = LocalContext.current
+    val overlayState = OverlayStateHolder.state.collectAsState().value
 
     // 累积浮点数偏移量，避免丢失小数部分
     val offsetX = remember { mutableListOf(0f) }
     val offsetY = remember { mutableListOf(0f) }
 
     // 悬浮窗最小化
-    var isOverlayMinimized by remember { mutableStateOf(false) }
+    var isOverlayMinimized  by remember { mutableStateOf(false) }
 
+    // 模拟位置移动速度预设
+    val currentSpeedPresets: List<Double> = when (overlayState.mockMode) {
+        MockMode.MOCK_MODE_POINT -> PrefsHelper.getMaxSpeedPresetsJoystick(context)
+        MockMode.MOCK_MODE_ROUTE -> PrefsHelper.getMaxSpeedPresetsRoute(context)
+        else -> listOf(5.0, 12.0, 25.0)
+    }
+    var selectedSpeedPreset   by remember { mutableIntStateOf(0) }
+    // 当前速度百分比
+    var currentSpeedPer       by remember { mutableFloatStateOf(0f) }
     // 摇杆状态
-    var joystickDirection by remember { mutableFloatStateOf(0f) }
-    var joystickSpeed by remember { mutableFloatStateOf(0f) }
-    var joystickLocked by remember { mutableStateOf(true) }
-
-    var angle = 0
-    var speedPercent = 0
-    var realSpeed = 0.0
+    var joystickDirection   by remember { mutableFloatStateOf(0f) }
+    var joystickLocked      by remember { mutableStateOf(true) }
+    // 随 Selected preset 修改 State holder 中的最大速度
+    LaunchedEffect(selectedSpeedPreset) {
+        if (overlayState.mockMode == MockMode.MOCK_MODE_POINT) {
+            OverlayStateHolder.update(
+                overlayState.direction,
+                overlayState.speed,
+                currentSpeedPresets[selectedSpeedPreset]
+            )
+        } else {
+            OverlayStateHolder.update(
+                overlayState.speed,
+                currentSpeedPresets[selectedSpeedPreset]
+            )
+        }
+    }
     
     Row(
         modifier = Modifier
@@ -103,7 +130,8 @@ fun OverlayScreen(
                                 offsetY[0] -= deltaY
                             }
                         }
-                    }.clickable(
+                    }
+                    .clickable(
                         onClick = { isOverlayMinimized = !isOverlayMinimized },
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
@@ -168,33 +196,97 @@ fun OverlayScreen(
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 信息显示区域
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (joystickSpeed > 0) {
-                        angle = Math.toDegrees(joystickDirection.toDouble()).toInt()
-                        speedPercent = (joystickSpeed * 100).toInt()
-                        realSpeed = (joystickState.maxSpeed * joystickSpeed)
+                when (overlayState.mockMode) {
+                    MockMode.MOCK_MODE_POINT -> OverlayPointView(
+                        currentSpeedPer,
+                        joystickDirection,
+                        currentSpeedPresets[selectedSpeedPreset],
+                        joystickLocked
+                    ) { direction, speed ->
+                        joystickDirection = direction
+                        currentSpeedPer = speed
+                        // 更新全局摇杆状态，供 StaticPointSimulator 使用
+                        // 注意：direction 是弧度，直接传递，不要转换成度数
+                        OverlayStateHolder.update(
+                            direction,
+                            speed,
+                            currentSpeedPresets[selectedSpeedPreset]
+                        )
                     }
-                    Text(
-                        "${azimuthToDirection(angle)} ${angle}° ${"%.2f".format(realSpeed)}m/s",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 10.sp
-                    )
+                    MockMode.MOCK_MODE_ROUTE -> OverlayRouteView(
+                        currentSpeedPer,
+                        currentSpeedPresets[selectedSpeedPreset]
+                    ) { speed ->
+                        currentSpeedPer = speed
+                        // 更新全局摇杆状态，供 DynamicRouteSimulator 使用
+                        OverlayStateHolder.update(
+                            speed,
+                            currentSpeedPresets[selectedSpeedPreset]
+                        )
+                    }
+                }
+
+                Row {
+                    IconButton(onClick = {
+                        if (overlayState.mockMode == MockMode.MOCK_MODE_ROUTE) {
+                            val currentSpeed =
+                                currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
+                            val newPreset = currentSpeedPresets[0]
+                            currentSpeedPer = if (currentSpeed >= newPreset) {
+                                1f
+                            } else {
+                                (currentSpeed / newPreset).toFloat()
+                            }
+                        }
+                        selectedSpeedPreset = 0
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.DirectionsWalk,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+                    IconButton(onClick = {
+                        if (overlayState.mockMode == MockMode.MOCK_MODE_ROUTE) {
+                            val currentSpeed =
+                                currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
+                            val newPreset = currentSpeedPresets[1]
+                            currentSpeedPer = if (currentSpeed >= newPreset) {
+                                1f
+                            } else {
+                                (currentSpeed / newPreset).toFloat()
+                            }
+                        }
+                        selectedSpeedPreset = 1
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.DirectionsRun,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+                    IconButton(onClick = {
+                        if (overlayState.mockMode == MockMode.MOCK_MODE_ROUTE) {
+                            val currentSpeed =
+                                currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
+                            val newPreset = currentSpeedPresets[2]
+                            currentSpeedPer = if (currentSpeed >= newPreset) {
+                                1f
+                            } else {
+                                (currentSpeed / newPreset).toFloat()
+                            }
+                        }
+                        selectedSpeedPreset = 2
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.DirectionsBike,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-
-                // 摇杆控制
-                JoystickControl(
-                    locked = joystickLocked,
-                    onMove = { direction, speed ->
-                        joystickDirection = direction
-                        joystickSpeed = speed
-                        // 更新全局摇杆状态，供 StaticPointSimulator 使用
-                        // 注意：direction 是弧度，直接传递，不要转换成度数
-                        OverlayStateHolder.update(direction, speed)
-                    }
-                )
             }
         }
     }

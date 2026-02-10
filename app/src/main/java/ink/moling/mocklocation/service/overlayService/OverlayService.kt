@@ -17,6 +17,9 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
+import ink.moling.mocklocation.ui.theme.MockLocationTheme
+import ink.moling.mocklocation.utils.MockMode
 
 const val ACTION_TOGGLE_JOYSTICK_VISIBILITY = "ink.moling.mocklocation.ACTION_TOGGLE_JOYSTICK_VISIBILITY"
 const val EXTRA_VISIBILITY = "extra_visibility"
@@ -54,6 +57,9 @@ class OverlayService : LifecycleService(), SavedStateRegistryOwner {
                     setVisibility(visibility)
                 }
             }
+            OverlayStateHolder.setMode(
+                it.getIntExtra(EXTRA_DISPLAY_MODE, MockMode.MOCK_MODE_POINT)
+            )
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -94,11 +100,13 @@ class OverlayService : LifecycleService(), SavedStateRegistryOwner {
             })
 
             setContent {
-                OverlayScreen(
-                    windowManager = windowManager,
-                    composeView = composeView,
-                    params = params
-                )
+                MockLocationTheme {
+                    OverlayScreen(
+                        windowManager = windowManager,
+                        composeView = composeView,
+                        params = params
+                    )
+                }
             }
         }
 
