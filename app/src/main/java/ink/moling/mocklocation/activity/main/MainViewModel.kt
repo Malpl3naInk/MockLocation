@@ -16,6 +16,7 @@ import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.service.locationService.LocationService
+import ink.moling.mocklocation.utils.MockMode
 import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +40,7 @@ data class ErrorState(
  */
 data class MainUiState(
     // 模拟模式：0=Point, 1=Route
-    val selectedSimulation: Int = 0,
+    val selectedSimulation: Int = MockMode.MOCK_MODE_POINT,
     // 点编辑状态
     val editingSimPoint: Boolean = false,
     val isPointModified: Boolean = false,
@@ -102,17 +103,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             PrefsHelper.setSelectedPointId(getApplication(), value?.id)
         }
     
-    // 选中的路线（响应式状态）
-    private val _selectedMockRoute = MutableStateFlow<MockRouteEntity?>(null)
-    val selectedMockRoute: StateFlow<MockRouteEntity?> = _selectedMockRoute.asStateFlow()
-    
-    /**
-     * 设置选中的路线
-     */
-    private fun setSelectedMockRoute(route: MockRouteEntity?) {
-        _selectedMockRoute.value = route
-        PrefsHelper.setSelectedRouteId(getApplication(), route?.id)
-    }
+    // 选中的路线
+    var selectedMockRoute: MockRouteEntity? = null
+        set(value) {
+            field = value
+            PrefsHelper.setSelectedRouteId(getApplication(), value?.id)
+        }
     
     // =====================================================
     // UI 状态（需要在 init 之前声明）
@@ -180,7 +176,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             
             if (savedRouteId != null) {
                 val route = mockRouteDao.getById(savedRouteId)
-                setSelectedMockRoute(route)
+                selectedMockRoute = route
                 // 更新 UI 状态中的路线名称
                 route?.let {
                     _uiState.update { state ->
@@ -308,9 +304,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setMockLocation(route: RouteObject) {
         val binder = serviceBinder.value
         if (binder == null) {
-            serviceBinder.value
+            serviceBinder.value?.setDynamicRoute(route)
+            _needStartService.tryEmit(Unit)
+            return
         }
-        binder
+        binder.setDynamicRoute(route)
     }
 
     /**
@@ -398,7 +396,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // 查找新插入的路线（通过名称，因为 insert 没有返回 ID）
             val insertedRoute = _savedRoutes.value.lastOrNull { it.name == name }
             insertedRoute?.let {
-                setSelectedMockRoute(it)
+                selectedMockRoute = it
                 _uiState.update { state ->
                     state.copy(
                         routeName = it.name,
@@ -422,7 +420,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 MockRouteEntity(id = id, name = name, details = details)
             )
             val route = mockRouteDao.getById(id)
-            setSelectedMockRoute(route)
+            selectedMockRoute = route
             getRoutes()
             _uiState.update { state ->
                 state.copy(
@@ -443,9 +441,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             mockRouteDao.deleteById(id)
             getRoutes()
             // 如果删除的是当前选中的路线，清除选中状态
-            if (selectedMockRoute.value?.id == id) {
-                setSelectedMockRoute(null)
-                _uiState.update { state ->
+            if (selectedMockRoute?.id == id) {
+                selectedMockRoute = null
+                    _uiState.update { state ->
                     state.copy(
                         routeName = "<Unselected>",
                         routeObject = null
@@ -462,8 +460,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun selectRoute(id: Long) {
         val route = _savedRoutes.value.find { it.id == id } ?: return
-        setSelectedMockRoute(route)
-        
+        selectedMockRoute = route
+
         _uiState.update { state ->
             state.copy(
                 routeName = route.name,
@@ -490,7 +488,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             mockRouteDao.clearAll()
             getRoutes()
-            setSelectedMockRoute(null)
+            selectedMockRoute = null
             _uiState.update { state ->
                 state.copy(routeName = "<Unselected>")
             }
@@ -738,7 +736,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val selectedId = PrefsHelper.getSelectedRouteId(getApplication()) ?: return
         viewModelScope.launch {
             mockRouteDao.deleteById(selectedId)
-            setSelectedMockRoute(null)
+            selectedMockRoute = null
             getRoutes()
             
             _uiState.update { 

@@ -46,6 +46,7 @@ import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.ui.dialog.DeleteConfirmDialog
 import ink.moling.mocklocation.ui.dialog.ErrorDialog
+import ink.moling.mocklocation.utils.MockMode
 import kotlinx.coroutines.launch
 
 /**
@@ -159,8 +160,8 @@ fun MainScreen(
                     .padding(vertical = 16.dp, horizontal = 32.dp)
             ) {
                 when (uiState.selectedSimulation) {
-                    0 -> SheetPointsView(viewModel)
-                    1 -> SheetRoutesView(viewModel)
+                    MockMode.MOCK_MODE_POINT -> SheetPointsView(viewModel)
+                    MockMode.MOCK_MODE_ROUTE -> SheetRoutesView(viewModel)
                 }
             }
         }

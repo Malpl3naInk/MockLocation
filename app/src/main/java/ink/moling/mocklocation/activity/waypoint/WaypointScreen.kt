@@ -115,6 +115,8 @@ fun WaypointScreen(
         }
     }
 
+    var selectedWaypointCard by remember { mutableStateOf(-1) }
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 384.dp,
@@ -169,13 +171,13 @@ fun WaypointScreen(
                         ) {
                             items(uiState.waypoints.size) { index ->
                                 val waypoint = uiState.waypoints[index]
-                                var isWaypointCardExpanded by remember { mutableStateOf(false) }
+                                val isWaypointCardExpanded = index == selectedWaypointCard
                                 val isLoopRing = waypoint.type == PointType.L
                                 
                                 Card(
                                     onClick = {
-                                        isWaypointCardExpanded = !isWaypointCardExpanded
-                                        viewModel.selectWaypoint(if (isWaypointCardExpanded) index else null)
+                                        selectedWaypointCard = if (isWaypointCardExpanded) -1 else index
+                                        viewModel.selectWaypoint(if (isWaypointCardExpanded) null else index)
                                     },
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -346,12 +348,17 @@ fun WaypointScreen(
             when (uiState.selectedDisplayMode) {
                 0 -> {
                     Column {
+                        Spacer(modifier = Modifier.weight(0.2f))
+
                         LatLngScatter(
+                            modifier = Modifier.fillMaxHeight(0.7f),
                             routeObject = routeObject,
                             highlightPointId = uiState.selectedWaypointIndex?.let {
                                 uiState.waypoints.getOrNull(it)?.id
                             }
                         )
+
+                        Spacer(modifier = Modifier.weight(0.1f))
                     }
                 }
                 1 -> {

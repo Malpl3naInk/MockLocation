@@ -25,16 +25,16 @@ class StaticPointSimulator(
     private val earthRadiusM = 6371000.0
 
     override fun next(deltaTimeMs: Long): SimulatedLocation {
-        val joystickState = OverlayStateHolder.state.value
+        val overlayState = OverlayStateHolder.state.value
         
         // 如果摇杆有移动
-        if (joystickState.speed > 0.01f) {
+        if (overlayState.speed > 0.01f) {
             // 计算实际速度（米/秒）
-            currentSpeed = joystickState.maxSpeed * joystickState.speed
+            currentSpeed = overlayState.maxSpeed * overlayState.speed
             
             // 更新方位角（转换为度数），当摇杆移动时同步方向
-            currentBearing = Math.toDegrees(joystickState.direction.toDouble()).toFloat()
-            Logger.d("StaticPointSimulator", "direction(rad)=${joystickState.direction}, bearing(deg)=$currentBearing, speed=$currentSpeed")
+            currentBearing = Math.toDegrees(overlayState.direction.toDouble()).toFloat()
+            Logger.d("StaticPointSimulator", "direction(rad)=${overlayState.direction}, bearing(deg)=$currentBearing, speed=$currentSpeed")
             
             // 计算移动距离（米）
             val deltaTimeS = deltaTimeMs / 1000.0
@@ -42,7 +42,7 @@ class StaticPointSimulator(
             
             // 根据方向和距离计算新的经纬度
             // 方向角：0为北，顺时针增加
-            val direction = joystickState.direction
+            val direction = overlayState.direction
             
             // 计算纬度变化
             // 北方向为负Y轴，所以使用 cos

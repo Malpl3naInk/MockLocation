@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.ui.components.PillSelection
 import ink.moling.mocklocation.ui.components.PillSelector
+import ink.moling.mocklocation.utils.MockMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,8 +62,8 @@ fun PageSimulationView(
         }
 
         when (uiState.selectedSimulation) {
-            0 -> OptionsPointView(viewModel, scaffoldState)
-            1 -> OptionsRouteView(viewModel, scaffoldState)
+            MockMode.MOCK_MODE_POINT -> OptionsPointView(viewModel, scaffoldState)
+            MockMode.MOCK_MODE_ROUTE -> OptionsRouteView(viewModel, scaffoldState)
         }
     }
 }

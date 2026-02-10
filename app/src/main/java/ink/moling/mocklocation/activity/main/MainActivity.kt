@@ -27,6 +27,7 @@ import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.ui.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.dialog.RequestPermissionDialog
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
+import ink.moling.mocklocation.utils.MockMode
 import ink.moling.mocklocation.utils.PermissionHelper
 import ink.moling.mocklocation.utils.PermissionInfo
 import ink.moling.mocklocation.utils.logger.CrashHandler
@@ -212,7 +213,7 @@ class MainActivity : ComponentActivity() {
 
             MockLocationTheme {
                 Surface(
-                    modifier = Modifier.Companion.fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     // 显示常规权限说明对话框
                     if (showPermissionDialog) {
@@ -260,7 +261,8 @@ class MainActivity : ComponentActivity() {
                         appName = getString(R.string.app_name),
                         onStartMockLocation = {
                             // 通过 ViewModel 启动模拟（保持架构清晰）
-                            if (uiState.selectedSimulation == 0) {
+                            if (uiState.selectedSimulation == MockMode.MOCK_MODE_POINT) {
+                                Logger.d("MainActivity", "Starting mock in Point mode")
                                 // 启动点位模拟
                                 viewModel.selectedMockPoint?.let { point ->
                                     viewModel.setMockLocation(
@@ -270,7 +272,13 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             } else {
+                                Logger.d("MainActivity", "Starting mock in Route mode")
                                 // 启动路径模拟
+                                viewModel.selectedMockRoute?.let { route ->
+                                    viewModel.setMockLocation(
+                                        route.details
+                                    )
+                                }
                             }
                         },
                         onStopMockLocation = {

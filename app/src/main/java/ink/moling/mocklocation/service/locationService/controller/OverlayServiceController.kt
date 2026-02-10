@@ -6,12 +6,13 @@ import ink.moling.mocklocation.service.overlayService.ACTION_TOGGLE_JOYSTICK_VIS
 import ink.moling.mocklocation.service.overlayService.EXTRA_DISPLAY_MODE
 import ink.moling.mocklocation.service.overlayService.EXTRA_VISIBILITY
 import ink.moling.mocklocation.service.overlayService.OverlayService
+import ink.moling.mocklocation.utils.MockMode
 
-class JoystickServiceController(
+class OverlayServiceController(
     private val context: Context
 ) {
     private var isServiceStarted = false
-    private var displayMode = 0 // Point = 0, Route = 1
+    private var displayMode = MockMode.MOCK_MODE_POINT // Point = 0, Route = 1
     
     fun start() {
         val intent = Intent(context, OverlayService::class.java).apply {
