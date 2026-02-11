@@ -23,6 +23,7 @@ import ink.moling.mocklocation.service.locationService.state.LocationStateHolder
 import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
 import ink.moling.mocklocation.utils.KalmanFilter
 import ink.moling.mocklocation.utils.MockMode
+import ink.moling.mocklocation.utils.simulators.DynamicRouteSimulator
 import ink.moling.mocklocation.utils.simulators.StaticPointSimulator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -173,6 +174,7 @@ class LocationService : Service() {
         }
 
         /* TODO: Path simulation */
+        @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
         fun setDynamicRoute(
             route: RouteObject
         ) {
@@ -194,7 +196,9 @@ class LocationService : Service() {
             // 重置StateHolder状态
             OverlayStateHolder.reset()
 
-            // TODO: 设置模拟器 DynamicRouteSimulator
+            // 设置模拟器并启动模拟控制器（支持摇杆动态移动）
+            mockCtrl.setSimulator(DynamicRouteSimulator(route))
+            mockCtrl.start()
 
             // 设置显示模式
             overlayCtrl.setMode(MockMode.MOCK_MODE_ROUTE)
