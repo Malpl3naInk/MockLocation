@@ -66,11 +66,7 @@ fun OverlayScreen(
     var isOverlayMinimized  by remember { mutableStateOf(false) }
 
     // 模拟位置移动速度预设
-    val currentSpeedPresets: List<Double> = when (overlayState.mockMode) {
-        MockMode.MOCK_MODE_POINT -> PrefsHelper.getMaxSpeedPresetsJoystick(context)
-        MockMode.MOCK_MODE_ROUTE -> PrefsHelper.getMaxSpeedPresetsRoute(context)
-        else -> listOf(5.0, 12.0, 25.0)
-    }
+    val currentSpeedPresets: List<Double> = PrefsHelper.getMaxSpeedPresets(context)
     var selectedSpeedPreset   by remember { mutableIntStateOf(0) }
     // 当前速度百分比
     var currentSpeedPer       by remember { mutableFloatStateOf(0f) }

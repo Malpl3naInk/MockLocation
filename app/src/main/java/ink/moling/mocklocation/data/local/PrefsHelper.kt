@@ -13,9 +13,6 @@ object PrefsHelper {
     private const val KEY_MAX_SPEED_JOYSTICK_PRESET_0 = "max_speed_joystick_preset_0"
     private const val KEY_MAX_SPEED_JOYSTICK_PRESET_1 = "max_speed_joystick_preset_1"
     private const val KEY_MAX_SPEED_JOYSTICK_PRESET_2 = "max_speed_joystick_preset_2"
-    private const val KEY_MAX_SPEED_ROUTE_PRESET_0 = "max_speed_route_preset_0"
-    private const val KEY_MAX_SPEED_ROUTE_PRESET_1 = "max_speed_route_preset_1"
-    private const val KEY_MAX_SPEED_ROUTE_PRESET_2 = "max_speed_route_preset_2"
 
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -69,7 +66,7 @@ object PrefsHelper {
         return if (id == -1L) null else id
     }
 
-    fun setMaxSpeedPresetsJoystick(context: Context, maxSpeed: List<Double>) {
+    fun setMaxSpeedPresets(context: Context, maxSpeed: List<Double>) {
         getPrefs(context).edit {
             putFloat(KEY_MAX_SPEED_JOYSTICK_PRESET_0, maxSpeed[0].toFloat())
             putFloat(KEY_MAX_SPEED_JOYSTICK_PRESET_1, maxSpeed[1].toFloat())
@@ -77,27 +74,11 @@ object PrefsHelper {
         }
     }
 
-    fun getMaxSpeedPresetsJoystick(context: Context): List<Double> {
+    fun getMaxSpeedPresets(context: Context): List<Double> {
         return listOf(
             getPrefs(context).getFloat(KEY_MAX_SPEED_JOYSTICK_PRESET_0, 5.0f).toDouble(),
             getPrefs(context).getFloat(KEY_MAX_SPEED_JOYSTICK_PRESET_1, 12.0f).toDouble(),
             getPrefs(context).getFloat(KEY_MAX_SPEED_JOYSTICK_PRESET_2, 25.0f).toDouble()
-        )
-    }
-
-    fun setMaxSpeedPresetsRoute(context: Context, maxSpeed: List<Double>) {
-        getPrefs(context).edit {
-            putFloat(KEY_MAX_SPEED_ROUTE_PRESET_0, maxSpeed[0].toFloat())
-            putFloat(KEY_MAX_SPEED_ROUTE_PRESET_1, maxSpeed[1].toFloat())
-            putFloat(KEY_MAX_SPEED_ROUTE_PRESET_2, maxSpeed[2].toFloat())
-        }
-    }
-
-    fun getMaxSpeedPresetsRoute(context: Context): List<Double> {
-        return listOf(
-            getPrefs(context).getFloat(KEY_MAX_SPEED_ROUTE_PRESET_0, 5.0f).toDouble(),
-            getPrefs(context).getFloat(KEY_MAX_SPEED_ROUTE_PRESET_1, 12.0f).toDouble(),
-            getPrefs(context).getFloat(KEY_MAX_SPEED_ROUTE_PRESET_2, 25.0f).toDouble()
         )
     }
 }
