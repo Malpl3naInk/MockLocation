@@ -156,18 +156,20 @@ fun OverlayScreen(
             }
             if (!isOverlayMinimized) {
                 // 摇杆锁定
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable(onClick = { joystickLocked = !joystickLocked }),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = if (joystickLocked) Icons.Filled.Lock else Icons.Outlined.LockOpen,
-                        contentDescription = "Lock joystick",
-                        tint = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(24.dp)
-                    )
+                if (overlayState.mockMode == MockMode.MOCK_MODE_POINT) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clickable(onClick = { joystickLocked = !joystickLocked }),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (joystickLocked) Icons.Filled.Lock else Icons.Outlined.LockOpen,
+                            contentDescription = "Lock joystick",
+                            tint = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
                 // 菜单
                 Box(
