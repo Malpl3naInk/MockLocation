@@ -62,7 +62,9 @@ fun OptionsRouteView(
     ) { result ->
         when (result.resultCode) {
             WaypointActivity.RESULT_EDIT_OK -> { }
-            WaypointActivity.RESULT_NEW_OK -> { }
+            WaypointActivity.RESULT_NEW_OK -> scope.launch {
+                viewModel.getRoutes()
+            }
             else -> { }
         }
     }

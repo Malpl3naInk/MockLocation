@@ -1,5 +1,10 @@
 package ink.moling.mocklocation.activity.waypoint
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +45,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,13 +58,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.PointType
 import ink.moling.mocklocation.data.models.RouteMeta
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RouteType
+import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import ink.moling.mocklocation.ui.components.PillSelection
 import ink.moling.mocklocation.ui.components.PillSelector
+import ink.moling.mocklocation.ui.dialog.UnsavedChangesDialog
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +84,40 @@ fun WaypointScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
     
+    // LocationService 绑定
+    var locationBinder by remember { mutableStateOf<LocationService.MockLocationServiceBinder?>(null) }
+    var currentLocation by remember { mutableStateOf<CandidateLocation?>(null) }
+    
+    DisposableEffect(context) {
+        val connection = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                locationBinder = service as? LocationService.MockLocationServiceBinder
+            }
+            
+            override fun onServiceDisconnected(name: ComponentName?) {
+                locationBinder = null
+            }
+        }
+        
+        // 绑定服务
+        val intent = Intent(context, LocationService::class.java)
+        context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        
+        onDispose {
+            context.unbindService(connection)
+            locationBinder = null
+        }
+    }
+    
+    // 监听位置更新
+    LaunchedEffect(locationBinder) {
+        locationBinder?.locationFlow()?.collect { location ->
+            currentLocation = location
+        }
+    }
+    
     val routeNameState = rememberTextFieldState(uiState.routeName)
+    var showUnsavedChangesDialog by remember { mutableStateOf(false) }
     
     // 同步 ViewModel 状态到 TextFieldState
     LaunchedEffect(uiState.routeName) {
@@ -90,6 +132,9 @@ fun WaypointScreen(
             when (event) {
                 is WaypointUiEvent.ShowToast -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                }
+                is WaypointUiEvent.ShowUnsavedChangesDialog -> {
+                    showUnsavedChangesDialog = true
                 }
                 else -> { /* 其他事件在 Activity 中处理 */ }
             }
@@ -151,9 +196,16 @@ fun WaypointScreen(
 
                     if (uiState.selectedSheetDetail == 0) {
                         IconButton(onClick = {
-                            // TODO: 显示添加路点对话框
-                            // 示例：添加一个默认路点
-                            viewModel.addWaypoint(0.0, 0.0)
+                            val location = currentLocation
+                            if (location != null) {
+                                viewModel.addWaypoint(location.lat, location.lng)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "等待获取当前位置...",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }) {
                             Icon(
                                 Icons.Outlined.Add,
@@ -429,5 +481,22 @@ fun WaypointScreen(
                 }
             }
         }
+    }
+    
+    // 未保存更改对话框
+    if (showUnsavedChangesDialog) {
+        UnsavedChangesDialog(
+            onSave = {
+                showUnsavedChangesDialog = false
+                viewModel.saveRoute()
+            },
+            onDiscard = {
+                showUnsavedChangesDialog = false
+                viewModel.discardChangesAndClose()
+            },
+            onDismiss = {
+                showUnsavedChangesDialog = false
+            }
+        )
     }
 }

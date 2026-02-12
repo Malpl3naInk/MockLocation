@@ -51,6 +51,7 @@ sealed class WaypointUiEvent {
     data class ShowToast(val message: String) : WaypointUiEvent()
     object SaveSuccess : WaypointUiEvent()
     object ClosActivity : WaypointUiEvent()
+    object ShowUnsavedChangesDialog : WaypointUiEvent()
 }
 
 class WaypointViewModel(application: Application) : AndroidViewModel(application) {
@@ -429,5 +430,20 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
      */
     fun hasUnsavedChanges(): Boolean {
         return _uiState.value.isModified
+    }
+    
+    /**
+     * 请求显示未保存更改对话框
+     */
+    fun showUnsavedChangesDialog() {
+        _uiEvent.tryEmit(WaypointUiEvent.ShowUnsavedChangesDialog)
+    }
+    
+    /**
+     * 放弃更改并关闭
+     */
+    fun discardChangesAndClose() {
+        _uiState.update { it.copy(isModified = false) }
+        _uiEvent.tryEmit(WaypointUiEvent.ClosActivity)
     }
 }
