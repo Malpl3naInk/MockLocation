@@ -34,12 +34,11 @@ class WaypointActivity : ComponentActivity() {
         // 注册返回事件处理器
         onBackPressedDispatcher.addCallback(this) {
             if (viewModel.hasUnsavedChanges()) {
-                // TODO: 显示未保存更改的提示对话框
-                setResult(RESULT_EDIT_CANCELED)
+                viewModel.showUnsavedChangesDialog()
             } else {
-                setResult(RESULT_OK)
+                setResult(RESULT_EDIT_CANCELED)
+                finish()
             }
-            finish()
         }
 
         // 获取路线信息
@@ -71,10 +70,14 @@ class WaypointActivity : ComponentActivity() {
                                     )
                                 }
                                 is WaypointUiEvent.ClosActivity -> {
+                                    setResult(RESULT_EDIT_CANCELED)
                                     finish()
                                 }
                                 is WaypointUiEvent.ShowToast -> {
                                     // Toast 在 Screen 中处理
+                                }
+                                is WaypointUiEvent.ShowUnsavedChangesDialog -> {
+                                    // 对话框在 Screen 中处理
                                 }
                             }
                         }
