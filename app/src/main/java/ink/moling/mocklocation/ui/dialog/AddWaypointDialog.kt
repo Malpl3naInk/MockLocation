@@ -1,0 +1,183 @@
+package ink.moling.mocklocation.ui.dialog
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun AddWaypointDialog(
+    currentLatitude: Double?,
+    currentLongitude: Double?,
+    onConfirm: (latitude: Double, longitude: Double) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var latitudeText by remember { mutableStateOf("") }
+    var longitudeText by remember { mutableStateOf("") }
+    var latitudeError by remember { mutableStateOf(false) }
+    var longitudeError by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        title = {
+            Text(
+                text = "Add Waypoint",
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Latitude input
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(
+                        value = latitudeText,
+                        onValueChange = {
+                            latitudeText = it
+                            latitudeError = false
+                        },
+                        label = { Text("Latitude") },
+                        placeholder = { Text("e.g., 39.9042") },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal
+                        ),
+                        isError = latitudeError,
+                        supportingText = if (latitudeError) {
+                            { Text("Invalid latitude (-90 to 90)") }
+                        } else null,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp),
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Longitude input
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(
+                        value = longitudeText,
+                        onValueChange = {
+                            longitudeText = it
+                            longitudeError = false
+                        },
+                        label = { Text("Longitude") },
+                        placeholder = { Text("e.g., 116.4074") },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal
+                        ),
+                        isError = longitudeError,
+                        supportingText = if (longitudeError) {
+                            { Text("Invalid longitude (-180 to 180)") }
+                        } else null,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp),
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Use current location button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = {
+                            currentLatitude?.let { latitudeText = it.toString() }
+                            currentLongitude?.let { longitudeText = it.toString() }
+                        },
+                        enabled = currentLatitude != null && currentLongitude != null
+                    ) {
+                        Icon(
+                            Icons.Outlined.MyLocation,
+                            contentDescription = "Use current location"
+                        )
+                    }
+                    Text(
+                        text = if (currentLatitude != null && currentLongitude != null) {
+                            "Use current location"
+                        } else {
+                            "Waiting for location..."
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (currentLatitude != null && currentLongitude != null) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val lat = latitudeText.toDoubleOrNull()
+                    val lng = longitudeText.toDoubleOrNull()
+
+                    when {
+                        lat == null || lat < -90 || lat > 90 -> {
+                            latitudeError = true
+                        }
+                        lng == null || lng < -180 || lng > 180 -> {
+                            longitudeError = true
+                        }
+                        else -> {
+                            onConfirm(lat, lng)
+                        }
+                    }
+                }
+            ) {
+                Text("Add")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}

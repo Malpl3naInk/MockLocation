@@ -49,6 +49,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -67,6 +68,7 @@ import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import ink.moling.mocklocation.ui.components.PillSelection
 import ink.moling.mocklocation.ui.components.PillSelector
+import ink.moling.mocklocation.ui.dialog.AddWaypointDialog
 import ink.moling.mocklocation.ui.dialog.UnsavedChangesDialog
 import kotlinx.coroutines.launch
 
@@ -87,6 +89,9 @@ fun WaypointScreen(
     // LocationService 绑定
     var locationBinder by remember { mutableStateOf<LocationService.MockLocationServiceBinder?>(null) }
     var currentLocation by remember { mutableStateOf<CandidateLocation?>(null) }
+    
+    // 添加路点对话框状态
+    var showAddWaypointDialog by remember { mutableStateOf(false) }
     
     DisposableEffect(context) {
         val connection = object : ServiceConnection {
@@ -160,7 +165,7 @@ fun WaypointScreen(
         }
     }
 
-    var selectedWaypointCard by remember { mutableStateOf(-1) }
+    var selectedWaypointCard by remember { mutableIntStateOf(-1) }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -196,16 +201,7 @@ fun WaypointScreen(
 
                     if (uiState.selectedSheetDetail == 0) {
                         IconButton(onClick = {
-                            val location = currentLocation
-                            if (location != null) {
-                                viewModel.addWaypoint(location.lat, location.lng)
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "等待获取当前位置...",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            showAddWaypointDialog = true
                         }) {
                             Icon(
                                 Icons.Outlined.Add,
@@ -407,6 +403,11 @@ fun WaypointScreen(
                             routeObject = routeObject,
                             highlightPointId = uiState.selectedWaypointIndex?.let {
                                 uiState.waypoints.getOrNull(it)?.id
+                            },
+                            onPointClick = { index, point ->
+                                val isWaypointSelected = index == selectedWaypointCard
+                                selectedWaypointCard = if (isWaypointSelected) -1 else index
+                                viewModel.selectWaypoint(if (isWaypointSelected) null else index)
                             }
                         )
 
@@ -496,6 +497,21 @@ fun WaypointScreen(
             },
             onDismiss = {
                 showUnsavedChangesDialog = false
+            }
+        )
+    }
+    
+    // 添加路点对话框
+    if (showAddWaypointDialog) {
+        AddWaypointDialog(
+            currentLatitude = currentLocation?.lat,
+            currentLongitude = currentLocation?.lng,
+            onConfirm = { lat, lng ->
+                viewModel.addWaypoint(lat, lng)
+                showAddWaypointDialog = false
+            },
+            onDismiss = {
+                showAddWaypointDialog = false
             }
         )
     }
