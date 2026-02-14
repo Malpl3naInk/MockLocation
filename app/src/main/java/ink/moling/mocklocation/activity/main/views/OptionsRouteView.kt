@@ -1,6 +1,7 @@
 package ink.moling.mocklocation.activity.main.views
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -40,8 +41,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.documentfile.provider.DocumentFile
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.waypoint.WaypointActivity
+import ink.moling.mocklocation.data.models.RouteObjectJson
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import kotlinx.coroutines.launch
 
@@ -62,10 +65,42 @@ fun OptionsRouteView(
     ) { result ->
         when (result.resultCode) {
             WaypointActivity.RESULT_EDIT_OK -> { }
-            WaypointActivity.RESULT_NEW_OK -> scope.launch {
-                viewModel.getRoutes()
-            }
+            WaypointActivity.RESULT_NEW_OK -> scope.launch { viewModel.getRoutes() }
             else -> { }
+        }
+    }
+
+    val exportRouteFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { treeUri ->
+        treeUri ?: return@rememberLauncherForActivityResult
+
+        context.contentResolver.takePersistableUriPermission(
+            treeUri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+
+        scope.launch {
+            val currentRoute = viewModel.selectedMockRoute
+            currentRoute ?: return@launch
+
+            val pickedDir = DocumentFile.fromTreeUri(context, treeUri)
+            val fileName = "export_${currentRoute.name.replace(' ', '_')}.json"
+            val newFile = pickedDir?.createFile(
+                "application/json",
+                fileName
+            )
+
+            newFile?.uri?.let { uri ->
+                context.contentResolver.openOutputStream(uri)?.use {
+                    RouteObjectJson.toJson(currentRoute.details)?.let { jsonStr ->
+                        it.write(jsonStr.toByteArray())
+                    }
+                }
+            }
+
+            Toast.makeText(context, "$fileName exported", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -191,7 +226,7 @@ fun OptionsRouteView(
 
             // Export route button
             IconButton(
-                onClick = { }
+                onClick = { exportRouteFileLauncher.launch(null) }
             ) {
                 Icon(
                     Icons.Outlined.FileUpload,
