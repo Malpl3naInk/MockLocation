@@ -142,6 +142,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.savedstate.ktx)
+    implementation(libs.androidx.documentfile)
     kapt(libs.androidx.room.compiler)
 
     // Gson for JSON serialization
