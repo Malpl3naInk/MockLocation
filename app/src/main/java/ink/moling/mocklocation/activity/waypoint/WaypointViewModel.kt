@@ -271,7 +271,7 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
         connects: Set<Int> = emptySet()
     ) {
         val state = _uiState.value
-        val newId = (state.routeObject.points.maxOfOrNull { it.id } ?: 0) + 1
+        val newId = state.routeObject.points.maxOfOrNull { it.id } ?: 0
         
         val newPoint = RoutePoint(
             id = newId,
