@@ -82,7 +82,8 @@ fun MainScreen(
     val sheetState = scaffoldState.bottomSheetState
     val scaffoldExpanded by remember {
         derivedStateOf {
-            sheetState.targetValue == SheetValue.Expanded ||
+            (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded &&
+            sheetState.targetValue == SheetValue.Expanded) ||
                     sheetState.currentValue == SheetValue.Expanded
         }
     }
@@ -217,7 +218,7 @@ fun MainScreen(
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
                             scope.launch {
-                                scaffoldState.bottomSheetState.hide()
+                                scaffoldState.bottomSheetState.partialExpand()
                             }
                         }
                 )

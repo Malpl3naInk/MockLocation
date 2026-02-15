@@ -31,19 +31,19 @@ class WaypointActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // 获取路线信息
+        val selectedRoute = intent.getStringExtra(EXTRA_ROUTE_NAME) ?: "<NEW_ROUTE>"
+        val routeId = intent.getLongExtra(EXTRA_ROUTE_ID, -1L)
+
         // 注册返回事件处理器
         onBackPressedDispatcher.addCallback(this) {
             if (viewModel.hasUnsavedChanges()) {
                 viewModel.showUnsavedChangesDialog()
             } else {
-                setResult(RESULT_EDIT_CANCELED)
+                setResult(if (selectedRoute == "<NEW_ROUTE>") RESULT_NEW_OK else RESULT_EDIT_OK)
                 finish()
             }
         }
-
-        // 获取路线信息
-        val selectedRoute = intent.getStringExtra(EXTRA_ROUTE_NAME) ?: "<NEW_ROUTE>"
-        val routeId = intent.getLongExtra(EXTRA_ROUTE_ID, -1L)
         
         Logger.d("WaypointActivity", "selectedRoute=$selectedRoute, routeId=$routeId")
 
@@ -59,32 +59,20 @@ class WaypointActivity : ComponentActivity() {
                         } else {
                             viewModel.loadRoute(selectedRoute)
                         }
-                        
-                        // 监听 UI 事件
-                        viewModel.uiEvent.collect { event ->
-                            when (event) {
-                                is WaypointUiEvent.SaveSuccess -> {
-                                    val state = viewModel.uiState.value
-                                    setResult(
-                                        if (state.isNewRoute) RESULT_NEW_OK else RESULT_EDIT_OK
-                                    )
-                                }
-                                is WaypointUiEvent.ClosActivity -> {
-                                    setResult(RESULT_EDIT_CANCELED)
-                                    finish()
-                                }
-                                is WaypointUiEvent.ShowToast -> {
-                                    // Toast 在 Screen 中处理
-                                }
-                                is WaypointUiEvent.ShowUnsavedChangesDialog -> {
-                                    // 对话框在 Screen 中处理
-                                }
-                            }
-                        }
                     }
                     
                     WaypointScreen(
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        onSaveSuccess = {
+                            val state = viewModel.uiState.value
+                            setResult(
+                                if (state.isNewRoute) RESULT_NEW_OK else RESULT_EDIT_OK
+                            )
+                        },
+                        onCloseActivity = {
+                            setResult(RESULT_EDIT_CANCELED)
+                            finish()
+                        }
                     )
                 }
             }

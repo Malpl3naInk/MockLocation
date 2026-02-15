@@ -4,6 +4,11 @@ import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RoutePoint
 import ink.moling.mocklocation.data.models.RouteType
 
+fun RouteType.label(): String = when (this) {
+    RouteType.ROUTE -> "Route"
+    RouteType.WAYPOINTS -> "Map"
+}
+
 /**
  * Convert route points to a map indexed by point ID
  * 
@@ -11,14 +16,6 @@ import ink.moling.mocklocation.data.models.RouteType
  */
 fun RouteObject.toPointMap(): Map<Int, RoutePoint> =
     points.associateBy { it.id }
-
-/**
- * Convert route to a graph structure for path analysis
- * 
- * @return A map where the key is the point ID and the value is a list of connected point IDs
- */
-fun RouteObject.toGraph(): Map<Int, List<Int>> =
-    points.associate { it.id to it.connects }
 
 fun RouteObject.isValid(): Boolean {
     // 验证必要字段
@@ -35,7 +32,31 @@ fun RouteObject.isValid(): Boolean {
     return true
 }
 
-fun RouteType.label(): String = when (this) {
-    RouteType.ROUTE -> "Route"
-    RouteType.WAYPOINTS -> "Map"
+fun RouteObject.isConnected(a: Int, b: Int): Boolean =
+    toPointMap()[a]?.connects?.contains(b) == true
+
+fun RouteObject.addConn(from: Int, to: Int): RouteObject {
+    if (from == to) return this
+
+    val map = this.toPointMap().toMutableMap()
+
+    val pFrom = map[from] ?: return this
+    val pTo = map[to] ?: return this
+
+    map[from] = pFrom.copy(connects = pFrom.connects + to)
+    map[to] = pTo.copy(connects = pTo.connects + from)
+
+    return copy(points = map.values.toList())
+}
+
+fun RouteObject.removeConn(from: Int, to: Int): RouteObject {
+    val map = points.associateBy { it.id }.toMutableMap()
+
+    val pFrom = map[from] ?: return this
+    val pTo = map[to] ?: return this
+
+    map[from] = pFrom.copy(connects = pFrom.connects - to)
+    map[to] = pTo.copy(connects = pTo.connects - from)
+
+    return copy(points = map.values.toList())
 }

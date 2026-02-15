@@ -32,11 +32,14 @@ import androidx.compose.ui.unit.dp
 fun AddWaypointDialog(
     currentLatitude: Double?,
     currentLongitude: Double?,
+    initialLatitude: Double? = null,
+    initialLongitude: Double? = null,
+    isEditMode: Boolean = false,
     onConfirm: (latitude: Double, longitude: Double) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var latitudeText by remember { mutableStateOf("") }
-    var longitudeText by remember { mutableStateOf("") }
+    var latitudeText by remember { mutableStateOf(initialLatitude?.toString() ?: "") }
+    var longitudeText by remember { mutableStateOf(initialLongitude?.toString() ?: "") }
     var latitudeError by remember { mutableStateOf(false) }
     var longitudeError by remember { mutableStateOf(false) }
 
@@ -45,7 +48,7 @@ fun AddWaypointDialog(
         containerColor = MaterialTheme.colorScheme.secondaryContainer,
         title = {
             Text(
-                text = "Add Waypoint",
+                text = if (isEditMode) "Edit Waypoint" else "Add Waypoint",
                 style = MaterialTheme.typography.headlineSmall
             )
         },
@@ -171,7 +174,7 @@ fun AddWaypointDialog(
                     }
                 }
             ) {
-                Text("Add")
+                Text(if (isEditMode) "Save" else "Add")
             }
         },
         dismissButton = {

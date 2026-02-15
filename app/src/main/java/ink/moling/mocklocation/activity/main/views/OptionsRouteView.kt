@@ -64,7 +64,7 @@ fun OptionsRouteView(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         when (result.resultCode) {
-            WaypointActivity.RESULT_EDIT_OK -> { }
+            WaypointActivity.RESULT_EDIT_OK -> scope.launch { viewModel.refreshRoute() }
             WaypointActivity.RESULT_NEW_OK -> scope.launch { viewModel.getRoutes() }
             else -> { }
         }
@@ -147,7 +147,7 @@ fun OptionsRouteView(
                     if (uiState.routeObject != null && uiState.routeObject!!.points.isNotEmpty()) {
                         LatLngScatter(
                             modifier = Modifier.fillMaxHeight(0.28f),
-                            routeObject = uiState.routeObject,
+                            routeObject = uiState.routeObject!!,
                             pointRadius = 0.dp
                         )
                     } else {
