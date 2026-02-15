@@ -533,7 +533,7 @@ fun WaypointScreen(
                             onClick = {
                                 isEditingConnectionMode = false
                                 scope.launch {
-                                    scaffoldState.bottomSheetState.expand()
+                                    scaffoldState.bottomSheetState.partialExpand()
                                 }
                             },
                             modifier = Modifier
