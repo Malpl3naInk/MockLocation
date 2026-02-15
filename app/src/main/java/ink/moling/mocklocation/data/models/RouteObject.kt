@@ -10,7 +10,18 @@ data class RouteObject(
     val name: String,
     val meta: RouteMeta,
     val points: List<RoutePoint>
-)
+) {
+    companion object {
+        val Empty = RouteObject(
+            name = "",
+            meta = RouteMeta(
+                type = RouteType.ROUTE,
+                version = 1
+            ),
+            points = emptyList()
+        )
+    }
+}
 
 data class RouteMeta(
     val type: RouteType,
@@ -22,7 +33,7 @@ data class RoutePoint(
     val lat: Double,
     val lng: Double,
     val type: PointType,
-    val connects: List<Int>
+    val connects: Set<Int>
 )
 
 object RouteObjectJson {

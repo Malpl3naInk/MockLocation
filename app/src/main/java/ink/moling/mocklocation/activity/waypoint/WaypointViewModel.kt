@@ -6,10 +6,11 @@ import androidx.lifecycle.viewModelScope
 import ink.moling.mocklocation.data.local.db.AppDatabase
 import ink.moling.mocklocation.data.local.db.MockRouteEntity
 import ink.moling.mocklocation.data.models.PointType
-import ink.moling.mocklocation.data.models.RouteMeta
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RoutePoint
 import ink.moling.mocklocation.data.models.RouteType
+import ink.moling.mocklocation.utils.extensions.addConn
+import ink.moling.mocklocation.utils.extensions.removeConn
 import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,9 +29,8 @@ data class WaypointUiState(
     val isWaypointMap: Boolean = false,
     val isNewRoute: Boolean = true,
     val routeId: Long? = null,
-    
-    // 路点列表
-    val waypoints: List<RoutePoint> = emptyList(),
+
+    var routeObject: RouteObject = RouteObject.Empty,
     
     // 编辑状态
     val isModified: Boolean = false,
@@ -73,7 +73,7 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
     private val _uiState = MutableStateFlow(WaypointUiState())
     val uiState: StateFlow<WaypointUiState> = _uiState.asStateFlow()
     
-    private val _uiEvent = MutableSharedFlow<WaypointUiEvent>(extraBufferCapacity = 1)
+    private val _uiEvent = MutableSharedFlow<WaypointUiEvent>(extraBufferCapacity = 64)
     val uiEvent = _uiEvent.asSharedFlow()
     
     // =====================================================
@@ -92,7 +92,7 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
                 it.copy(
                     routeName = "",
                     isNewRoute = true,
-                    waypoints = emptyList()
+                    routeObject = RouteObject.Empty
                 ) 
             }
             return
@@ -110,7 +110,7 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
                             routeName = route.name,
                             isNewRoute = false,
                             routeId = route.id,
-                            waypoints = route.details.points,
+                            routeObject = route.details,
                             isWaypointMap = route.details.meta.type == RouteType.WAYPOINTS
                         ) 
                     }
@@ -121,7 +121,7 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
                         it.copy(
                             routeName = routeName,
                             isNewRoute = true,
-                            waypoints = emptyList()
+                            routeObject = RouteObject.Empty
                         ) 
                     }
                 }
@@ -147,7 +147,7 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
                             routeName = route.name,
                             isNewRoute = false,
                             routeId = route.id,
-                            waypoints = route.details.points,
+                            routeObject = route.details,
                             isWaypointMap = route.details.meta.type == RouteType.WAYPOINTS
                         ) 
                     }
@@ -179,20 +179,18 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
         }
         
         // 验证路点
-        if (state.waypoints.isEmpty()) {
+        if (state.routeObject.points.isEmpty()) {
             _uiEvent.tryEmit(WaypointUiEvent.ShowToast("Please add at least one waypoint"))
             return
         }
         
         viewModelScope.launch {
             try {
-                val routeObject = RouteObject(
+                val routeObject = state.routeObject.copy(
                     name = state.routeName,
-                    meta = RouteMeta(
-                        type = if (state.isWaypointMap) RouteType.WAYPOINTS else RouteType.ROUTE,
-                        version = 1
-                    ),
-                    points = state.waypoints
+                    meta = state.routeObject.meta.copy(
+                        type = if (state.isWaypointMap) RouteType.WAYPOINTS else RouteType.ROUTE
+                    )
                 )
                 
                 if (state.isNewRoute) {
@@ -270,10 +268,10 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
         lat: Double,
         lng: Double,
         type: PointType = PointType.R,
-        connects: List<Int> = emptyList()
+        connects: Set<Int> = emptySet()
     ) {
         val state = _uiState.value
-        val newId = (state.waypoints.maxOfOrNull { it.id } ?: 0) + 1
+        val newId = (state.routeObject.points.maxOfOrNull { it.id } ?: 0) + 1
         
         val newPoint = RoutePoint(
             id = newId,
@@ -285,7 +283,7 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
         
         _uiState.update { 
             it.copy(
-                waypoints = state.waypoints + newPoint,
+                routeObject = state.routeObject.copy(points = state.routeObject.points + newPoint),
                 isModified = true
             ) 
         }
@@ -306,12 +304,12 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
         lat: Double,
         lng: Double,
         type: PointType? = null,
-        connects: List<Int>? = null
+        connects: Set<Int>? = null
     ) {
         val state = _uiState.value
-        if (index !in state.waypoints.indices) return
+        if (index !in state.routeObject.points.indices) return
         
-        val oldPoint = state.waypoints[index]
+        val oldPoint = state.routeObject.points[index]
         val updatedPoint = oldPoint.copy(
             lat = lat,
             lng = lng,
@@ -319,12 +317,12 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
             connects = connects ?: oldPoint.connects
         )
         
-        val updatedWaypoints = state.waypoints.toMutableList()
+        val updatedWaypoints = state.routeObject.points.toMutableList()
         updatedWaypoints[index] = updatedPoint
         
         _uiState.update { 
             it.copy(
-                waypoints = updatedWaypoints,
+                routeObject = state.routeObject.copy(points = updatedWaypoints),
                 isModified = true
             ) 
         }
@@ -338,22 +336,22 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
      */
     fun deleteWaypoint(index: Int) {
         val state = _uiState.value
-        if (index !in state.waypoints.indices) return
+        if (index !in state.routeObject.points.indices) return
         
-        val deletedPoint = state.waypoints[index]
+        val deletedPoint = state.routeObject.points[index]
         val deletedId = deletedPoint.id
         
         // 删除路点并更新其他路点的连接
-        val updatedWaypoints = state.waypoints
+        val updatedWaypoints = state.routeObject.points
             .filterIndexed { i, _ -> i != index }
             .map { point ->
                 // 移除对已删除路点的连接
-                point.copy(connects = point.connects.filter { it != deletedId })
+                point.copy(connects = point.connects - deletedId)
             }
         
         _uiState.update { 
             it.copy(
-                waypoints = updatedWaypoints,
+                routeObject = state.routeObject.copy(points = updatedWaypoints),
                 isModified = true,
                 selectedWaypointIndex = null
             ) 
@@ -362,26 +360,32 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
     }
     
     /**
-     * 更新路点的连接
+     * 添加路点的连接
      * 
-     * @param index 路点索引
-     * @param connects 新的连接列表
+     * @param from 起始路点索引
+     * @param to 中止路点索引
      */
-    fun updateWaypointConnections(index: Int, connects: List<Int>) {
-        val state = _uiState.value
-        if (index !in state.waypoints.indices) return
-        
-        val oldPoint = state.waypoints[index]
-        val updatedPoint = oldPoint.copy(connects = connects)
-        
-        val updatedWaypoints = state.waypoints.toMutableList()
-        updatedWaypoints[index] = updatedPoint
-        
+    fun addWaypointConnections(from: Int, to: Int) {
         _uiState.update { 
             it.copy(
-                waypoints = updatedWaypoints,
-                isModified = true
+                isModified = true,
+                routeObject = it.routeObject.addConn(from, to)
             ) 
+        }
+    }
+
+    /**
+     * 添加路点的连接
+     *
+     * @param from 起始路点索引
+     * @param to 中止路点索引
+     */
+    fun removeWaypointConnections(from: Int, to: Int) {
+        _uiState.update {
+            it.copy(
+                isModified = true,
+                routeObject = it.routeObject.removeConn(from, to)
+            )
         }
     }
     

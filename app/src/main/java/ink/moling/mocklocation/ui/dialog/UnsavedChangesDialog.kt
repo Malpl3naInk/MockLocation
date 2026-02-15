@@ -70,7 +70,7 @@ fun UnsavedChangesDialog(
             Column {
                 TextButton(onClick = onDiscard) {
                     Text(
-                        "Discard",
+                        "Discard & Quit",
                         color = MaterialTheme.colorScheme.error
                     )
                 }

@@ -470,6 +470,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         _uiEvent.tryEmit(MainUiEvent.HideBottomSheet)
     }
+
+    /**
+     * 刷新当前路线数据
+     */
+    fun refreshRoute() {
+        // 从 SharedPreferences 恢复上次选择的模拟路径
+        val savedRouteId = PrefsHelper.getSelectedRouteId(getApplication())
+        viewModelScope.launch {
+            // 加载保存的路线列表
+            getRoutes()
+
+            if (savedRouteId != null) {
+                val route = mockRouteDao.getById(savedRouteId)
+                selectedMockRoute = route
+                // 更新 UI 状态中的路线名称
+                route?.let {
+                    _uiState.update { state ->
+                        state.copy(
+                            routeName = it.name,
+                            routeObject = it.details
+                        )
+                    }
+                }
+            }
+        }
+    }
     
     /**
      * 按名称搜索路线

@@ -142,7 +142,7 @@ private fun mapPointsToCanvasInternal(
 @Composable
 fun LatLngScatter(
     modifier: Modifier = Modifier,
-    routeObject: RouteObject? = null,
+    routeObject: RouteObject,
     pointRadius: Dp = 3.dp,
     pointColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     strokeWidthDp: Dp = 1.dp,
@@ -152,7 +152,7 @@ fun LatLngScatter(
     highlightBorderColor: Color = MaterialTheme.colorScheme.outline,    // 高亮边框颜色
     highlightBorderWidth: Dp = 1.dp,                                    // 高亮边框宽度
     currentLocation: Pair<Double, Double>? = null,                      // 当前位置 (lat, lng)
-    currentLocationColor: Color = Color(0xFFFF5722),             // 当前位置点颜色
+    currentLocationColor: Color = Color(0xFFFF5722),                    // 当前位置点颜色
     currentLocationRadius: Dp = 3.dp,                                   // 当前位置点半径
     onPointClick: ((index: Int, point: RoutePoint) -> Unit)? = null
 ) {
@@ -164,7 +164,7 @@ fun LatLngScatter(
     val currentLocationPx = with(density) { currentLocationRadius.toPx() }
 
     // 从 RouteObject 获取点列表
-    val points = routeObject?.points ?: emptyList()
+    val points = routeObject.points
     
     val bounds by remember(points) { derivedStateOf { computeBounds(points) } }
     
@@ -190,7 +190,7 @@ fun LatLngScatter(
                         val dx = mapped[i].x - tapOffset.x
                         val dy = mapped[i].y - tapOffset.y
                         val d = hypot(dx.toDouble(), dy.toDouble()).toFloat()
-                        if (d < nearest && d <= prPx * 1.5f) {
+                        if (d < nearest && d <= prPx * 2.5f) {
                             nearest = d
                             idx = i
                         }

@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +23,7 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.EditLocationAlt
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
@@ -29,9 +32,10 @@ import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -56,26 +60,28 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.PointType
-import ink.moling.mocklocation.data.models.RouteMeta
-import ink.moling.mocklocation.data.models.RouteObject
-import ink.moling.mocklocation.data.models.RouteType
 import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import ink.moling.mocklocation.ui.components.PillSelection
 import ink.moling.mocklocation.ui.components.PillSelector
 import ink.moling.mocklocation.ui.dialog.AddWaypointDialog
 import ink.moling.mocklocation.ui.dialog.UnsavedChangesDialog
+import ink.moling.mocklocation.utils.extensions.isConnected
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaypointScreen(
-    viewModel: WaypointViewModel
+    viewModel: WaypointViewModel,
+    onSaveSuccess: () -> Unit = {},
+    onCloseActivity: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -92,6 +98,12 @@ fun WaypointScreen(
     
     // 添加路点对话框状态
     var showAddWaypointDialog by remember { mutableStateOf(false) }
+    
+    // 编辑路点对话框状态
+    var showEditWaypointDialog by remember { mutableStateOf(false) }
+
+    // 是否正在编辑连接点
+    var isEditingConnectionMode by remember { mutableStateOf(false) }
     
     DisposableEffect(context) {
         val connection = object : ServiceConnection {
@@ -141,31 +153,13 @@ fun WaypointScreen(
                 is WaypointUiEvent.ShowUnsavedChangesDialog -> {
                     showUnsavedChangesDialog = true
                 }
-                else -> { /* 其他事件在 Activity 中处理 */ }
+                is WaypointUiEvent.SaveSuccess -> onSaveSuccess()
+                is WaypointUiEvent.ClosActivity -> onCloseActivity()
             }
         }
     }
-    
-    // 创建 RouteObject 用于显示
-    val routeObject = remember(uiState.waypoints, uiState.routeName, uiState.isWaypointMap) {
-        if (uiState.waypoints.isNotEmpty()) {
-            RouteObject(
-                name = uiState.routeName,
-                meta = RouteMeta(
-                    type = if (uiState.isWaypointMap)
-                        RouteType.WAYPOINTS
-                    else
-                        RouteType.ROUTE,
-                    version = 1
-                ),
-                points = uiState.waypoints
-            )
-        } else {
-            null
-        }
-    }
 
-    var selectedWaypointCard by remember { mutableIntStateOf(-1) }
+    var selectedWaypoint by remember { mutableIntStateOf(-1) }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -217,14 +211,13 @@ fun WaypointScreen(
                             modifier = Modifier
                                 .padding(bottom = 12.dp)
                         ) {
-                            items(uiState.waypoints.size) { index ->
-                                val waypoint = uiState.waypoints[index]
-                                val isWaypointCardExpanded = index == selectedWaypointCard
-                                val isLoopRing = waypoint.type == PointType.L
+                            items(uiState.routeObject.points.size) { index ->
+                                val waypoint = uiState.routeObject.points[index]
+                                val isWaypointCardExpanded = index == selectedWaypoint
                                 
                                 Card(
                                     onClick = {
-                                        selectedWaypointCard = if (isWaypointCardExpanded) -1 else index
+                                        selectedWaypoint = if (isWaypointCardExpanded) -1 else index
                                         viewModel.selectWaypoint(if (isWaypointCardExpanded) null else index)
                                     },
                                     modifier = Modifier
@@ -286,39 +279,13 @@ fun WaypointScreen(
                                                     Spacer(modifier = Modifier.weight(1f))
 
                                                     IconButton(onClick = {
-                                                        // TODO: 显示编辑位置对话框
+                                                        viewModel.setSheetDetail(1)
                                                     }) {
                                                         Icon(
                                                             Icons.Outlined.EditLocationAlt,
                                                             contentDescription = null
                                                         )
                                                     }
-                                                }
-
-                                                Row(
-                                                    modifier = Modifier
-                                                        .padding(bottom = 6.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Checkbox(
-                                                        checked = isLoopRing,
-                                                        onCheckedChange = { checked ->
-                                                            viewModel.updateWaypoint(
-                                                                index = index,
-                                                                lat = waypoint.lat,
-                                                                lng = waypoint.lng,
-                                                                type = if (checked) 
-                                                                    PointType.L
-                                                                else 
-                                                                    PointType.R
-                                                            )
-                                                        }
-                                                    )
-                                                    Text(
-                                                        "Loop ring",
-                                                        modifier = Modifier
-                                                            .padding(horizontal = 3.dp)
-                                                    )
                                                 }
                                             }
                                         } else {
@@ -371,17 +338,82 @@ fun WaypointScreen(
                                 }
                             }
 
-                            Row(
+                            Spacer(modifier = Modifier.height(18.dp))
+
+//                            Row(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(vertical = 12.dp, horizontal = 6.dp),
+//                                verticalAlignment = Alignment.CenterVertically
+//                            ) {
+//                                Checkbox(
+//                                    checked = uiState.isWaypointMap,
+//                                    onCheckedChange = { viewModel.setMapMode(it) }
+//                                )
+//                                Text("Map mode")
+//                            }
+
+                            Card(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 12.dp, horizontal = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Checkbox(
-                                    checked = uiState.isWaypointMap,
-                                    onCheckedChange = { viewModel.setMapMode(it) }
+                                    .fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
-                                Text("Map mode")
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(12.dp)
+                                ) {
+                                    val tSelectedWaypoint = when (selectedWaypoint) {
+                                        -1      -> "/"
+                                        else    -> "${selectedWaypoint + 1}"
+                                    }
+                                    Text(
+                                        "Waypoint #${tSelectedWaypoint}",
+                                        fontWeight = FontWeight.Bold
+                                    )
+
+                                    Spacer(modifier = Modifier.height(6.dp))
+
+                                    if (selectedWaypoint != -1) {
+                                        Button(
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                            ),
+                                            onClick = {
+                                                showEditWaypointDialog = true
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.EditLocationAlt,
+                                                contentDescription = null,
+                                                modifier = Modifier.padding(end = 6.dp)
+                                            )
+                                            Text("Change location")
+                                        }
+
+                                        Button(
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                            ),
+                                            onClick = {
+                                                isEditingConnectionMode = true
+                                                scope.launch {
+                                                    scaffoldState.bottomSheetState.hide()
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.Route,
+                                                contentDescription = null,
+                                                modifier = Modifier.padding(end = 6.dp)
+                                            )
+                                            Text("Connections")
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -400,14 +432,23 @@ fun WaypointScreen(
 
                         LatLngScatter(
                             modifier = Modifier.fillMaxHeight(0.7f),
-                            routeObject = routeObject,
+                            routeObject = uiState.routeObject,
                             highlightPointId = uiState.selectedWaypointIndex?.let {
-                                uiState.waypoints.getOrNull(it)?.id
+                                uiState.routeObject.points.getOrNull(it)?.id
                             },
                             onPointClick = { index, point ->
-                                val isWaypointSelected = index == selectedWaypointCard
-                                selectedWaypointCard = if (isWaypointSelected) -1 else index
-                                viewModel.selectWaypoint(if (isWaypointSelected) null else index)
+                                if (isEditingConnectionMode) {
+                                    Log.d("WaypointScreen", "Clicked: $index, Selected: $selectedWaypoint")
+                                    if (uiState.routeObject.isConnected(selectedWaypoint, index)) {
+                                        viewModel.removeWaypointConnections(selectedWaypoint, index)
+                                    } else {
+                                        viewModel.addWaypointConnections(selectedWaypoint, index)
+                                    }
+                                } else {
+                                    val isWaypointSelected = index == selectedWaypoint
+                                    selectedWaypoint = if (isWaypointSelected) -1 else index
+                                    viewModel.selectWaypoint(if (isWaypointSelected) null else index)
+                                }
                             }
                         )
 
@@ -419,65 +460,109 @@ fun WaypointScreen(
                 }
             }
 
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 64.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                IconButton(
-                    modifier = Modifier
-                        .padding(start = 6.dp),
-                    onClick = {
-                        viewModel.saveRoute()
+            Column {
+                if (isEditingConnectionMode) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(128.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Black.copy(alpha = 0.6f), // 顶部 60% 黑
+                                        Color.Transparent               // 底部完全透明
+                                    )
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Click waypoint to connect / disconnect",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     }
-                ) {
-                    Icon(
-                        Icons.Outlined.Save,
-                        contentDescription = null
-                    )
-                }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 64.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        IconButton(
+                            modifier = Modifier
+                                .padding(start = 6.dp),
+                            onClick = {
+                                viewModel.saveRoute()
+                            }
+                        ) {
+                            Icon(
+                                Icons.Outlined.Save,
+                                contentDescription = null
+                            )
+                        }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    PillSelector(
-                        items = listOf(
-                            PillSelection(Icons.Outlined.Route, "Route"),
-                            PillSelection(Icons.Outlined.Map, "Map")
-                        ),
-                        selectedIndex = uiState.selectedDisplayMode,
-                        onSelectedChange = { viewModel.setDisplayMode(it) }
-                    )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            PillSelector(
+                                items = listOf(
+                                    PillSelection(Icons.Outlined.Route, "Route"),
+                                    PillSelection(Icons.Outlined.Map, "Map")
+                                ),
+                                selectedIndex = uiState.selectedDisplayMode,
+                                onSelectedChange = { viewModel.setDisplayMode(it) }
+                            )
+                        }
+                    }
                 }
             }
             
             // FAB：当 BottomSheet 收起时显示，用于展开 BottomSheet
-            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden) {
+            if (scaffoldState.bottomSheetState.targetValue == SheetValue.Hidden) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight(),
                     contentAlignment = Alignment.BottomEnd
                 ) {
-                    FloatingActionButton(
-                        onClick = {
-                            scope.launch {
-                                scaffoldState.bottomSheetState.partialExpand()
-                            }
-                        },
-                        modifier = Modifier
-                            .padding(bottom = 24.dp, end = 24.dp),
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.KeyboardArrowUp,
-                            contentDescription = "Expand bottom sheet"
-                        )
+                    if (isEditingConnectionMode) {
+                        FloatingActionButton(
+                            onClick = {
+                                isEditingConnectionMode = false
+                                scope.launch {
+                                    scaffoldState.bottomSheetState.expand()
+                                }
+                            },
+                            modifier = Modifier
+                                .padding(bottom = 24.dp, end = 24.dp),
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Check,
+                                contentDescription = "Ok"
+                            )
+                        }
+                    } else {
+                        FloatingActionButton(
+                            onClick = {
+                                scope.launch {
+                                    scaffoldState.bottomSheetState.partialExpand()
+                                }
+                            },
+                            modifier = Modifier
+                                .padding(bottom = 24.dp, end = 24.dp),
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.KeyboardArrowUp,
+                                contentDescription = "Expand bottom sheet"
+                            )
+                        }
                     }
                 }
             }
@@ -514,5 +599,26 @@ fun WaypointScreen(
                 showAddWaypointDialog = false
             }
         )
+    }
+    
+    // 编辑路点对话框
+    if (showEditWaypointDialog && selectedWaypoint != -1) {
+        val currentWaypoint = uiState.routeObject.points.getOrNull(selectedWaypoint)
+        currentWaypoint?.let { waypoint ->
+            AddWaypointDialog(
+                currentLatitude = currentLocation?.lat,
+                currentLongitude = currentLocation?.lng,
+                initialLatitude = waypoint.lat,
+                initialLongitude = waypoint.lng,
+                isEditMode = true,
+                onConfirm = { lat, lng ->
+                    viewModel.updateWaypoint(selectedWaypoint, lat, lng)
+                    showEditWaypointDialog = false
+                },
+                onDismiss = {
+                    showEditWaypointDialog = false
+                }
+            )
+        }
     }
 }
