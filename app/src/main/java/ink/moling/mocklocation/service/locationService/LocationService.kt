@@ -87,7 +87,7 @@ class LocationService : Service() {
         overlayCtrl = OverlayServiceController(this)
         notifyCtrl = NotificationController(
             service = this,
-            onToggleJoystick = { isVisible -> toggleJoystick(isVisible) }
+            onToggleOverlay = { isVisible -> toggleJoystick(isVisible) }
         )
 
         // 只启动真实位置监听，模拟控制器在需要时才启动
@@ -164,7 +164,7 @@ class LocationService : Service() {
             kf.reset()
 
             // 更新通知显示
-            notifyCtrl.setJoystickVisibility(true)
+            notifyCtrl.setOverlayVisibility(true)
             notifyCtrl.updateMode(
                 LocationMode.Point(lat, lng)
             )
@@ -210,7 +210,7 @@ class LocationService : Service() {
             kf.reset()
 
             // 更新通知显示
-            notifyCtrl.setJoystickVisibility(true)
+            notifyCtrl.setOverlayVisibility(true)
             notifyCtrl.updateMode(
                 LocationMode.Route(0.0)
             )
@@ -240,7 +240,7 @@ class LocationService : Service() {
             kf.reset()
 
             // 更新通知显示
-            notifyCtrl.setJoystickVisibility(false)
+            notifyCtrl.setOverlayVisibility(false)
             notifyCtrl.updateMode(LocationMode.Idle)
 
             // 更新状态为已禁用

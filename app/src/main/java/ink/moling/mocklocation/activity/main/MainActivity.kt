@@ -262,7 +262,7 @@ class MainActivity : ComponentActivity() {
                         onStartMockLocation = {
                             // 通过 ViewModel 启动模拟（保持架构清晰）
                             if (uiState.selectedSimulation == MockMode.MOCK_MODE_POINT) {
-                                Logger.d("MainActivity", "Starting mock in Point mode")
+                                Logger.d(TAG, "Starting mock in Point mode")
                                 // 启动点位模拟
                                 viewModel.selectedMockPoint?.let { point ->
                                     viewModel.setMockLocation(
@@ -272,7 +272,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             } else {
-                                Logger.d("MainActivity", "Starting mock in Route mode")
+                                Logger.d(TAG, "Starting mock in Route mode")
                                 // 启动路径模拟
                                 viewModel.selectedMockRoute?.let { route ->
                                     viewModel.setMockLocation(
