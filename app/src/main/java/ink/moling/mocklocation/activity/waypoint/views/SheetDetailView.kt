@@ -1,0 +1,122 @@
+package ink.moling.mocklocation.activity.waypoint.views
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.EditLocationAlt
+import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.activity.waypoint.WaypointViewModel
+
+@Composable
+fun SheetDetailView(
+    viewModel: WaypointViewModel,
+    selectedWaypoint: Int,
+    onWaypointEdit: () -> Unit,
+    onConnectsEdit: () -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    Column(
+        modifier = Modifier
+            .padding(
+                bottom = 12.dp,
+                start = 8.dp,
+                end = 8.dp
+            )
+    ) {
+        Text(
+            "Route name",
+            modifier = Modifier,
+            color = MaterialTheme.colorScheme.onSecondary
+        )
+        TextField(
+            value = uiState.routeName,
+            onValueChange = {
+                viewModel.updateRouteName(it)
+            },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent
+            )
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(12.dp)
+            ) {
+                val tSelectedWaypoint = when (selectedWaypoint) {
+                    -1      -> "/"
+                    else    -> "$selectedWaypoint"
+                }
+                Text(
+                    "Waypoint #${tSelectedWaypoint}",
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                if (selectedWaypoint != -1) {
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        ),
+                        onClick = onWaypointEdit
+                    ) {
+                        Icon(
+                            Icons.Outlined.EditLocationAlt,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                        Text("Change location")
+                    }
+
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        ),
+                        onClick = onConnectsEdit
+                    ) {
+                        Icon(
+                            Icons.Outlined.Route,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                        Text("Connections")
+                    }
+                }
+            }
+        }
+    }
+}

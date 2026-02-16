@@ -20,8 +20,12 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.OpenWith
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,6 +44,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.data.local.PrefsHelper
@@ -64,6 +69,8 @@ fun OverlayScreen(
 
     // 悬浮窗最小化
     var isOverlayMinimized  by remember { mutableStateOf(false) }
+    // 悬浮窗菜单展开
+    var isOverlayMenuExpanded by remember { mutableStateOf(false) }
 
     // 模拟位置移动速度预设
     val currentSpeedPresets: List<Double> = PrefsHelper.getMaxSpeedPresets(context)
@@ -153,6 +160,7 @@ fun OverlayScreen(
             if (!isOverlayMinimized) {
                 // 摇杆锁定
                 if (overlayState.mockMode == MockMode.MOCK_MODE_POINT) {
+                    // 模式为点位模拟时显示摇杆锁定按钮
                     Box(
                         modifier = Modifier
                             .size(48.dp)
@@ -168,22 +176,44 @@ fun OverlayScreen(
                     }
                 }
                 // 菜单
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable(
-                            onClick = {
+                Box {
+                    // 菜单按钮
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clickable(
+                                onClick = { isOverlayMenuExpanded = true }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Menu,
+                            contentDescription = "Overlay menu",
+                            tint = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
 
+                    // 下拉菜单
+                    DropdownMenu(
+                        expanded = isOverlayMenuExpanded,
+                        onDismissRequest = { isOverlayMenuExpanded = false },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        offset = DpOffset(x = 10.dp, y = 0.dp)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Hide Overlay") },
+                            onClick =  {
+                                isOverlayMenuExpanded = false
+                                val intent = android.content.Intent(
+                                    ink.moling.mocklocation.service.locationService.controller.ACTION_TOGGLE_OVERLAY
+                                ).apply {
+                                    setPackage(context.packageName)
+                                }
+                                context.sendBroadcast(intent)
                             }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Menu,
-                        contentDescription = "Joystick menu",
-                        tint = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(24.dp)
-                    )
+                        )
+                    }
                 }
             }
         }

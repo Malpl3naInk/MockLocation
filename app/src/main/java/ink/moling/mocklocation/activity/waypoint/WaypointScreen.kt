@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -17,35 +16,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.EditLocationAlt
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
@@ -65,15 +54,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.activity.waypoint.views.SheetDetailView
+import ink.moling.mocklocation.activity.waypoint.views.SheetPointView
 import ink.moling.mocklocation.data.models.CandidateLocation
-import ink.moling.mocklocation.data.models.PointType
 import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import ink.moling.mocklocation.ui.components.PillSelection
 import ink.moling.mocklocation.ui.components.PillSelector
 import ink.moling.mocklocation.ui.dialog.AddWaypointDialog
 import ink.moling.mocklocation.ui.dialog.UnsavedChangesDialog
+import ink.moling.mocklocation.utils.WaypointGraph
+import ink.moling.mocklocation.utils.WaypointSheet
 import ink.moling.mocklocation.utils.extensions.isConnected
+import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -193,7 +186,7 @@ fun WaypointScreen(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    if (uiState.selectedSheetDetail == 0) {
+                    if (uiState.selectedSheetDetail == WaypointSheet.WAYPOINT_SHEET_POINTS) {
                         IconButton(onClick = {
                             showAddWaypointDialog = true
                         }) {
@@ -206,217 +199,24 @@ fun WaypointScreen(
                 }
 
                 when (uiState.selectedSheetDetail) {
-                    0 -> {
-                        LazyColumn(
-                            modifier = Modifier
-                                .padding(bottom = 12.dp)
-                        ) {
-                            items(uiState.routeObject.points.size) { index ->
-                                val waypoint = uiState.routeObject.points[index]
-                                val isWaypointCardExpanded = index == selectedWaypoint
-                                
-                                Card(
-                                    onClick = {
-                                        selectedWaypoint = if (isWaypointCardExpanded) -1 else index
-                                        viewModel.selectWaypoint(if (isWaypointCardExpanded) null else index)
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 2.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = (
-                                            if (isWaypointCardExpanded)
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            else
-                                                Color.Transparent
-                                        )
-                                    )
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(4.dp)
-                                    ) {
-                                        Text(
-                                            text = (
-                                                if (isWaypointCardExpanded)
-                                                    "#${waypoint.id}"
-                                                else
-                                                    "#${waypoint.id} - @%.6f,%.6f".format(waypoint.lat, waypoint.lng)
-                                            ),
-                                            modifier = Modifier
-                                                .padding(
-                                                    horizontal = 6.dp,
-                                                    vertical = (
-                                                        if (isWaypointCardExpanded)
-                                                            6.dp
-                                                        else
-                                                            0.dp
-                                                    )
-                                                )
-                                        )
-                                        if (isWaypointCardExpanded) {
-                                            HorizontalDivider(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 6.dp),
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-
-                                            Column(
-                                                modifier = Modifier
-                                                    .padding(
-                                                        start = 18.dp,
-                                                        end = 6.dp
-                                                    )
-                                            ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Text(
-                                                        "@%.6f,%.6f".format(waypoint.lat, waypoint.lng),
-                                                        modifier = Modifier
-                                                            .padding(horizontal = 6.dp)
-                                                    )
-
-                                                    Spacer(modifier = Modifier.weight(1f))
-
-                                                    IconButton(onClick = {
-                                                        viewModel.setSheetDetail(1)
-                                                    }) {
-                                                        Icon(
-                                                            Icons.Outlined.EditLocationAlt,
-                                                            contentDescription = null
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            Text(
-                                                when (waypoint.type) {
-                                                    PointType.R -> "Common road"
-                                                    PointType.L -> "Loop ring"
-                                                    PointType.W -> "Walk way"
-                                                },
-                                                color = MaterialTheme.colorScheme.onSecondary,
-                                                modifier = Modifier
-                                                    .padding(horizontal = 6.dp)
-                                            )
-                                        }
-                                    }
-                                }
+                    WaypointSheet.WAYPOINT_SHEET_POINTS -> SheetPointView(
+                        viewModel,
+                        selectedWaypoint
+                    ) { index ->
+                        selectedWaypoint = index
+                        viewModel.selectWaypoint(if (index == -1) null else index)
+                    }
+                    WaypointSheet.WAYPOINT_SHEET_DETAIL -> SheetDetailView(
+                        viewModel,
+                        selectedWaypoint,
+                        onWaypointEdit = { showEditWaypointDialog = true },
+                        onConnectsEdit = {
+                            isEditingConnectionMode = true
+                            scope.launch {
+                                scaffoldState.bottomSheetState.hide()
                             }
                         }
-                    }
-                    1 -> {
-                        Column(
-                            modifier = Modifier
-                                .padding(
-                                    bottom = 12.dp,
-                                    start = 8.dp,
-                                    end = 8.dp
-                                )
-                        ) {
-                            Text(
-                                "Route name",
-                                modifier = Modifier,
-                                color = MaterialTheme.colorScheme.onSecondary
-                            )
-                            TextField(
-                                state = routeNameState,
-                                lineLimits = TextFieldLineLimits.SingleLine,
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                colors = TextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedContainerColor = Color.Transparent
-                                )
-                            )
-                            
-                            // 监听 TextField 状态变化并更新 ViewModel
-                            LaunchedEffect(routeNameState.text) {
-                                val newName = routeNameState.text.toString()
-                                if (newName != uiState.routeName) {
-                                    viewModel.updateRouteName(newName)
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(18.dp))
-
-//                            Row(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .padding(vertical = 12.dp, horizontal = 6.dp),
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Checkbox(
-//                                    checked = uiState.isWaypointMap,
-//                                    onCheckedChange = { viewModel.setMapMode(it) }
-//                                )
-//                                Text("Map mode")
-//                            }
-
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(12.dp)
-                                ) {
-                                    val tSelectedWaypoint = when (selectedWaypoint) {
-                                        -1      -> "/"
-                                        else    -> "${selectedWaypoint + 1}"
-                                    }
-                                    Text(
-                                        "Waypoint #${tSelectedWaypoint}",
-                                        fontWeight = FontWeight.Bold
-                                    )
-
-                                    Spacer(modifier = Modifier.height(6.dp))
-
-                                    if (selectedWaypoint != -1) {
-                                        Button(
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                            ),
-                                            onClick = {
-                                                showEditWaypointDialog = true
-                                            }
-                                        ) {
-                                            Icon(
-                                                Icons.Outlined.EditLocationAlt,
-                                                contentDescription = null,
-                                                modifier = Modifier.padding(end = 6.dp)
-                                            )
-                                            Text("Change location")
-                                        }
-
-                                        Button(
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                            ),
-                                            onClick = {
-                                                isEditingConnectionMode = true
-                                                scope.launch {
-                                                    scaffoldState.bottomSheetState.hide()
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                Icons.Outlined.Route,
-                                                contentDescription = null,
-                                                modifier = Modifier.padding(end = 6.dp)
-                                            )
-                                            Text("Connections")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    )
                 }
             }
         }
@@ -426,7 +226,7 @@ fun WaypointScreen(
                 .fillMaxSize()
         ) {
             when (uiState.selectedDisplayMode) {
-                0 -> {
+                WaypointGraph.WAYPOINT_GRAPH_CANVAS -> {
                     Column {
                         Spacer(modifier = Modifier.weight(0.2f))
 
@@ -436,9 +236,9 @@ fun WaypointScreen(
                             highlightPointId = uiState.selectedWaypointIndex?.let {
                                 uiState.routeObject.points.getOrNull(it)?.id
                             },
-                            onPointClick = { index, point ->
+                            onPointClick = { index, _ ->
                                 if (isEditingConnectionMode) {
-                                    Log.d("WaypointScreen", "Clicked: $index, Selected: $selectedWaypoint")
+                                    Logger.d("WaypointScreen", "Clicked: $index, Selected: $selectedWaypoint")
                                     if (uiState.routeObject.isConnected(selectedWaypoint, index)) {
                                         viewModel.removeWaypointConnections(selectedWaypoint, index)
                                     } else {
@@ -455,7 +255,7 @@ fun WaypointScreen(
                         Spacer(modifier = Modifier.weight(0.1f))
                     }
                 }
-                1 -> {
+                WaypointGraph.WAYPOINT_GRAPH_MAP -> {
                     // TODO: Map view
                 }
             }
