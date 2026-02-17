@@ -1,3 +1,27 @@
 <resources>
-    <string name="app_name">MockLocation</string>
+    <string name="app_name" translatable="false">MockLocation</string>
+    <string name="waypoint_dialog_title_add">Add Waypoint</string>
+    <string name="waypoint_dialog_title_edit">Edit Waypoint</string>
+    <string name="waypoint_dialog_text_latitude">Latitude</string>
+    <string name="waypoint_dialog_example_latitude">e.g., 39.9042</string>
+    <string name="waypoint_dialog_text_latitude_invalid">Invalid latitude (-90 to 90)</string>
+    <string name="waypoint_dialog_text_longitude">Longitude</string>
+    <string name="waypoint_dialog_example_longitude">e.g., 116.4074</string>
+    <string name="waypoint_dialog_text_longitude_invalid">Invalid longitude (-180 to 180)</string>
+    <string name="waypoint_dialog_text_current_location">Use current location</string>
+    <string name="waypoint_dialog_text_waiting_loaction">Waiting for location...</string>
+    <string name="waypoint_dialog_button_add">Add</string>
+    <string name="waypoint_dialog_button_save">Save</string>
+    <string name="dialog_button_cancel">Cancel</string>
+    <string name="delete_dialog_title">Confirm delete</string>
+    <string name="delete_dialog_tip">This action cannot be undone.</string>
+    <string name="delete_dialog_button_delete">Delete</string>
+    <string name="error_dialog_text_stack_trace">Stack Trace (Long press to copy):</string>
+    <string name="error_dialog_toast_copied">Stack trace copied</string>
+    <string name="error_dialog_button_ok">OK</string>
+    <string name="unsaved_dialog_title">Unsaved Changes</string>
+    <string name="unsaved_dialog_text_tip">You have unsaved changes.</string>
+    <string name="unsaved_dialog_text_quest">Do you want to save these changes?</string>
+    <string name="unsaved_dialog_button_save">Save</string>
+    <string name="unsaved_dialog_button_discard">Discard &amp; Quit</string>
 </resources>

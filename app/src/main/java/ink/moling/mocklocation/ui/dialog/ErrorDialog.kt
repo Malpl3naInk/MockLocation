@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 
 /**
  * 错误对话框
@@ -76,7 +76,7 @@ fun ErrorDialog(
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     Text(
-                        text = "Stack Trace (Long press to copy):",
+                        text = context.getString(R.string.error_dialog_text_stack_trace),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
                         fontWeight = FontWeight.Medium
@@ -98,7 +98,7 @@ fun ErrorDialog(
                                     clipboardManager.setText(AnnotatedString(stackTrace))
                                     Toast.makeText(
                                         context,
-                                        "Stack trace copied",
+                                        context.getString(R.string.error_dialog_toast_copied),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
@@ -114,7 +114,7 @@ fun ErrorDialog(
                     containerColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Text("OK")
+                Text(context.getString(R.string.error_dialog_button_ok))
             }
         }
     )
