@@ -22,8 +22,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.utils.PermissionInfo
 
 @Composable
@@ -32,6 +34,7 @@ fun RequestPermissionDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     val hasSpecialPermission = permissions.any { it.isSpecialPermission }
     
     AlertDialog(
@@ -91,7 +94,7 @@ fun RequestPermissionDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(context.getString(R.string.dialog_button_cancel))
             }
         }
     )

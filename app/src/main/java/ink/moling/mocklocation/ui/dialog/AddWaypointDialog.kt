@@ -25,8 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 
 @Composable
 fun AddWaypointDialog(
@@ -38,6 +40,8 @@ fun AddWaypointDialog(
     onConfirm: (latitude: Double, longitude: Double) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+
     var latitudeText by remember { mutableStateOf(initialLatitude?.toString() ?: "") }
     var longitudeText by remember { mutableStateOf(initialLongitude?.toString() ?: "") }
     var latitudeError by remember { mutableStateOf(false) }
@@ -48,7 +52,10 @@ fun AddWaypointDialog(
         containerColor = MaterialTheme.colorScheme.secondaryContainer,
         title = {
             Text(
-                text = if (isEditMode) "Edit Waypoint" else "Add Waypoint",
+                text = (
+                    if (isEditMode) context.getString(R.string.waypoint_dialog_title_edit)
+                    else            context.getString(R.string.waypoint_dialog_title_add)
+                ),
                 style = MaterialTheme.typography.headlineSmall
             )
         },
@@ -67,14 +74,14 @@ fun AddWaypointDialog(
                             latitudeText = it
                             latitudeError = false
                         },
-                        label = { Text("Latitude") },
-                        placeholder = { Text("e.g., 39.9042") },
+                        label = { Text(context.getString(R.string.waypoint_dialog_text_latitude)) },
+                        placeholder = { Text(context.getString(R.string.waypoint_dialog_example_latitude)) },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Decimal
                         ),
                         isError = latitudeError,
                         supportingText = if (latitudeError) {
-                            { Text("Invalid latitude (-90 to 90)") }
+                            { Text(context.getString(R.string.waypoint_dialog_text_latitude_invalid)) }
                         } else null,
                         modifier = Modifier
                             .weight(1f)
@@ -100,15 +107,19 @@ fun AddWaypointDialog(
                             longitudeText = it
                             longitudeError = false
                         },
-                        label = { Text("Longitude") },
-                        placeholder = { Text("e.g., 116.4074") },
+                        label = {
+                            Text(context.getString(R.string.waypoint_dialog_text_longitude))
+                        },
+                        placeholder = {
+                            Text(context.getString(R.string.waypoint_dialog_example_longitude))
+                        },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Decimal
                         ),
                         isError = longitudeError,
-                        supportingText = if (longitudeError) {
-                            { Text("Invalid longitude (-180 to 180)") }
-                        } else null,
+                        supportingText = if (longitudeError) {{
+                            Text(context.getString(R.string.waypoint_dialog_text_longitude_invalid))
+                        }} else null,
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),
@@ -141,9 +152,9 @@ fun AddWaypointDialog(
                     }
                     Text(
                         text = if (currentLatitude != null && currentLongitude != null) {
-                            "Use current location"
+                            context.getString(R.string.waypoint_dialog_text_current_location)
                         } else {
-                            "Waiting for location..."
+                            context.getString(R.string.waypoint_dialog_text_waiting_loaction)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (currentLatitude != null && currentLongitude != null) {
@@ -174,12 +185,15 @@ fun AddWaypointDialog(
                     }
                 }
             ) {
-                Text(if (isEditMode) "Save" else "Add")
+                Text(
+                    if (isEditMode) context.getString(R.string.waypoint_dialog_button_save)
+                    else            context.getString(R.string.waypoint_dialog_button_add)
+                )
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(context.getString(R.string.dialog_button_cancel))
             }
         }
     )

@@ -24,6 +24,7 @@ MocakLocation
 │  │  └─views
 │  ├─settings
 │  └─waypoint
+│      └─views
 ├─data
 │  ├─local
 │  │  ├─db
@@ -34,7 +35,8 @@ MocakLocation
 │  │  ├─controller
 │  │  └─state
 │  └─overlayService
-│      └─state
+│      ├─state
+│      └─views
 ├─ui
 │  ├─components
 │  ├─dialog
@@ -49,7 +51,7 @@ MocakLocation
 
 ### Feature requests from [ZCShou/GoGoGo](https://github.com/ZCShou/GoGoGo/issues)
 
-- [ ] [#355](https://github.com/ZCShou/GoGoGo/issues/355) - [路线模拟] 路线模拟功能请求
+- [x] [#355](https://github.com/ZCShou/GoGoGo/issues/355) - [路线模拟] 路线模拟功能请求
 - [x] [#350](https://github.com/ZCShou/GoGoGo/issues/350) - [悬浮窗控制] 建议可以隐藏悬浮窗
 - [x] [#346](https://github.com/ZCShou/GoGoGo/issues/346) - [悬浮窗控制] 最小化悬浮窗
 - [ ] [#335](https://github.com/ZCShou/GoGoGo/issues/335) - [平台支持] 提供iOS版本
@@ -63,7 +65,7 @@ MocakLocation
 - [ ] [#234](https://github.com/ZCShou/GoGoGo/issues/234) - [权限管理] Root权限一键选择模拟位置信息应用
 - [x] [#185](https://github.com/ZCShou/GoGoGo/issues/185) - [悬浮窗控制] 悬浮窗关闭功能
 - [ ] [#176](https://github.com/ZCShou/GoGoGo/issues/176) - [控制方式] 添加ADB定位控制功能
-- [ ] [#133](https://github.com/ZCShou/GoGoGo/issues/133) - [路线模拟] 增加线路模拟导航功能
+- [x] [#133](https://github.com/ZCShou/GoGoGo/issues/133) - [路线模拟] 增加线路模拟导航功能
 - [x] [#118](https://github.com/ZCShou/GoGoGo/issues/118) - [国际化] 添加英语语言支持
 - [ ] [#116](https://github.com/ZCShou/GoGoGo/issues/116) - [权限管理] 考虑加入Root支持
 - [ ] [#103](https://github.com/ZCShou/GoGoGo/issues/103) - [模拟增强] 高度模拟功能
@@ -97,7 +99,7 @@ MocakLocation
 - [ ] [悬浮窗控制] 悬浮窗大小自定义
 - [ ] [路线控制] 路线暂停/继续功能
 - [ ] [路线控制] 路线进度显示和跳转
-- [ ] [数据管理] 点位和路线的导出分享功能
+- [x] [数据管理] 点位和路线的导出分享功能
 - [ ] [安全性] 应用锁功能（密码/生物识别保护）
 
 
