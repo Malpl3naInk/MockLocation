@@ -34,9 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.settings.SettingsActivity
 import ink.moling.mocklocation.data.local.repository.MockServiceState
@@ -51,6 +53,7 @@ fun PageMainView(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val mockStatus by viewModel.mockStatus.collectAsState()
+    val strSelectPoint = stringResource(R.string.main_toast_select_point)
 
     Column(
         modifier = Modifier
@@ -114,7 +117,7 @@ fun PageMainView(
                         if (!viewModel.hasSelectedPoint()) {
                             Toast.makeText(
                                 context,
-                                "Please select a point",
+                                strSelectPoint,
                                 Toast.LENGTH_SHORT
                             ).show()
                             return@Button
@@ -125,9 +128,9 @@ fun PageMainView(
             ) {
                 Text(
                     when (mockStatus) {
-                        MockServiceState.Disabled -> "Start"
-                        MockServiceState.Enabled -> "Stop"
-                        else -> "Wait..."
+                        MockServiceState.Disabled -> stringResource(R.string.main_button_start)
+                        MockServiceState.Enabled -> stringResource(R.string.main_button_stop)
+                        else -> stringResource(R.string.main_button_wait)
                     }
                 )
             }
@@ -179,14 +182,14 @@ fun PageMainView(
             ) {
                 Column {
                     Text(
-                        "Current selection",
+                        stringResource(R.string.main_label_current_selection),
                         modifier = Modifier,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                     Text(
                         text = when(uiState.selectedSimulation) {
-                            0    -> "Point > ${uiState.pointName}"
-                            else -> "Route > ${uiState.routeName}"
+                            0    -> stringResource(R.string.main_selection_point, uiState.pointName)
+                            else -> stringResource(R.string.main_selection_route, uiState.routeName)
                         }
                     )
                 }
@@ -221,15 +224,15 @@ fun PageMainView(
             ) {
                 Column {
                     Text(
-                        "Status",
+                        stringResource(R.string.main_label_status),
                         modifier = Modifier,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                     Text(
                         when (mockStatus) {
-                            MockServiceState.Enabled -> "Mocking"
-                            MockServiceState.Initializing -> "Initializing"
-                            else -> "Idle"
+                            MockServiceState.Enabled -> stringResource(R.string.main_status_mocking)
+                            MockServiceState.Initializing -> stringResource(R.string.main_status_initializing)
+                            else -> stringResource(R.string.main_status_idle)
                         }
                     )
                 }

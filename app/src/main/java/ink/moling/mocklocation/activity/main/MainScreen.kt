@@ -37,7 +37,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.main.views.PageMainView
 import ink.moling.mocklocation.activity.main.views.PageSimulationView
 import ink.moling.mocklocation.activity.main.views.SheetPointsView
@@ -135,7 +137,7 @@ fun MainScreen(
     // 确认删除点对话框
     if (uiState.showDeleteConfirmDialog) {
         DeleteConfirmDialog(
-            text = "Delete point \"${uiState.pointName}\"?",
+            text = stringResource(R.string.main_dialog_delete_point, uiState.pointName),
             onConfirm = { viewModel.confirmDeletePoint() },
             onDismiss = { viewModel.dismissDeletePointDialog() }
         )
@@ -144,7 +146,7 @@ fun MainScreen(
     // 确认删除路线对话框
     if (uiState.showDeleteRouteConfirmDialog) {
         DeleteConfirmDialog(
-            text = "Delete route \"${uiState.routeName}\"?",
+            text = stringResource(R.string.main_dialog_delete_route, uiState.routeName),
             onConfirm = { viewModel.confirmDeleteRoute() },
             onDismiss = { viewModel.dismissDeleteRouteDialog() }
         )

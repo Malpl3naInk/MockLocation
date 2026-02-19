@@ -24,4 +24,49 @@
     <string name="unsaved_dialog_text_quest">Do you want to save these changes?</string>
     <string name="unsaved_dialog_button_save">Save</string>
     <string name="unsaved_dialog_button_discard">Discard &amp; Quit</string>
+
+    <!-- PageMainView -->
+    <string name="main_toast_select_point">Please select a point</string>
+    <string name="main_button_start">Start</string>
+    <string name="main_button_stop">Stop</string>
+    <string name="main_button_wait">Wait...</string>
+    <string name="main_label_current_selection">Current selection</string>
+    <string name="main_selection_point">Point > %1$s</string>
+    <string name="main_selection_route">Route > %1$s</string>
+    <string name="main_label_status">Status</string>
+    <string name="main_status_mocking">Mocking</string>
+    <string name="main_status_initializing">Initializing</string>
+    <string name="main_status_idle">Idle</string>
+
+    <!-- PageSimulationView -->
+    <string name="simulation_title">Simulation</string>
+
+    <!-- OptionsRouteView -->
+    <string name="options_route_label_name">Route name</string>
+    <string name="options_route_label_map">Map</string>
+    <string name="options_route_no_data">No route data</string>
+    <string name="options_route_toast_exported">%1$s exported</string>
+
+    <!-- OptionsPointView -->
+    <string name="options_point_label_name">Point name</string>
+    <string name="options_point_label_location">Location</string>
+    <string name="options_point_label_latitude">Latitude</string>
+    <string name="options_point_label_longitude">Longitude</string>
+    <string name="options_point_label_altitude">Altitude</string>
+
+    <!-- Shared button / label texts -->
+    <string name="button_edit">Edit</string>
+    <string name="button_save">Save</string>
+    <string name="label_select_target">Select target</string>
+
+    <!-- SheetRoutesView -->
+    <string name="sheet_routes_title">Saved routes</string>
+    <string name="sheet_routes_toast_canceled">User canceled</string>
+
+    <!-- SheetPointsView -->
+    <string name="sheet_points_title">Saved points</string>
+
+    <!-- MainScreen dialogs -->
+    <string name="main_dialog_delete_point">Delete point \"%1$s\"?</string>
+    <string name="main_dialog_delete_route">Delete route \"%1$s\"?</string>
 </resources>

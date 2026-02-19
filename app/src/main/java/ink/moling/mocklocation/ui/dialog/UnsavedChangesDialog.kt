@@ -15,6 +15,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
@@ -39,7 +40,7 @@ fun UnsavedChangesDialog(
         },
         title = {
             Text(
-                text = context.getString(R.string.unsaved_dialog_title),
+                text = stringResource(R.string.unsaved_dialog_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -49,7 +50,7 @@ fun UnsavedChangesDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = context.getString(R.string.unsaved_dialog_text_tip),
+                    text = stringResource(R.string.unsaved_dialog_text_tip),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -57,7 +58,7 @@ fun UnsavedChangesDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = context.getString(R.string.unsaved_dialog_text_quest),
+                    text = stringResource(R.string.unsaved_dialog_text_quest),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -67,14 +68,14 @@ fun UnsavedChangesDialog(
             Button(
                 onClick = onSave
             ) {
-                Text(context.getString(R.string.unsaved_dialog_button_save))
+                Text(stringResource(R.string.unsaved_dialog_button_save))
             }
         },
         dismissButton = {
             Column {
                 TextButton(onClick = onDiscard) {
                     Text(
-                        context.getString(R.string.unsaved_dialog_button_discard),
+                        stringResource(R.string.unsaved_dialog_button_discard),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
