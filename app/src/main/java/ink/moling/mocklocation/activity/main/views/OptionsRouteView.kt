@@ -40,7 +40,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 import androidx.documentfile.provider.DocumentFile
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.waypoint.WaypointActivity
@@ -100,7 +102,7 @@ fun OptionsRouteView(
                 }
             }
 
-            Toast.makeText(context, "$fileName exported", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.options_route_toast_exported, fileName), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -118,7 +120,7 @@ fun OptionsRouteView(
             ) {
                 Column {
                     Text(
-                        "Route name",
+                        stringResource(R.string.options_route_label_name),
                         modifier = Modifier,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
@@ -140,7 +142,7 @@ fun OptionsRouteView(
             ) {
                 Column {
                     Text(
-                        "Map",
+                        stringResource(R.string.options_route_label_map),
                         modifier = Modifier,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
@@ -152,7 +154,7 @@ fun OptionsRouteView(
                         )
                     } else {
                         Text(
-                            "No route data",
+                            stringResource(R.string.options_route_no_data),
                             color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.6f),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -195,7 +197,7 @@ fun OptionsRouteView(
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    "Edit",
+                    stringResource(R.string.button_edit),
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
@@ -259,7 +261,7 @@ fun OptionsRouteView(
                 Column {
                     Text(uiState.routeName)
                     Text(
-                        "Select target",
+                        stringResource(R.string.label_select_target),
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                 }

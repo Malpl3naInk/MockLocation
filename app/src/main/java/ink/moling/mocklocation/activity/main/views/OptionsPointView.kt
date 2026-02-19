@@ -40,8 +40,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.main.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -69,7 +71,7 @@ fun OptionsPointView(
             ) {
                 Column {
                     Text(
-                        "Point name",
+                        stringResource(R.string.options_point_label_name),
                         modifier = Modifier,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
@@ -110,7 +112,7 @@ fun OptionsPointView(
             ) {
                 Column {
                     Text(
-                        "Location",
+                        stringResource(R.string.options_point_label_location),
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                     if (uiState.editingSimPoint) {
@@ -123,7 +125,7 @@ fun OptionsPointView(
                             )
                         ) {
                             Text(
-                                "Latitude",
+                                stringResource(R.string.options_point_label_latitude),
                                 color = MaterialTheme.colorScheme.onSecondary
                             )
                             TextField(
@@ -147,7 +149,7 @@ fun OptionsPointView(
                                 )
                             )
                             Text(
-                                "Longitude",
+                                stringResource(R.string.options_point_label_longitude),
                                 color = MaterialTheme.colorScheme.onSecondary
                             )
                             TextField(
@@ -171,7 +173,7 @@ fun OptionsPointView(
                                 )
                             )
                             Text(
-                                "Altitude",
+                                stringResource(R.string.options_point_label_altitude),
                                 color = MaterialTheme.colorScheme.onSecondary
                             )
                             TextField(
@@ -261,9 +263,9 @@ fun OptionsPointView(
                     Text(
                         text = (
                                 if (uiState.editingSimPoint)
-                                    "Save"
+                                    stringResource(R.string.button_save)
                                 else
-                                    "Edit"
+                                    stringResource(R.string.button_edit)
                                 ),
                         color = (
                                 if (uiState.editingSimPoint && uiState.isPointModified)
@@ -373,7 +375,7 @@ fun OptionsPointView(
                     Column {
                         Text(uiState.pointName)
                         Text(
-                            "Select target",
+                            stringResource(R.string.label_select_target),
                             color = MaterialTheme.colorScheme.onSecondary
                         )
                     }

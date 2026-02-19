@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
@@ -152,7 +153,7 @@ fun AddWaypointDialog(
                     }
                     Text(
                         text = if (currentLatitude != null && currentLongitude != null) {
-                            context.getString(R.string.waypoint_dialog_text_current_location)
+                            stringResource(R.string.waypoint_dialog_text_current_location)
                         } else {
                             context.getString(R.string.waypoint_dialog_text_waiting_loaction)
                         },

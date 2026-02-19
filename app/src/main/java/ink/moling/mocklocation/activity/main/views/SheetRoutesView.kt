@@ -32,8 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 import com.google.gson.JsonSyntaxException
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.waypoint.WaypointActivity
@@ -94,7 +96,7 @@ fun SheetRoutesView(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri == null) {
-            Toast.makeText(context, "User canceled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.sheet_routes_toast_canceled), Toast.LENGTH_SHORT).show()
         } else {
             // 触发异步验证
             importedUri = uri
@@ -108,7 +110,7 @@ fun SheetRoutesView(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Saved routes",
+            stringResource(R.string.sheet_routes_title),
             fontWeight = FontWeight.Bold
         )
 

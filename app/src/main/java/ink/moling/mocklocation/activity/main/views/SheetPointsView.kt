@@ -21,8 +21,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.main.MainViewModel
 
 @Composable
@@ -36,7 +38,7 @@ fun SheetPointsView(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Saved points",
+            stringResource(R.string.sheet_points_title),
             fontWeight = FontWeight.Bold
         )
 
