@@ -3,6 +3,7 @@ package ink.moling.mocklocation.activity.waypoint
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.data.local.db.AppDatabase
 import ink.moling.mocklocation.data.local.db.MockRouteEntity
 import ink.moling.mocklocation.data.models.PointType
@@ -174,13 +175,13 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
         
         // 验证路线名称
         if (state.routeName.isBlank()) {
-            _uiEvent.tryEmit(WaypointUiEvent.ShowToast("Please enter a route name"))
+            _uiEvent.tryEmit(WaypointUiEvent.ShowToast(getApplication<Application>().getString(R.string.waypoint_toast_enter_route_name)))
             return
         }
         
         // 验证路点
         if (state.routeObject.points.isEmpty()) {
-            _uiEvent.tryEmit(WaypointUiEvent.ShowToast("Please add at least one waypoint"))
+            _uiEvent.tryEmit(WaypointUiEvent.ShowToast(getApplication<Application>().getString(R.string.waypoint_toast_add_waypoint)))
             return
         }
         
@@ -216,10 +217,10 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
                 
                 _uiState.update { it.copy(isModified = false) }
                 _uiEvent.tryEmit(WaypointUiEvent.SaveSuccess)
-                _uiEvent.tryEmit(WaypointUiEvent.ShowToast("Route saved successfully"))
+                _uiEvent.tryEmit(WaypointUiEvent.ShowToast(getApplication<Application>().getString(R.string.waypoint_toast_save_success)))
             } catch (e: Exception) {
                 Logger.e("WaypointViewModel", "Failed to save route", e)
-                _uiEvent.tryEmit(WaypointUiEvent.ShowToast("Failed to save route: ${e.message}"))
+                _uiEvent.tryEmit(WaypointUiEvent.ShowToast(getApplication<Application>().getString(R.string.waypoint_toast_save_failed, e.message ?: "")))
             }
         }
     }

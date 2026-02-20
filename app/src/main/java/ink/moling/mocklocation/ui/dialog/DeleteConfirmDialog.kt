@@ -16,6 +16,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
@@ -40,7 +41,7 @@ fun DeleteConfirmDialog(
         },
         title = {
             Text(
-                text = context.getString(R.string.delete_dialog_title),
+                text = stringResource(R.string.delete_dialog_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -58,7 +59,7 @@ fun DeleteConfirmDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = context.getString(R.string.delete_dialog_tip),
+                    text = stringResource(R.string.delete_dialog_tip),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Medium
@@ -72,12 +73,12 @@ fun DeleteConfirmDialog(
                     containerColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Text(context.getString(R.string.delete_dialog_button_delete))
+                Text(stringResource(R.string.delete_dialog_button_delete))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(context.getString(R.string.dialog_button_cancel))
+                Text(stringResource(R.string.dialog_button_cancel))
             }
         }
     )

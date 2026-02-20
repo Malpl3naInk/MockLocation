@@ -54,8 +54,8 @@ fun AddWaypointDialog(
         title = {
             Text(
                 text = (
-                    if (isEditMode) context.getString(R.string.waypoint_dialog_title_edit)
-                    else            context.getString(R.string.waypoint_dialog_title_add)
+                    if (isEditMode) stringResource(R.string.waypoint_dialog_title_edit)
+                    else            stringResource(R.string.waypoint_dialog_title_add)
                 ),
                 style = MaterialTheme.typography.headlineSmall
             )
@@ -75,14 +75,14 @@ fun AddWaypointDialog(
                             latitudeText = it
                             latitudeError = false
                         },
-                        label = { Text(context.getString(R.string.waypoint_dialog_text_latitude)) },
-                        placeholder = { Text(context.getString(R.string.waypoint_dialog_example_latitude)) },
+                        label = { Text(stringResource(R.string.waypoint_dialog_text_latitude)) },
+                        placeholder = { Text(stringResource(R.string.waypoint_dialog_example_latitude)) },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Decimal
                         ),
                         isError = latitudeError,
                         supportingText = if (latitudeError) {
-                            { Text(context.getString(R.string.waypoint_dialog_text_latitude_invalid)) }
+                            { Text(stringResource(R.string.waypoint_dialog_text_latitude_invalid)) }
                         } else null,
                         modifier = Modifier
                             .weight(1f)
@@ -109,17 +109,17 @@ fun AddWaypointDialog(
                             longitudeError = false
                         },
                         label = {
-                            Text(context.getString(R.string.waypoint_dialog_text_longitude))
+                            Text(stringResource(R.string.waypoint_dialog_text_longitude))
                         },
                         placeholder = {
-                            Text(context.getString(R.string.waypoint_dialog_example_longitude))
+                            Text(stringResource(R.string.waypoint_dialog_example_longitude))
                         },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Decimal
                         ),
                         isError = longitudeError,
                         supportingText = if (longitudeError) {{
-                            Text(context.getString(R.string.waypoint_dialog_text_longitude_invalid))
+                            Text(stringResource(R.string.waypoint_dialog_text_longitude_invalid))
                         }} else null,
                         modifier = Modifier
                             .weight(1f)
@@ -155,7 +155,7 @@ fun AddWaypointDialog(
                         text = if (currentLatitude != null && currentLongitude != null) {
                             stringResource(R.string.waypoint_dialog_text_current_location)
                         } else {
-                            context.getString(R.string.waypoint_dialog_text_waiting_loaction)
+                            stringResource(R.string.waypoint_dialog_text_waiting_location)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (currentLatitude != null && currentLongitude != null) {
@@ -187,14 +187,14 @@ fun AddWaypointDialog(
                 }
             ) {
                 Text(
-                    if (isEditMode) context.getString(R.string.waypoint_dialog_button_save)
-                    else            context.getString(R.string.waypoint_dialog_button_add)
+                    if (isEditMode) stringResource(R.string.waypoint_dialog_button_save)
+                    else            stringResource(R.string.waypoint_dialog_button_add)
                 )
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(context.getString(R.string.dialog_button_cancel))
+                Text(stringResource(R.string.dialog_button_cancel))
             }
         }
     )

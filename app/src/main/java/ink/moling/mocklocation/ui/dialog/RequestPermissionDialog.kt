@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
@@ -94,7 +95,7 @@ fun RequestPermissionDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(context.getString(R.string.dialog_button_cancel))
+                Text(stringResource(R.string.dialog_button_cancel))
             }
         }
     )
