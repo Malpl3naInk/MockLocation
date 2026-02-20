@@ -9,7 +9,7 @@
     <string name="waypoint_dialog_example_longitude">e.g., 116.4074</string>
     <string name="waypoint_dialog_text_longitude_invalid">Invalid longitude (-180 to 180)</string>
     <string name="waypoint_dialog_text_current_location">Use current location</string>
-    <string name="waypoint_dialog_text_waiting_loaction">Waiting for location...</string>
+    <string name="waypoint_dialog_text_waiting_location">Waiting for location…</string>
     <string name="waypoint_dialog_button_add">Add</string>
     <string name="waypoint_dialog_button_save">Save</string>
     <string name="dialog_button_cancel">Cancel</string>
@@ -69,4 +69,48 @@
     <!-- MainScreen dialogs -->
     <string name="main_dialog_delete_point">Delete point \"%1$s\"?</string>
     <string name="main_dialog_delete_route">Delete route \"%1$s\"?</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_item_speed_presets">Speed presets</string>
+    <string name="settings_item_something_else">Something else</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_item_release_repo">Release repo</string>
+    <string name="settings_item_oss_license">Open Source License</string>
+    <string name="settings_section_debug">Debug</string>
+    <string name="settings_item_export_log">Export log</string>
+    <string name="settings_item_crash_test">Crash test (Long press)</string>
+    <string name="settings_chooser_open_log">Open log with...</string>
+
+    <!-- SettingSpeedPreset -->
+    <string name="settings_speed_preset_title">Speed Presets</string>
+    <string name="settings_speed_preset_walking">Walking speed</string>
+    <string name="settings_speed_preset_running">Running speed</string>
+    <string name="settings_speed_preset_bicycling">Bicycling speed</string>
+
+    <!-- WaypointScreen -->
+    <string name="waypoint_pill_waypoints">Waypoints</string>
+    <string name="waypoint_pill_details">Details</string>
+    <string name="waypoint_pill_route">Route</string>
+    <string name="waypoint_pill_map">Map</string>
+    <string name="waypoint_hint_connect_mode">Click waypoint to connect / disconnect</string>
+    <string name="waypoint_cd_ok">Ok</string>
+    <string name="waypoint_cd_expand_sheet">Expand bottom sheet</string>
+
+    <!-- SheetDetailView -->
+    <string name="waypoint_detail_waypoint_title">Waypoint #%1$s</string>
+    <string name="waypoint_detail_button_change_location">Change location</string>
+    <string name="waypoint_detail_button_connections">Connections</string>
+
+    <!-- SheetPointView -->
+    <string name="waypoint_point_type_road">Common road</string>
+    <string name="waypoint_point_type_loop">Loop ring</string>
+    <string name="waypoint_point_type_walk">Walk way</string>
+
+    <!-- WaypointViewModel toasts -->
+    <string name="waypoint_toast_enter_route_name">Please enter a route name</string>
+    <string name="waypoint_toast_add_waypoint">Please add at least one waypoint</string>
+    <string name="waypoint_toast_save_success">Route saved successfully</string>
+    <string name="waypoint_toast_save_failed">Failed to save route: %1$s</string>
 </resources>

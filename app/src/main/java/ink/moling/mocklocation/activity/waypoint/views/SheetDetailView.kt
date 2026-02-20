@@ -22,8 +22,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.waypoint.WaypointViewModel
 
 @Composable
@@ -43,7 +45,7 @@ fun SheetDetailView(
             )
     ) {
         Text(
-            "Route name",
+            stringResource(R.string.options_route_label_name),
             modifier = Modifier,
             color = MaterialTheme.colorScheme.onSecondary
         )
@@ -79,7 +81,7 @@ fun SheetDetailView(
                     else    -> "$selectedWaypoint"
                 }
                 Text(
-                    "Waypoint #${tSelectedWaypoint}",
+                    stringResource(R.string.waypoint_detail_waypoint_title, tSelectedWaypoint),
                     fontWeight = FontWeight.Bold
                 )
 
@@ -98,7 +100,7 @@ fun SheetDetailView(
                             contentDescription = null,
                             modifier = Modifier.padding(end = 6.dp)
                         )
-                        Text("Change location")
+                        Text(stringResource(R.string.waypoint_detail_button_change_location))
                     }
 
                     Button(
@@ -113,7 +115,7 @@ fun SheetDetailView(
                             contentDescription = null,
                             modifier = Modifier.padding(end = 6.dp)
                         )
-                        Text("Connections")
+                        Text(stringResource(R.string.waypoint_detail_button_connections))
                     }
                 }
             }

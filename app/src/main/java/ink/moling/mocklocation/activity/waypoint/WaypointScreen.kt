@@ -52,8 +52,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.waypoint.views.SheetDetailView
 import ink.moling.mocklocation.activity.waypoint.views.SheetPointView
 import ink.moling.mocklocation.data.models.CandidateLocation
@@ -176,8 +178,8 @@ fun WaypointScreen(
                 ) {
                     PillSelector(
                         items = listOf(
-                            PillSelection(Icons.Outlined.LocationOn, "Waypoints"),
-                            PillSelection(Icons.Outlined.Description, "Details")
+                            PillSelection(Icons.Outlined.LocationOn, stringResource(R.string.waypoint_pill_waypoints)),
+                            PillSelection(Icons.Outlined.Description, stringResource(R.string.waypoint_pill_details))
                         ),
                         selectedIndex = uiState.selectedSheetDetail,
                         onSelectedChange = { viewModel.setSheetDetail(it) },
@@ -277,7 +279,7 @@ fun WaypointScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Click waypoint to connect / disconnect",
+                            stringResource(R.string.waypoint_hint_connect_mode),
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
@@ -309,8 +311,8 @@ fun WaypointScreen(
                         ) {
                             PillSelector(
                                 items = listOf(
-                                    PillSelection(Icons.Outlined.Route, "Route"),
-                                    PillSelection(Icons.Outlined.Map, "Map")
+                                    PillSelection(Icons.Outlined.Route, stringResource(R.string.waypoint_pill_route)),
+                                    PillSelection(Icons.Outlined.Map, stringResource(R.string.waypoint_pill_map))
                                 ),
                                 selectedIndex = uiState.selectedDisplayMode,
                                 onSelectedChange = { viewModel.setDisplayMode(it) }
@@ -343,7 +345,7 @@ fun WaypointScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Check,
-                                contentDescription = "Ok"
+                                contentDescription = stringResource(R.string.waypoint_cd_ok)
                             )
                         }
                     } else {
@@ -360,7 +362,7 @@ fun WaypointScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.KeyboardArrowUp,
-                                contentDescription = "Expand bottom sheet"
+                                contentDescription = stringResource(R.string.waypoint_cd_expand_sheet)
                             )
                         }
                     }

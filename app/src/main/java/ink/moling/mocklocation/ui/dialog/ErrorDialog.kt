@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -76,7 +77,7 @@ fun ErrorDialog(
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     Text(
-                        text = context.getString(R.string.error_dialog_text_stack_trace),
+                        text = stringResource(R.string.error_dialog_text_stack_trace),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
                         fontWeight = FontWeight.Medium
@@ -114,7 +115,7 @@ fun ErrorDialog(
                     containerColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Text(context.getString(R.string.error_dialog_button_ok))
+                Text(stringResource(R.string.error_dialog_button_ok))
             }
         }
     )

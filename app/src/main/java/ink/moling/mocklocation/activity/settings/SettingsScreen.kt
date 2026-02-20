@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.BugReport
@@ -34,11 +33,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,15 +51,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import ink.moling.mocklocation.R
-import ink.moling.mocklocation.data.local.PrefsHelper
+import ink.moling.mocklocation.activity.settings.views.SettingSpeedPreset
 import ink.moling.mocklocation.ui.components.DebugOnly
-import ink.moling.mocklocation.utils.extensions.isFloat
 import ink.moling.mocklocation.utils.logger.LoggerFile
 import kotlinx.coroutines.launch
 
@@ -76,6 +71,7 @@ enum class SettingOption {
 fun SettingsScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val strOpenLog = stringResource(R.string.settings_chooser_open_log)
 
     var settingOption by remember { mutableStateOf(SettingOption.SPEED_PRESETS) }
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -87,130 +83,13 @@ fun SettingsScreen() {
         }
     }
 
-    var speedPresetWalk by remember { mutableStateOf("5.0") }
-    var speedPresetRun  by remember { mutableStateOf("12.0") }
-    var speedPresetBike by remember { mutableStateOf("25.0") }
-
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContainerColor = MaterialTheme.colorScheme.secondaryContainer,
         sheetContent = {
             when (settingOption) {
-                SettingOption.SPEED_PRESETS -> {
-                    Column(
-                        modifier = Modifier
-                            .padding(24.dp)
-                    ) {
-                        Text(
-                            "Speed Presets",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        )
-                        Column(
-                            modifier = Modifier
-                                .padding(12.dp)
-                        ) {
-                            Text(
-                                "Walking speed",
-                                color = MaterialTheme.colorScheme.onSecondary
-                            )
-                            TextField(
-                                value = speedPresetWalk,
-                                isError = !speedPresetWalk.isFloat(strict = true),
-                                onValueChange = { if (it.isFloat()) speedPresetWalk = it },
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Decimal
-                                ),
-                                singleLine = true,
-                                modifier = Modifier
-                                    .padding(
-                                        start = 6.dp,
-                                        end = 6.dp,
-                                        bottom = 6.dp
-                                    )
-                                    .fillMaxWidth(),
-                                colors = TextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedContainerColor = Color.Transparent
-                                )
-                            )
-                            Text(
-                                "Running speed",
-                                color = MaterialTheme.colorScheme.onSecondary
-                            )
-                            TextField(
-                                value = speedPresetRun,
-                                isError = !speedPresetRun.isFloat(strict = true),
-                                onValueChange = { if (it.isFloat()) speedPresetRun = it },
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Decimal
-                                ),
-                                singleLine = true,
-                                modifier = Modifier
-                                    .padding(
-                                        start = 6.dp,
-                                        end = 6.dp,
-                                        bottom = 6.dp
-                                    )
-                                    .fillMaxWidth(),
-                                colors = TextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedContainerColor = Color.Transparent
-                                )
-                            )
-                            Text(
-                                "Bicycling speed",
-                                color = MaterialTheme.colorScheme.onSecondary
-                            )
-                            TextField(
-                                value = speedPresetBike,
-                                isError = !speedPresetBike.isFloat(strict = true),
-                                onValueChange = { if (it.isFloat()) speedPresetBike = it },
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Decimal
-                                ),
-                                singleLine = true,
-                                modifier = Modifier
-                                    .padding(
-                                        start = 6.dp,
-                                        end = 6.dp,
-                                        bottom = 6.dp
-                                    )
-                                    .fillMaxWidth(),
-                                colors = TextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedContainerColor = Color.Transparent
-                                )
-                            )
-
-                            OutlinedButton(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                                onClick = {
-                                    if (
-                                        speedPresetWalk.isFloat(strict = true) &&
-                                        speedPresetRun.isFloat(strict = true) &&
-                                        speedPresetBike.isFloat(strict = true)
-                                    ) {
-                                        PrefsHelper.setMaxSpeedPresets(context, listOf(
-                                            speedPresetWalk.toDouble(),
-                                            speedPresetRun.toDouble(),
-                                            speedPresetBike.toDouble()
-                                        ))
-                                        scope.launch {
-                                            scaffoldState.bottomSheetState.partialExpand()
-                                        }
-                                    }
-                                }
-                            ) {
-                                Text("Save")
-                            }
-                        }
-                    }
-                }
+                SettingOption.SPEED_PRESETS -> SettingSpeedPreset(scaffoldState)
             }
         }
     ) {
@@ -223,7 +102,7 @@ fun SettingsScreen() {
                 item {
                     Text(
                         modifier = Modifier.padding(top = 88.dp, bottom = 32.dp, start = 24.dp),
-                        text = "Settings",
+                        text = stringResource(R.string.settings_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
@@ -231,7 +110,7 @@ fun SettingsScreen() {
                 item {
                     Text(
                         modifier = Modifier.padding(vertical = 6.dp),
-                        text = "General",
+                        text = stringResource(R.string.settings_section_general),
                         color = MaterialTheme.colorScheme.onSecondary,
                         fontWeight = FontWeight.Bold
                     )
@@ -255,11 +134,6 @@ fun SettingsScreen() {
                                     .fillMaxWidth()
                                     .clickable {
                                         settingOption = SettingOption.SPEED_PRESETS
-                                        PrefsHelper.getMaxSpeedPresets(context).let {
-                                            speedPresetWalk = it[0].toString()
-                                            speedPresetRun  = it[1].toString()
-                                            speedPresetBike = it[2].toString()
-                                        }
                                         scope.launch {
                                             scaffoldState.bottomSheetState.expand()
                                         }
@@ -271,7 +145,7 @@ fun SettingsScreen() {
                                     contentDescription = null
                                 )
                                 Text(
-                                    "Speed presets",
+                                    stringResource(R.string.settings_item_speed_presets),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
@@ -289,7 +163,7 @@ fun SettingsScreen() {
                                     contentDescription = null
                                 )
                                 Text(
-                                    "Something else",
+                                    stringResource(R.string.settings_item_something_else),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
@@ -299,7 +173,7 @@ fun SettingsScreen() {
                 item {
                     Text(
                         modifier = Modifier.padding(vertical = 6.dp),
-                        text = "About",
+                        text = stringResource(R.string.settings_section_about),
                         color = MaterialTheme.colorScheme.onSecondary,
                         fontWeight = FontWeight.Bold
                     )
@@ -333,7 +207,7 @@ fun SettingsScreen() {
                                     modifier = Modifier.padding(horizontal = 2.dp)
                                 )
                                 Text(
-                                    "Release repo",
+                                    stringResource(R.string.settings_item_release_repo),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
@@ -350,7 +224,7 @@ fun SettingsScreen() {
                                     contentDescription = null
                                 )
                                 Text(
-                                    "Open Source License",
+                                    stringResource(R.string.settings_item_oss_license),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
@@ -360,7 +234,7 @@ fun SettingsScreen() {
                 item {
                     Text(
                         modifier = Modifier.padding(vertical = 6.dp),
-                        text = "Debug",
+                        text = stringResource(R.string.settings_section_debug),
                         color = MaterialTheme.colorScheme.onSecondary,
                         fontWeight = FontWeight.Bold
                     )
@@ -398,7 +272,7 @@ fun SettingsScreen() {
                                         }
 
                                         context.startActivity(
-                                            Intent.createChooser(intent, "Open log with...")
+                                            Intent.createChooser(intent, strOpenLog)
                                         )
                                     }
                                     .padding(12.dp)
@@ -408,7 +282,7 @@ fun SettingsScreen() {
                                     contentDescription = null
                                 )
                                 Text(
-                                    "Export log",
+                                    stringResource(R.string.settings_item_export_log),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
@@ -469,7 +343,7 @@ fun SettingsScreen() {
                                             contentDescription = null
                                         )
                                         Text(
-                                            "Crash test (Long press)",
+                                            stringResource(R.string.settings_item_crash_test),
                                             modifier = Modifier.padding(start = 8.dp)
                                         )
                                     }

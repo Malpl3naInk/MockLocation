@@ -21,7 +21,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.waypoint.WaypointViewModel
 import ink.moling.mocklocation.data.models.PointType
 
@@ -114,9 +116,9 @@ fun SheetPointView(
                     } else {
                         Text(
                             when (waypoint.type) {
-                                PointType.R -> "Common road"
-                                PointType.L -> "Loop ring"
-                                PointType.W -> "Walk way"
+                                PointType.R -> stringResource(R.string.waypoint_point_type_road)
+                                PointType.L -> stringResource(R.string.waypoint_point_type_loop)
+                                PointType.W -> stringResource(R.string.waypoint_point_type_walk)
                             },
                             color = MaterialTheme.colorScheme.onSecondary,
                             modifier = Modifier
