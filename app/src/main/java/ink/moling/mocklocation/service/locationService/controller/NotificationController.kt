@@ -139,7 +139,7 @@ class NotificationController(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val buttonText = if (isOverlayVisible) "Hide Overlay" else "Show Overlay"
-        val builder = NotificationCompat.Builder(
+        var builder = NotificationCompat.Builder(
             service,
             SERVICE_MOCK_LOC_NOTE_CHANNEL_ID
         )
@@ -155,11 +155,13 @@ class NotificationController(
                     }
                 }"
             )
-            .addAction(
+        if (mode != LocationMode.Idle) {
+            builder = builder.addAction(
                 0, // 无图标
                 buttonText,
                 togglePendingIntent
             )
+        }
         
         return builder.build()
     }

@@ -36,9 +36,9 @@ private val DarkColorScheme = darkColorScheme(
     errorContainer      = Color(0xFF93000A),
     onErrorContainer    = Color(0xFFFFDAD6),
 
-    background          = Color.Black,
+    background          = Color(0xFF212121),
     onBackground        = Color(0xFFE3E6EA),
-    surface             = Color.Black,
+    surface             = Color(0xFF212121),
     onSurface           = Color(0xFFE3E6EA),
     surfaceVariant      = Color(0xFF2A2F36),
     onSurfaceVariant    = Color(0xFFC2C7CF),
