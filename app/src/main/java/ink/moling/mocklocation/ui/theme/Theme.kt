@@ -8,13 +8,48 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import ink.moling.mocklocation.data.local.ThemeMode
 
 private val DarkColorScheme = darkColorScheme(
-    primary         = Color(0xFFD0BCFF),
-    secondary       = Color(0xFFCCC2DC),
-    tertiary        = Color(0xFFEFB8C8),
+    primary             = Color(0xFF2962FF),
+    onPrimary           = Color.White,
+    primaryContainer    = Color(0xFF1A3A7A),
+    onPrimaryContainer  = Color(0xFFD6E4FF),
+    inversePrimary      = Color(0xFF2962FF),
+
+    secondary           = Color(0xFFB0BEC5),
+    onSecondary         = Color(0xFF8A9099),
+    secondaryContainer  = Color(0xFF3A3F46),
+    onSecondaryContainer = Color(0xFFCFD8DC),
+
+    tertiary            = Color(0xFF4DD0E1),
+    onTertiary          = Color(0xFF00363A),
+    tertiaryContainer   = Color(0xFF004F56),
+    onTertiaryContainer = Color(0xFFB2EBF2),
+
+    error               = Color(0xFFFF8A80),
+    onError             = Color(0xFF690005),
+    errorContainer      = Color(0xFF93000A),
+    onErrorContainer    = Color(0xFFFFDAD6),
+
+    background          = Color.Black,
+    onBackground        = Color(0xFFE3E6EA),
+    surface             = Color.Black,
+    onSurface           = Color(0xFFE3E6EA),
+    surfaceVariant      = Color(0xFF2A2F36),
+    onSurfaceVariant    = Color(0xFFC2C7CF),
+
+    outline             = Color(0xFF8A9099),
+    outlineVariant      = Color(0xFF3A3F46),
+
+    inverseSurface      = Color(0xFFE3E6EA),
+    inverseOnSurface    = Color(0xFF2F3033),
+
+    scrim = Color.Black,
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -55,25 +90,34 @@ private val LightColorScheme = lightColorScheme(
     scrim = Color.Black,
 )
 
+object ThemeStateHolder {
+    val themeMode = mutableStateOf(ThemeMode.SYSTEM)
+}
+
 @Composable
 fun MockLocationTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+    val themeMode by ThemeStateHolder.themeMode
+    val systemDark = isSystemInDarkTheme()
+    val darkTheme = when (themeMode) {
+        ThemeMode.DARK   -> true
+        ThemeMode.LIGHT  -> false
+        ThemeMode.SYSTEM -> systemDark
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 
     MaterialTheme(
-        colorScheme = LightColorScheme,
+        colorScheme = colorScheme,
         typography = Typography,
         content = content
     )

@@ -26,7 +26,7 @@ import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -58,12 +58,14 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.settings.views.SettingSpeedPreset
+import ink.moling.mocklocation.activity.settings.views.SettingThemeMode
 import ink.moling.mocklocation.ui.components.DebugOnly
 import ink.moling.mocklocation.utils.logger.LoggerFile
 import kotlinx.coroutines.launch
 
 enum class SettingOption {
-    SPEED_PRESETS
+    SPEED_PRESETS,
+    THEME_MODE
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,6 +92,7 @@ fun SettingsScreen() {
         sheetContent = {
             when (settingOption) {
                 SettingOption.SPEED_PRESETS -> SettingSpeedPreset(scaffoldState)
+                SettingOption.THEME_MODE    -> SettingThemeMode(scaffoldState)
             }
         }
     ) {
@@ -154,16 +157,19 @@ fun SettingsScreen() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-
+                                        settingOption = SettingOption.THEME_MODE
+                                        scope.launch {
+                                            scaffoldState.bottomSheetState.expand()
+                                        }
                                     }
                                     .padding(12.dp)
                             ) {
                                 Icon(
-                                    Icons.Outlined.Widgets,
+                                    Icons.Outlined.Palette,
                                     contentDescription = null
                                 )
                                 Text(
-                                    stringResource(R.string.settings_item_something_else),
+                                    stringResource(R.string.settings_item_theme_mode),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
