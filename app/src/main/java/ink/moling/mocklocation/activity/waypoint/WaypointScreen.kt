@@ -183,7 +183,7 @@ fun WaypointScreen(
                         ),
                         selectedIndex = uiState.selectedSheetDetail,
                         onSelectedChange = { viewModel.setSheetDetail(it) },
-                        selectedBackground = MaterialTheme.colorScheme.secondary
+                        selectedBackground = MaterialTheme.colorScheme.secondaryContainer
                     )
 
                     Spacer(modifier = Modifier.weight(1f))
