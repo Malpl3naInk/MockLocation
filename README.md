@@ -47,6 +47,14 @@ MocakLocation
     └─simulators
 ```
 
+### Color system
+
+| Paramater                               | Color          |
+|-----------------------------------------|----------------|
+| AlertDialog.containerColor              | surfaceVariant |
+| BottomSheetScaffold.containerColor      | background     |
+| BottomSheetScaffold.sheetContainerColor | surface        |
+
 ## Roadmap
 
 ### Feature requests from [ZCShou/GoGoGo](https://github.com/ZCShou/GoGoGo/issues)

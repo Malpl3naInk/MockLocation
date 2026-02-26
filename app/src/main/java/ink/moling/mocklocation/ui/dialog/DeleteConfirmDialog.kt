@@ -31,7 +31,7 @@ fun DeleteConfirmDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
         icon = {
             Icon(
                 imageVector = Icons.Default.Warning,
