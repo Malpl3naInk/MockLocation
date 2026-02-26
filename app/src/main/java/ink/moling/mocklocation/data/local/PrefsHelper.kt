@@ -26,6 +26,7 @@ object PrefsHelper {
     private const val KEY_MAX_SPEED_JOYSTICK_PRESET_1 = "max_speed_joystick_preset_1"
     private const val KEY_MAX_SPEED_JOYSTICK_PRESET_2 = "max_speed_joystick_preset_2"
     private const val KEY_THEME_MODE = "theme_mode"
+    private const val KEY_JOYSTICK_SIZE = "joystick_size"
 
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -107,5 +108,15 @@ object PrefsHelper {
         } catch (e: Exception) {
             ThemeMode.SYSTEM
         }
+    }
+
+    fun setJoystickSize(context: Context, size: Float) {
+        getPrefs(context).edit {
+            putFloat(KEY_JOYSTICK_SIZE, size)
+        }
+    }
+
+    fun getJoystickSize(context: Context): Float {
+        return getPrefs(context).getFloat(KEY_JOYSTICK_SIZE, 120f)
     }
 }
