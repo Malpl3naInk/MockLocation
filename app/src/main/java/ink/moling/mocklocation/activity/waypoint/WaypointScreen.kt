@@ -159,7 +159,8 @@ fun WaypointScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 384.dp,
-        sheetContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+        containerColor = MaterialTheme.colorScheme.background,
+        sheetContainerColor = MaterialTheme.colorScheme.surface,
         sheetContent = {
             Column(
                 modifier = Modifier

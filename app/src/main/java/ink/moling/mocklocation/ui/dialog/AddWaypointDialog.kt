@@ -25,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -41,7 +40,6 @@ fun AddWaypointDialog(
     onConfirm: (latitude: Double, longitude: Double) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
 
     var latitudeText by remember { mutableStateOf(initialLatitude?.toString() ?: "") }
     var longitudeText by remember { mutableStateOf(initialLongitude?.toString() ?: "") }
@@ -50,7 +48,7 @@ fun AddWaypointDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
         title = {
             Text(
                 text = (

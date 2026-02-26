@@ -47,7 +47,7 @@ fun ErrorDialog(
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.errorContainer,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
         icon = {
             Icon(
                 imageVector = Icons.Default.Warning,

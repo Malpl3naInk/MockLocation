@@ -88,7 +88,8 @@ fun SettingsScreen() {
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
-        sheetContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+        containerColor = MaterialTheme.colorScheme.background,
+        sheetContainerColor = MaterialTheme.colorScheme.surface,
         sheetContent = {
             when (settingOption) {
                 SettingOption.SPEED_PRESETS -> SettingSpeedPreset(scaffoldState)
