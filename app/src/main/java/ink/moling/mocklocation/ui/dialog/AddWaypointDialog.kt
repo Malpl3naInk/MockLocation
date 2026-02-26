@@ -1,5 +1,6 @@
 package ink.moling.mocklocation.ui.dialog
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -136,21 +136,22 @@ fun AddWaypointDialog(
 
                 // Use current location button
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            enabled = currentLatitude != null && currentLongitude != null,
+                            onClick = {
+                                currentLatitude?.let { latitudeText = it.toString() }
+                                currentLongitude?.let { longitudeText = it.toString() }
+                            }
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
-                        onClick = {
-                            currentLatitude?.let { latitudeText = it.toString() }
-                            currentLongitude?.let { longitudeText = it.toString() }
-                        },
-                        enabled = currentLatitude != null && currentLongitude != null
-                    ) {
-                        Icon(
-                            Icons.Outlined.MyLocation,
-                            contentDescription = "Use current location"
-                        )
-                    }
+                    Icon(
+                        Icons.Outlined.MyLocation,
+                        contentDescription = "Use current location",
+                        modifier = Modifier.padding(12.dp)
+                    )
                     Text(
                         text = if (currentLatitude != null && currentLongitude != null) {
                             stringResource(R.string.waypoint_dialog_text_current_location)

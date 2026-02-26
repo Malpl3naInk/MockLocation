@@ -31,8 +31,8 @@ private val DarkColorScheme = darkColorScheme(
     tertiaryContainer   = Color(0xFF004F56),
     onTertiaryContainer = Color(0xFFB2EBF2),
 
-    error               = Color(0xFFFF8A80),
-    onError             = Color(0xFF690005),
+    error               = Color(0xFFFF5252),
+    onError             = Color.White,
     errorContainer      = Color(0xFF93000A),
     onErrorContainer    = Color(0xFFFFDAD6),
 

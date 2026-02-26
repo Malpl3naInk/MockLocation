@@ -217,6 +217,9 @@ fun WaypointScreen(
                             scope.launch {
                                 scaffoldState.bottomSheetState.hide()
                             }
+                        },
+                        onConnectsDelete = {
+                            viewModel.deleteWaypoint(selectedWaypoint)
                         }
                     )
                 }
@@ -238,6 +241,10 @@ fun WaypointScreen(
                             highlightPointId = uiState.selectedWaypointIndex?.let {
                                 uiState.routeObject.points.getOrNull(it)?.id
                             },
+                            currentLocation = Pair(
+                                currentLocation?.lat ?: 0.0,
+                                currentLocation?.lng ?: 0.0
+                            ),
                             onPointClick = { index, _ ->
                                 if (isEditingConnectionMode) {
                                     Logger.d("WaypointScreen", "Clicked: $index, Selected: $selectedWaypoint")
@@ -394,8 +401,13 @@ fun WaypointScreen(
             currentLatitude = currentLocation?.lat,
             currentLongitude = currentLocation?.lng,
             onConfirm = { lat, lng ->
-                viewModel.addWaypoint(lat, lng)
-                showAddWaypointDialog = false
+                if (showAddWaypointDialog) {
+                    uiState.routeObject.points.lastOrNull()?.let {
+                        val newPoint = viewModel.addWaypoint(lat, lng, connects = setOf(it.id))
+                        viewModel.updateWaypoint(it.id, connects = it.connects.plus(newPoint))
+                    } ?: viewModel.addWaypoint(lat, lng)
+                    showAddWaypointDialog = false
+                }
             },
             onDismiss = {
                 showAddWaypointDialog = false
@@ -414,8 +426,10 @@ fun WaypointScreen(
                 initialLongitude = waypoint.lng,
                 isEditMode = true,
                 onConfirm = { lat, lng ->
-                    viewModel.updateWaypoint(selectedWaypoint, lat, lng)
-                    showEditWaypointDialog = false
+                    if (showEditWaypointDialog) {
+                        viewModel.updateWaypoint(selectedWaypoint, lat, lng)
+                        showEditWaypointDialog = false
+                    }
                 },
                 onDismiss = {
                     showEditWaypointDialog = false

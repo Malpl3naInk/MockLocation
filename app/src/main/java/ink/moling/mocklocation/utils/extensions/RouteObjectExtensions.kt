@@ -60,3 +60,28 @@ fun RouteObject.removeConn(from: Int, to: Int): RouteObject {
 
     return copy(points = map.values.toList())
 }
+
+fun RouteObject.hasCycle(): Boolean {
+    val pointMap = toPointMap()
+    val visited = mutableSetOf<Int>()
+
+    fun dfs(nodeId: Int, parentId: Int?): Boolean {
+        visited.add(nodeId)
+        val node = pointMap[nodeId] ?: return false
+        for (neighborId in node.connects) {
+            if (neighborId !in visited) {
+                if (dfs(neighborId, nodeId)) return true
+            } else if (neighborId != parentId) {
+                return true
+            }
+        }
+        return false
+    }
+
+    for (point in points) {
+        if (point.id !in visited) {
+            if (dfs(point.id, null)) return true
+        }
+    }
+    return false
+}

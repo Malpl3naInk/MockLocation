@@ -11,6 +11,7 @@ import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RoutePoint
 import ink.moling.mocklocation.data.models.RouteType
 import ink.moling.mocklocation.utils.extensions.addConn
+import ink.moling.mocklocation.utils.extensions.hasCycle
 import ink.moling.mocklocation.utils.extensions.removeConn
 import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -184,6 +185,12 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
             _uiEvent.tryEmit(WaypointUiEvent.ShowToast(getApplication<Application>().getString(R.string.waypoint_toast_add_waypoint)))
             return
         }
+
+        // 验证路径中不存在环
+        if (state.routeObject.hasCycle()) {
+            _uiEvent.tryEmit(WaypointUiEvent.ShowToast(getApplication<Application>().getString(R.string.waypoint_toast_cycle_detected)))
+            return
+        }
         
         viewModelScope.launch {
             try {
@@ -270,14 +277,22 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
         lng: Double,
         type: PointType = PointType.R,
         connects: Set<Int> = emptySet()
-    ) {
+    ): Int {
         val state = _uiState.value
-        val newId = state.routeObject.points.maxOfOrNull { it.id } ?: 0
-        
+
+        Logger.d("WaypointViewModel", "Exists points: [%s]".format(
+            state.routeObject.points.map { it.id }.joinToString(",")
+        ))
+
+        val newId = state.routeObject.points.maxOfOrNull { it.id }?.let { it + 1 } ?: 0
+
         val newPoint = RoutePoint(
             id = newId,
             lat = lat,
             lng = lng,
+
+
+
             type = type,
             connects = connects
         )
@@ -289,6 +304,8 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
             ) 
         }
         Logger.d("WaypointViewModel", "Added waypoint #$newId at ($lat, $lng)")
+
+        return newId
     }
     
     /**
@@ -302,8 +319,8 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
      */
     fun updateWaypoint(
         index: Int,
-        lat: Double,
-        lng: Double,
+        lat: Double? = null,
+        lng: Double? = null,
         type: PointType? = null,
         connects: Set<Int>? = null
     ) {
@@ -312,8 +329,8 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
         
         val oldPoint = state.routeObject.points[index]
         val updatedPoint = oldPoint.copy(
-            lat = lat,
-            lng = lng,
+            lat = lat ?: oldPoint.lat,
+            lng = lng ?: oldPoint.lng,
             type = type ?: oldPoint.type,
             connects = connects ?: oldPoint.connects
         )

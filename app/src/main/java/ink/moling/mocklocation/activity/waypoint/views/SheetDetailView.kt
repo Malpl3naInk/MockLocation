@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.EditLocationAlt
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material3.Button
@@ -33,7 +34,8 @@ fun SheetDetailView(
     viewModel: WaypointViewModel,
     selectedWaypoint: Int,
     onWaypointEdit: () -> Unit,
-    onConnectsEdit: () -> Unit
+    onConnectsEdit: () -> Unit,
+    onConnectsDelete: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     Column(
@@ -116,6 +118,21 @@ fun SheetDetailView(
                             modifier = Modifier.padding(end = 6.dp)
                         )
                         Text(stringResource(R.string.waypoint_detail_button_connections))
+                    }
+
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        ),
+                        onClick = onConnectsDelete
+                    ) {
+                        Icon(
+                            Icons.Outlined.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                        Text(stringResource(R.string.waypoint_detail_button_delete))
                     }
                 }
             }
