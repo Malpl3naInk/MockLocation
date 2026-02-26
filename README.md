@@ -81,7 +81,7 @@ MocakLocation
 - [ ] [#77](https://github.com/ZCShou/GoGoGo/issues/77) - [路线控制] 摇杆移动添加控制整体完成时间功能
 - [ ] [#50](https://github.com/ZCShou/GoGoGo/issues/50) - [模拟增强] 加入基站伪装以实现更全面的虚拟定位
 - [ ] [#46](https://github.com/ZCShou/GoGoGo/issues/46) - [模拟增强] 模拟步频功能
-- [ ] [#35](https://github.com/ZCShou/GoGoGo/issues/35) - [悬浮窗控制] 摇杆大小调整和路径点显示
+- [x] [#35](https://github.com/ZCShou/GoGoGo/issues/35) - [悬浮窗控制] 摇杆大小调整和路径点显示
 
 ### Suggested Features
 
@@ -105,7 +105,7 @@ MocakLocation
 - [ ] [用户体验] 主题切换功能（深色/浅色模式）
 - [ ] [悬浮窗控制] 悬浮窗透明度调节
 - [ ] [悬浮窗控制] 悬浮窗大小自定义
-- [ ] [路线控制] 路线暂停/继续功能
+- [x] [路线控制] 路线暂停/继续功能
 - [ ] [路线控制] 路线进度显示和跳转
 - [x] [数据管理] 点位和路线的导出分享功能
 - [ ] [安全性] 应用锁功能（密码/生物识别保护）

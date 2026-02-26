@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Gamepad
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import ink.moling.mocklocation.R
+import ink.moling.mocklocation.activity.settings.views.SettingJoystickSize
 import ink.moling.mocklocation.activity.settings.views.SettingSpeedPreset
 import ink.moling.mocklocation.activity.settings.views.SettingThemeMode
 import ink.moling.mocklocation.ui.components.DebugOnly
@@ -65,7 +67,8 @@ import kotlinx.coroutines.launch
 
 enum class SettingOption {
     SPEED_PRESETS,
-    THEME_MODE
+    THEME_MODE,
+    JOYSTICK_SIZE
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,6 +97,7 @@ fun SettingsScreen() {
             when (settingOption) {
                 SettingOption.SPEED_PRESETS -> SettingSpeedPreset(scaffoldState)
                 SettingOption.THEME_MODE    -> SettingThemeMode(scaffoldState)
+                SettingOption.JOYSTICK_SIZE -> SettingJoystickSize(scaffoldState)
             }
         }
     ) {
@@ -171,6 +175,27 @@ fun SettingsScreen() {
                                 )
                                 Text(
                                     stringResource(R.string.settings_item_theme_mode),
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        settingOption = SettingOption.JOYSTICK_SIZE
+                                        scope.launch {
+                                            scaffoldState.bottomSheetState.expand()
+                                        }
+                                    }
+                                    .padding(12.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Gamepad,
+                                    contentDescription = null
+                                )
+                                Text(
+                                    stringResource(R.string.settings_item_joystick_size),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }

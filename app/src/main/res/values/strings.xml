@@ -29,7 +29,7 @@
     <string name="main_toast_select_point">Please select a point</string>
     <string name="main_button_start">Start</string>
     <string name="main_button_stop">Stop</string>
-    <string name="main_button_wait">Wait...</string>
+    <string name="main_button_wait">Wait…</string>
     <string name="main_label_current_selection">Current selection</string>
     <string name="main_selection_point">Point > %1$s</string>
     <string name="main_selection_route">Route > %1$s</string>
@@ -75,6 +75,7 @@
     <string name="settings_section_general">General</string>
     <string name="settings_item_speed_presets">Speed presets</string>
     <string name="settings_item_theme_mode">App Theme</string>
+    <string name="settings_item_joystick_size">Joystick Size</string>
     <string name="settings_section_about">About</string>
     <string name="settings_item_release_repo">Release repo</string>
     <string name="settings_item_oss_license">Open Source License</string>
@@ -94,6 +95,9 @@
     <string name="settings_theme_mode_system">System</string>
     <string name="settings_theme_mode_light">Light</string>
     <string name="settings_theme_mode_dark">Dark</string>
+
+    <!-- SettingJoystickSize -->
+    <string name="settings_joystick_size_title">Joystick Size</string>
 
     <!-- WaypointScreen -->
     <string name="waypoint_pill_waypoints">Waypoints</string>
