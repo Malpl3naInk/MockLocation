@@ -108,6 +108,7 @@
     <string name="waypoint_detail_waypoint_title">Waypoint #%1$s</string>
     <string name="waypoint_detail_button_change_location">Change location</string>
     <string name="waypoint_detail_button_connections">Connections</string>
+    <string name="waypoint_detail_button_delete">Delete</string>
 
     <!-- SheetPointView -->
     <string name="waypoint_point_type_road">Common road</string>
@@ -119,4 +120,5 @@
     <string name="waypoint_toast_add_waypoint">Please add at least one waypoint</string>
     <string name="waypoint_toast_save_success">Route saved successfully</string>
     <string name="waypoint_toast_save_failed">Failed to save route: %1$s</string>
+    <string name="waypoint_toast_cycle_detected">Route contains a cycle, please check connections</string>
 </resources>
