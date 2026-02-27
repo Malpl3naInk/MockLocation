@@ -63,9 +63,9 @@ fun SheetPointView(
                     Text(
                         text = (
                                 if (isWaypointCardExpanded)
-                                    "#${waypoint.id}"
+                                    "#${index + 1}"
                                 else
-                                    "#${waypoint.id} - @%.6f,%.6f".format(waypoint.lat, waypoint.lng)
+                                    "#${index + 1} - @%.6f,%.6f".format(waypoint.lat, waypoint.lng)
                                 ),
                         modifier = Modifier
                             .padding(

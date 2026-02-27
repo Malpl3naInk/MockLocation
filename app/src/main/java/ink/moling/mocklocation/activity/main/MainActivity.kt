@@ -271,6 +271,7 @@ class MainActivity : ComponentActivity() {
                                 // 启动点位模拟
                                 viewModel.selectedMockPoint?.let { point ->
                                     viewModel.setMockLocation(
+                                        point.name,
                                         point.lat,
                                         point.lng,
                                         point.alt

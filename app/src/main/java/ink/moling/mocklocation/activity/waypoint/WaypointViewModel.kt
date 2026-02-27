@@ -358,18 +358,24 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
         
         val deletedPoint = state.routeObject.points[index]
         val deletedId = deletedPoint.id
-        
-        // 删除路点并更新其他路点的连接
-        val updatedWaypoints = state.routeObject.points
-            .filterIndexed { i, _ -> i != index }
-            .map { point ->
-                // 移除对已删除路点的连接
-                point.copy(connects = point.connects - deletedId)
+        val neighborIds = deletedPoint.connects.toList()
+
+        // 对被删除节点的所有邻居两两之间添加直连，桥接断开的路径
+        var updatedRoute = state.routeObject
+        for (i in neighborIds.indices) {
+            for (j in i + 1 until neighborIds.size) {
+                updatedRoute = updatedRoute.addConn(neighborIds[i], neighborIds[j])
             }
-        
+        }
+
+        // 移除被删除的路点及所有对它的引用
+        val updatedPoints = updatedRoute.points
+            .filter { it.id != deletedId }
+            .map { point -> point.copy(connects = point.connects - deletedId) }
+
         _uiState.update { 
             it.copy(
-                routeObject = state.routeObject.copy(points = updatedWaypoints),
+                routeObject = updatedRoute.copy(points = updatedPoints),
                 isModified = true,
                 selectedWaypointIndex = null
             ) 

@@ -80,7 +80,7 @@ fun SheetDetailView(
             ) {
                 val tSelectedWaypoint = when (selectedWaypoint) {
                     -1      -> "/"
-                    else    -> "$selectedWaypoint"
+                    else    -> "${selectedWaypoint + 1}"
                 }
                 Text(
                     stringResource(R.string.waypoint_detail_waypoint_title, tSelectedWaypoint),

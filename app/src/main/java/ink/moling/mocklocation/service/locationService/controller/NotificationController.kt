@@ -31,8 +31,11 @@ class NotificationController(
                 as NotificationManager
 
     private var currentMode: LocationMode = LocationMode.Idle
-    
+
     private var isOverlayVisible: Boolean = false
+
+    private var currentLat: Double? = null
+    private var currentLng: Double? = null
     
     // BroadcastReceiver 处理通知按钮点击
     private val notificationReceiver = object : BroadcastReceiver() {
@@ -103,6 +106,16 @@ class NotificationController(
         )
     }
 
+    fun updateLocation(lat: Double, lng: Double) {
+        if (currentMode != LocationMode.Idle) return
+        currentLat = lat
+        currentLng = lng
+        notificationManager.notify(
+            SERVICE_MOCK_LOC_NOTE_ID,
+            buildNotification(currentMode)
+        )
+    }
+
     // ----------------------------
     // Channel
     // ----------------------------
@@ -139,6 +152,15 @@ class NotificationController(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val buttonText = if (isOverlayVisible) "Hide Overlay" else "Show Overlay"
+        val contentText = when (mode) {
+            LocationMode.Idle -> {
+                if (currentLat != null && currentLng != null)
+                    "@%.6f, %.6f".format(currentLat, currentLng)
+                else null
+            }
+            is LocationMode.Point -> "Point - ${mode.name}"
+            is LocationMode.Route -> "Route - ${mode.name}"
+        }
         var builder = NotificationCompat.Builder(
             service,
             SERVICE_MOCK_LOC_NOTE_CHANNEL_ID
@@ -155,6 +177,7 @@ class NotificationController(
                     }
                 }"
             )
+            .also { if (contentText != null) it.setContentText(contentText) }
         if (mode != LocationMode.Idle) {
             builder = builder.addAction(
                 0, // 无图标
