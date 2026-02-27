@@ -31,7 +31,7 @@ fun OverlayRouteView(
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 10.sp
             )
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
             Text(
                 "%.2f m/s".format(
                     currentSpeedPer * currentSpeedPreset
@@ -41,7 +41,7 @@ fun OverlayRouteView(
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(Modifier.height(8.dp))
 
         Slider(
             value = currentSpeedPer,
@@ -53,7 +53,7 @@ fun OverlayRouteView(
             )
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(Modifier.height(8.dp))
 
 
         Row {
@@ -62,7 +62,7 @@ fun OverlayRouteView(
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 10.sp
             )
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
             Text(
                 "%.2f m/s (Max)".format(
                     currentSpeedPreset

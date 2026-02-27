@@ -101,7 +101,7 @@ fun SheetPointView(
                                         .padding(horizontal = 6.dp)
                                 )
 
-                                Spacer(modifier = Modifier.weight(1f))
+                                Spacer(Modifier.weight(1f))
 
                                 IconButton(onClick = {
                                     viewModel.setSheetDetail(1)

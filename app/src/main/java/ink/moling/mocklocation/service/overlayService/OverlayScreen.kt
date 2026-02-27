@@ -222,7 +222,7 @@ fun OverlayScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
 
                 when (overlayState.mockMode) {
                     MockMode.MOCK_MODE_POINT -> OverlayPointView(
@@ -314,7 +314,7 @@ fun OverlayScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
             }
         }
     }

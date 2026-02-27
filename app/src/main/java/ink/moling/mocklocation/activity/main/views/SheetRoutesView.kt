@@ -114,7 +114,7 @@ fun SheetRoutesView(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(Modifier.weight(1f))
 
         IconButton(onClick = {
             waypointActivityLauncher.launch(

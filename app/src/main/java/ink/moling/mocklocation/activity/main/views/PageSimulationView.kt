@@ -50,7 +50,7 @@ fun PageSimulationView(
                 fontSize = 20.sp
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
 
             PillSelector(
                 items = listOf(

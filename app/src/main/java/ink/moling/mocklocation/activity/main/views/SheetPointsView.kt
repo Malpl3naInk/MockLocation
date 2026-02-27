@@ -42,7 +42,7 @@ fun SheetPointsView(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(Modifier.weight(1f))
 
         IconButton(onClick = { viewModel.startCreatePoint() }) {
             Icon(

@@ -55,7 +55,7 @@ fun UnsavedChangesDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
 
                 Text(
                     text = stringResource(R.string.unsaved_dialog_text_quest),

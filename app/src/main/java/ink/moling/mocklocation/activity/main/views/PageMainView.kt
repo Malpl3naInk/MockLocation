@@ -167,7 +167,7 @@ fun PageMainView(
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(Modifier.weight(1f))
 
         Card(
             colors = CardDefaults.cardColors(
@@ -194,7 +194,7 @@ fun PageMainView(
                     )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
 
                 Icon(
                     imageVector = (
@@ -237,7 +237,7 @@ fun PageMainView(
                     )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
 
                 Icon(
                     when (mockStatus) {
@@ -253,6 +253,6 @@ fun PageMainView(
             }
         }
 
-        Spacer(modifier = Modifier.weight(0.4f))
+        Spacer(Modifier.weight(0.4f))
     }
 }

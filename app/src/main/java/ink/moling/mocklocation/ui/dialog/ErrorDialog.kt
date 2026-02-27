@@ -74,7 +74,7 @@ fun ErrorDialog(
                 
                 // 仅在提供 stackTrace 时显示
                 if (!stackTrace.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(Modifier.height(12.dp))
                     
                     Text(
                         text = stringResource(R.string.error_dialog_text_stack_trace),
@@ -83,7 +83,7 @@ fun ErrorDialog(
                         fontWeight = FontWeight.Medium
                     )
                     
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(Modifier.height(4.dp))
                     
                     Text(
                         text = stackTrace,
