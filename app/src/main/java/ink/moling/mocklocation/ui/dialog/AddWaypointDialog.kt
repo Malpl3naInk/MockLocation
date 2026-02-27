@@ -93,7 +93,7 @@ fun AddWaypointDialog(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
 
                 // Longitude input
                 Row(
@@ -130,7 +130,7 @@ fun AddWaypointDialog(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(Modifier.height(16.dp))
 
                 // Use current location button
                 Row(

@@ -237,7 +237,7 @@ fun OptionsRouteView(
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(Modifier.weight(1f))
 
         Card(
             modifier = Modifier
@@ -266,7 +266,7 @@ fun OptionsRouteView(
                     )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
 
                 Icon(
                     Icons.Outlined.ArrowDropUp,

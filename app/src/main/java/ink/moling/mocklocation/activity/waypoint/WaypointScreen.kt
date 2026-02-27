@@ -6,7 +6,9 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,15 +18,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.BottomSheetScaffold
@@ -118,6 +126,8 @@ fun WaypointScreen(
 
     // 是否正在编辑连接点
     var isEditingConnectionMode by remember { mutableStateOf(false) }
+
+    var isMenuExpanded by remember { mutableStateOf(false) }
 
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
@@ -215,7 +225,7 @@ fun WaypointScreen(
                         selectedBackground = MaterialTheme.colorScheme.secondaryContainer
                     )
 
-                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(Modifier.weight(1f))
 
                     if (uiState.selectedSheetDetail == WaypointSheet.WAYPOINT_SHEET_POINTS) {
                         IconButton(onClick = {
@@ -259,100 +269,103 @@ fun WaypointScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            when (uiState.selectedDisplayMode) {
-                WaypointGraph.WAYPOINT_GRAPH_CANVAS -> {
-                    Column {
-                        Spacer(modifier = Modifier.weight(0.2f))
-
-                        LatLngScatter(
-                            modifier = Modifier.fillMaxHeight(0.7f),
-                            routeObject = uiState.routeObject,
-                            highlightPointId = uiState.selectedWaypointIndex?.let {
-                                uiState.routeObject.points.getOrNull(it)?.id
-                            },
-                            currentLocation = Pair(
-                                currentLocation?.lat ?: 0.0,
-                                currentLocation?.lng ?: 0.0
-                            ),
-                            onPointClick = { index, _ ->
-                                if (isEditingConnectionMode) {
-                                    Logger.d("WaypointScreen", "Clicked: $index, Selected: $selectedWaypoint")
-                                    if (uiState.routeObject.isConnected(selectedWaypoint, index)) {
-                                        viewModel.removeWaypointConnections(selectedWaypoint, index)
-                                    } else {
-                                        viewModel.addWaypointConnections(selectedWaypoint, index)
-                                    }
-                                } else {
-                                    val isWaypointSelected = index == selectedWaypoint
-                                    selectedWaypoint = if (isWaypointSelected) -1 else index
-                                    viewModel.selectWaypoint(if (isWaypointSelected) null else index)
-                                }
-                            }
-                        )
-
-                        Spacer(modifier = Modifier.weight(0.1f))
+            // Persistence map component
+            MapboxMap(
+                Modifier.fillMaxSize(),
+                mapViewportState = mapViewportState,
+                compass = { Compass(Modifier.padding(top = 120.dp)) },
+                scaleBar = { ScaleBar(
+                    Modifier.padding(bottom = 80.dp),
+                    alignment = Alignment.BottomStart
+                ) },
+                logo = { Logo(Modifier.padding(bottom = 40.dp)) },
+                attribution = { Attribution(Modifier.padding(bottom = 40.dp)) }
+            ) {
+                // 1. Location puck + follow-puck
+                MapEffect(Unit) { mapView ->
+                    mapView.location.updateSettings {
+                        locationPuck = createDefault2DPuck()
+                        enabled = true
                     }
                 }
-                WaypointGraph.WAYPOINT_GRAPH_MAP -> {
-                    MapboxMap(
-                        Modifier.fillMaxSize(),
-                        mapViewportState = mapViewportState,
-                        compass = { Compass(Modifier.padding(top = 120.dp)) },
-                        scaleBar = { ScaleBar(Modifier.padding(top = 120.dp)) },
-                        logo = { Logo(Modifier.padding(bottom = 40.dp)) },
-                        attribution = { Attribution(Modifier.padding(bottom = 40.dp)) }
-                    ) {
-                        // 1. Location puck + follow-puck
-                        MapEffect(Unit) { mapView ->
-                            mapView.location.updateSettings {
-                                locationPuck = createDefault2DPuck()
-                                enabled = true
-                            }
-                        }
 
-                        // 2. GeoJSON source for your route
-                        val routeSource = rememberGeoJsonSourceState {
-                            // optional: lineMetrics if you want lineTrimOffset/lineProgress
-                            // lineMetrics = BooleanValue(true)
-                        }
+                // 2. GeoJSON source for your route
+                val routeSource = rememberGeoJsonSourceState {
+                    // optional: lineMetrics if you want lineTrimOffset/lineProgress
+                    // lineMetrics = BooleanValue(true)
+                }
 
-                        // 3. Update source data whenever route changes
-                        LaunchedEffect(uiState.routeObject) {
-                            uiState.routeObject.let {
-                                val lineString = it.toLineString()
-                                routeSource.data = GeoJSONData(lineString)
-                            }
-                        }
-
-                        // 4. Line layer that draws the route
-                        LineLayer(
-                            sourceState = routeSource
-                        ) {
-                            lineWidth = DoubleValue(4.0)
-                            lineColor = ColorValue(Color(0xFF2F7AC6)) // example color
-                            lineCap = LineCapValue.ROUND
-                            lineJoin = LineJoinValue.ROUND
-                        }
-
-                        if (uiState.routeObject.isEmpty()) {
-                            mapViewportState.setCameraOptions(
-                                cameraOptions {
-                                    center(
-                                        Point.fromLngLat(
-                                            currentLocation?.lng ?: 0.0005,
-                                            currentLocation?.lat ?: 51.4769
-                                        )
-                                    )
-                                }
-                            )
-                        } else {
-                            mapViewportState.setCameraOptions(
-                                cameraOptions {
-                                    center(uiState.routeObject.centerPoint())
-                                }
-                            )
-                        }
+                // 3. Update source data whenever route changes
+                LaunchedEffect(uiState.routeObject) {
+                    uiState.routeObject.let {
+                        val lineString = it.toLineString()
+                        routeSource.data = GeoJSONData(lineString)
                     }
+                }
+
+                // 4. Line layer that draws the route
+                LineLayer(
+                    sourceState = routeSource
+                ) {
+                    lineWidth = DoubleValue(4.0)
+                    lineColor = ColorValue(Color(0xFF2F7AC6)) // example color
+                    lineCap = LineCapValue.ROUND
+                    lineJoin = LineJoinValue.ROUND
+                }
+
+                if (uiState.routeObject.isEmpty()) {
+                    mapViewportState.setCameraOptions(
+                        cameraOptions {
+                            center(
+                                Point.fromLngLat(
+                                    currentLocation?.lng ?: 0.0005,
+                                    currentLocation?.lat ?: 51.4769
+                                )
+                            )
+                        }
+                    )
+                } else {
+                    mapViewportState.setCameraOptions(
+                        cameraOptions {
+                            center(uiState.routeObject.centerPoint())
+                        }
+                    )
+                }
+            }
+
+            if (uiState.selectedDisplayMode == WaypointGraph.WAYPOINT_GRAPH_CANVAS) {
+                Column(
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                ) {
+                    Spacer(Modifier.weight(0.2f))
+
+                    LatLngScatter(
+                        modifier = Modifier.fillMaxHeight(0.7f),
+                        routeObject = uiState.routeObject,
+                        highlightPointId = uiState.selectedWaypointIndex?.let {
+                            uiState.routeObject.points.getOrNull(it)?.id
+                        },
+                        currentLocation = Pair(
+                            currentLocation?.lat ?: 0.0,
+                            currentLocation?.lng ?: 0.0
+                        ),
+                        onPointClick = { index, _ ->
+                            if (isEditingConnectionMode) {
+                                Logger.d("WaypointScreen", "Clicked: $index, Selected: $selectedWaypoint")
+                                if (uiState.routeObject.isConnected(selectedWaypoint, index)) {
+                                    viewModel.removeWaypointConnections(selectedWaypoint, index)
+                                } else {
+                                    viewModel.addWaypointConnections(selectedWaypoint, index)
+                                }
+                            } else {
+                                val isWaypointSelected = index == selectedWaypoint
+                                selectedWaypoint = if (isWaypointSelected) -1 else index
+                                viewModel.selectWaypoint(if (isWaypointSelected) null else index)
+                            }
+                        }
+                    )
+
+                    Spacer(Modifier.weight(0.1f))
                 }
             }
 
@@ -383,23 +396,29 @@ fun WaypointScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 64.dp),
-                        contentAlignment = Alignment.CenterStart
+                        contentAlignment = Alignment.Center
                     ) {
-                        IconButton(
+                        Box(
                             modifier = Modifier
-                                .padding(start = 6.dp),
-                            onClick = {
-                                viewModel.saveRoute()
-                            }
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.CenterStart,
                         ) {
-                            Icon(
-                                Icons.Outlined.Save,
-                                contentDescription = null,
-                                tint = when (uiState.selectedDisplayMode) {
-                                    WaypointGraph.WAYPOINT_GRAPH_MAP -> Color.Black
-                                    else -> LocalContentColor.current
+                            IconButton(
+                                modifier = Modifier
+                                    .padding(start = 6.dp),
+                                onClick = {
+                                    viewModel.saveRoute()
                                 }
-                            )
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Save,
+                                    contentDescription = null,
+                                    tint = when (uiState.selectedDisplayMode) {
+                                        WaypointGraph.WAYPOINT_GRAPH_MAP -> Color.Black
+                                        else -> LocalContentColor.current
+                                    }
+                                )
+                            }
                         }
 
                         Box(
@@ -416,6 +435,26 @@ fun WaypointScreen(
                                 onSelectedChange = { viewModel.setDisplayMode(it) }
                             )
                         }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            IconButton(
+                                modifier = Modifier
+                                    .padding(end = 6.dp),
+                                onClick = {
+
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Menu,
+                                    contentDescription = null,
+                                    tint = Color.Black
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -428,39 +467,71 @@ fun WaypointScreen(
                         .fillMaxHeight(),
                     contentAlignment = Alignment.BottomEnd
                 ) {
-                    if (isEditingConnectionMode) {
-                        FloatingActionButton(
-                            onClick = {
-                                isEditingConnectionMode = false
-                                scope.launch {
-                                    scaffoldState.bottomSheetState.partialExpand()
+                    Column {
+                        if (!isEditingConnectionMode) {
+                            AnimatedVisibility(isMenuExpanded) {
+                                Column(
+                                    horizontalAlignment = Alignment.End,
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+
+                                    FloatingActionButton(
+                                        onClick = { /* 菜单1 */ },
+                                        modifier = Modifier.size(40.dp),
+                                        containerColor = MaterialTheme.colorScheme.secondary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ) {
+                                        Icon(Icons.Default.Settings, null)
+                                    }
+
+                                    FloatingActionButton(
+                                        onClick = { /* 菜单2 */ },
+                                        modifier = Modifier.size(40.dp),
+                                        containerColor = MaterialTheme.colorScheme.secondary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ) {
+                                        Icon(Icons.Default.Edit, null)
+                                    }
                                 }
-                            },
-                            modifier = Modifier
-                                .padding(bottom = 24.dp, end = 24.dp),
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Check,
-                                contentDescription = stringResource(R.string.waypoint_cd_ok)
-                            )
+                            }
+
+                            Spacer(Modifier.height(12.dp))
+
+                            FloatingActionButton(
+                                onClick = { isMenuExpanded = !isMenuExpanded },
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
+                                Icon(
+                                    if (isMenuExpanded)
+                                        Icons.Default.Close
+                                    else
+                                        Icons.Default.Menu,
+                                    contentDescription = null
+                                )
+                            }
+
+                            Spacer(Modifier.height(12.dp))
                         }
-                    } else {
+
                         FloatingActionButton(
                             onClick = {
+                                if (isEditingConnectionMode) isEditingConnectionMode = false
                                 scope.launch {
                                     scaffoldState.bottomSheetState.partialExpand()
                                 }
                             },
                             modifier = Modifier
                                 .padding(bottom = 24.dp, end = 24.dp),
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.KeyboardArrowUp,
-                                contentDescription = stringResource(R.string.waypoint_cd_expand_sheet)
+                                imageVector = if (isEditingConnectionMode)
+                                    Icons.Outlined.Check
+                                else
+                                    Icons.Outlined.KeyboardArrowUp,
+                                contentDescription = null
                             )
                         }
                     }

@@ -56,7 +56,7 @@ fun DeleteConfirmDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
 
                 Text(
                     text = stringResource(R.string.delete_dialog_tip),

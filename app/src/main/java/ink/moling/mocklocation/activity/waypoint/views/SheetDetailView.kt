@@ -65,7 +65,7 @@ fun SheetDetailView(
             )
         )
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(Modifier.height(18.dp))
 
         Card(
             modifier = Modifier
@@ -87,7 +87,7 @@ fun SheetDetailView(
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(Modifier.height(6.dp))
 
                 if (selectedWaypoint != -1) {
                     Button(

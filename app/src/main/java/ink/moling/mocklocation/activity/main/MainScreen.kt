@@ -183,7 +183,7 @@ fun MainScreen(
             }
 
             Column {
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
 
                 Row(
                     Modifier

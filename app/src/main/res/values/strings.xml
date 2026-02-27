@@ -105,8 +105,6 @@
     <string name="waypoint_pill_route">Route</string>
     <string name="waypoint_pill_map">Map</string>
     <string name="waypoint_hint_connect_mode">Click waypoint to connect / disconnect</string>
-    <string name="waypoint_cd_ok">OK</string>
-    <string name="waypoint_cd_expand_sheet">Expand bottom sheet</string>
 
     <!-- SheetDetailView -->
     <string name="waypoint_detail_waypoint_title">Waypoint #%1$s</string>

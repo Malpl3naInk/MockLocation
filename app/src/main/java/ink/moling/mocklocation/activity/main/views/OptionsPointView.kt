@@ -350,7 +350,7 @@ fun OptionsPointView(
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(Modifier.weight(1f))
 
         if (!uiState.editingSimPoint) {
             Card(
@@ -380,7 +380,7 @@ fun OptionsPointView(
                         )
                     }
 
-                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(Modifier.weight(1f))
 
                     Icon(
                         Icons.Outlined.ArrowDropUp,

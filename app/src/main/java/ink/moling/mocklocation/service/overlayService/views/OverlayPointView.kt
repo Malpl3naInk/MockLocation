@@ -35,7 +35,7 @@ fun OverlayPointView(
         )
     }
 
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(Modifier.height(8.dp))
 
     // 摇杆控制
     JoystickControl(
