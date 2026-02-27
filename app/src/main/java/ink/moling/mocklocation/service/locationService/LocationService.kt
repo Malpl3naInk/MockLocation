@@ -83,7 +83,10 @@ class LocationService : Service() {
             context = this,
             kf = kf,
             isMocking = { mockCtrl.isRunning() }
-        ) { locationStateHolder.updateFromRealLocation(it) }
+        ) { loc ->
+            locationStateHolder.updateFromRealLocation(loc)
+            notifyCtrl.updateLocation(loc.lat, loc.lng)
+        }
         overlayCtrl = OverlayServiceController(this)
         notifyCtrl = NotificationController(
             service = this,
@@ -131,7 +134,7 @@ class LocationService : Service() {
         }
 
         @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
-        fun setStaticPoint(lat: Double, lng: Double, alt: Double) {
+        fun setStaticPoint(name: String, lat: Double, lng: Double, alt: Double) {
             // 尝试设置 TestProvider
             val setupSuccess = providerMgr?.setup() ?: false
             
@@ -166,7 +169,7 @@ class LocationService : Service() {
             // 更新通知显示
             notifyCtrl.setOverlayVisibility(true)
             notifyCtrl.updateMode(
-                LocationMode.Point(lat, lng)
+                LocationMode.Point(name, lat, lng)
             )
 
             // 更新状态为已启用
@@ -212,7 +215,7 @@ class LocationService : Service() {
             // 更新通知显示
             notifyCtrl.setOverlayVisibility(true)
             notifyCtrl.updateMode(
-                LocationMode.Route(0.0)
+                LocationMode.Route(route.name, 0.0)
             )
 
             // 更新状态为已启用

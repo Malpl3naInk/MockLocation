@@ -289,16 +289,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * 设置模拟位置（静态点）
      */
     @SuppressLint("MissingPermission")
-    fun setMockLocation(lat: Double, lng: Double, alt: Double) {
+    fun setMockLocation(name: String, lat: Double, lng: Double, alt: Double) {
         val binder = serviceBinder.value
         if (binder == null) {
             pendingAction = @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION]) {
-                serviceBinder.value?.setStaticPoint(lat, lng, alt)
+                serviceBinder.value?.setStaticPoint(name, lat, lng, alt)
             }
             _needStartService.tryEmit(Unit)
             return
         }
-        binder.setStaticPoint(lat, lng, alt)
+        binder.setStaticPoint(name, lat, lng, alt)
     }
 
     fun setMockLocation(route: RouteObject) {
