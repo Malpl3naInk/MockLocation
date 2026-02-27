@@ -1,5 +1,6 @@
 [versions]
 agp = "8.13.2"
+mapboxNdk27 = "11.19.0"
 kotlin = "2.0.21"
 coreKtx = "1.17.0"
 junit = "4.13.2"
@@ -8,6 +9,7 @@ espressoCore = "3.5.1"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.0"
 composeBom = "2024.09.00"
+mapboxComposeNdk27 = "11.19.0"
 material3 = "1.4.0"
 lifecycleViewmodel = "2.8.7"
 room = "2.6.1"
@@ -21,6 +23,7 @@ material = "1.13.0"
 documentfile = "1.1.0"
 
 [libraries]
+mapbox-ndk27 = { module = "com.mapbox.maps:android-ndk27", version.ref = "mapboxNdk27" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -47,6 +50,7 @@ google-openlocationcode = { group = "com.google.openlocationcode", name = "openl
 androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycleService" }
 androidx-savedstate-ktx = { group = "androidx.savedstate", name = "savedstate-ktx", version.ref = "savedstateKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+mapbox-compose-ndk27 = { module = "com.mapbox.extension:maps-compose-ndk27", version.ref = "mapboxComposeNdk27" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
