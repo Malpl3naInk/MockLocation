@@ -1,5 +1,7 @@
 package ink.moling.mocklocation.utils.extensions
 
+import com.mapbox.geojson.LineString
+import com.mapbox.geojson.Point
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RoutePoint
 import ink.moling.mocklocation.data.models.RouteType
@@ -84,4 +86,29 @@ fun RouteObject.hasCycle(): Boolean {
         }
     }
     return false
+}
+
+fun RouteObject.toLineString(): LineString {
+    return LineString.fromLngLats(
+        points
+            .sortedBy { it.id }   // 如果需要按顺序
+            .map { Point.fromLngLat(it.lng, it.lat) }
+    )
+}
+
+fun RouteObject.isEmpty(): Boolean {
+    return this.points.isEmpty()
+}
+
+fun RouteObject.centerPoint(): Point {
+
+    val minLat = points.minOf { it.lat }
+    val maxLat = points.maxOf { it.lat }
+    val minLng = points.minOf { it.lng }
+    val maxLng = points.maxOf { it.lng }
+
+    val centerLat = (minLat + maxLat) / 2.0
+    val centerLng = (minLng + maxLng) / 2.0
+
+    return Point.fromLngLat(centerLng, centerLat)
 }

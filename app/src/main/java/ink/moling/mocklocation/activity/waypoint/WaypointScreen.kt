@@ -32,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -55,6 +56,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mapbox.geojson.Point
+import com.mapbox.maps.MapboxDelicateApi
+import com.mapbox.maps.dsl.cameraOptions
+import com.mapbox.maps.extension.compose.MapEffect
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.style.ColorValue
+import com.mapbox.maps.extension.compose.style.DoubleValue
+import com.mapbox.maps.extension.compose.style.layers.generated.LineCapValue
+import com.mapbox.maps.extension.compose.style.layers.generated.LineJoinValue
+import com.mapbox.maps.extension.compose.style.layers.generated.LineLayer
+import com.mapbox.maps.extension.compose.style.sources.GeoJSONData
+import com.mapbox.maps.extension.compose.style.sources.generated.rememberGeoJsonSourceState
+import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
+import com.mapbox.maps.plugin.locationcomponent.location
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.waypoint.views.SheetDetailView
 import ink.moling.mocklocation.activity.waypoint.views.SheetPointView
@@ -67,11 +83,14 @@ import ink.moling.mocklocation.ui.dialog.AddWaypointDialog
 import ink.moling.mocklocation.ui.dialog.UnsavedChangesDialog
 import ink.moling.mocklocation.utils.WaypointGraph
 import ink.moling.mocklocation.utils.WaypointSheet
+import ink.moling.mocklocation.utils.extensions.centerPoint
 import ink.moling.mocklocation.utils.extensions.isConnected
+import ink.moling.mocklocation.utils.extensions.isEmpty
+import ink.moling.mocklocation.utils.extensions.toLineString
 import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, MapboxDelicateApi::class)
 @Composable
 fun WaypointScreen(
     viewModel: WaypointViewModel,
@@ -99,6 +118,15 @@ fun WaypointScreen(
 
     // 是否正在编辑连接点
     var isEditingConnectionMode by remember { mutableStateOf(false) }
+
+    val mapViewportState = rememberMapViewportState {
+        setCameraOptions {
+            zoom(17.0)
+            center(Point.fromLngLat(0.0005, 51.4769))
+            pitch(0.0)
+            bearing(0.0)
+        }
+    }
     
     DisposableEffect(context) {
         val connection = object : ServiceConnection {
@@ -266,7 +294,65 @@ fun WaypointScreen(
                     }
                 }
                 WaypointGraph.WAYPOINT_GRAPH_MAP -> {
-                    // TODO: Map view
+                    MapboxMap(
+                        Modifier.fillMaxSize(),
+                        mapViewportState = mapViewportState,
+                        compass = { Compass(Modifier.padding(top = 120.dp)) },
+                        scaleBar = { ScaleBar(Modifier.padding(top = 120.dp)) },
+                        logo = { Logo(Modifier.padding(bottom = 40.dp)) },
+                        attribution = { Attribution(Modifier.padding(bottom = 40.dp)) }
+                    ) {
+                        // 1. Location puck + follow-puck
+                        MapEffect(Unit) { mapView ->
+                            mapView.location.updateSettings {
+                                locationPuck = createDefault2DPuck()
+                                enabled = true
+                            }
+                        }
+
+                        // 2. GeoJSON source for your route
+                        val routeSource = rememberGeoJsonSourceState {
+                            // optional: lineMetrics if you want lineTrimOffset/lineProgress
+                            // lineMetrics = BooleanValue(true)
+                        }
+
+                        // 3. Update source data whenever route changes
+                        LaunchedEffect(uiState.routeObject) {
+                            uiState.routeObject.let {
+                                val lineString = it.toLineString()
+                                routeSource.data = GeoJSONData(lineString)
+                            }
+                        }
+
+                        // 4. Line layer that draws the route
+                        LineLayer(
+                            sourceState = routeSource
+                        ) {
+                            lineWidth = DoubleValue(4.0)
+                            lineColor = ColorValue(Color(0xFF2F7AC6)) // example color
+                            lineCap = LineCapValue.ROUND
+                            lineJoin = LineJoinValue.ROUND
+                        }
+
+                        if (uiState.routeObject.isEmpty()) {
+                            mapViewportState.setCameraOptions(
+                                cameraOptions {
+                                    center(
+                                        Point.fromLngLat(
+                                            currentLocation?.lng ?: 0.0005,
+                                            currentLocation?.lat ?: 51.4769
+                                        )
+                                    )
+                                }
+                            )
+                        } else {
+                            mapViewportState.setCameraOptions(
+                                cameraOptions {
+                                    center(uiState.routeObject.centerPoint())
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -308,7 +394,11 @@ fun WaypointScreen(
                         ) {
                             Icon(
                                 Icons.Outlined.Save,
-                                contentDescription = null
+                                contentDescription = null,
+                                tint = when (uiState.selectedDisplayMode) {
+                                    WaypointGraph.WAYPOINT_GRAPH_MAP -> Color.Black
+                                    else -> LocalContentColor.current
+                                }
                             )
                         }
 
