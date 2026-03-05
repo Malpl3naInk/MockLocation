@@ -7,6 +7,10 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,10 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Description
@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.BottomSheetScaffold
@@ -313,23 +314,25 @@ fun WaypointScreen(
                     lineJoin = LineJoinValue.ROUND
                 }
 
-                if (uiState.routeObject.isEmpty()) {
-                    mapViewportState.setCameraOptions(
-                        cameraOptions {
-                            center(
-                                Point.fromLngLat(
-                                    currentLocation?.lng ?: 0.0005,
-                                    currentLocation?.lat ?: 51.4769
+                LaunchedEffect(uiState.routeObject.isEmpty()) {
+                    if (uiState.routeObject.isEmpty()) {
+                        mapViewportState.setCameraOptions(
+                            cameraOptions {
+                                center(
+                                    Point.fromLngLat(
+                                        currentLocation?.lng ?: 0.0005,
+                                        currentLocation?.lat ?: 51.4769
+                                    )
                                 )
-                            )
-                        }
-                    )
-                } else {
-                    mapViewportState.setCameraOptions(
-                        cameraOptions {
-                            center(uiState.routeObject.centerPoint())
-                        }
-                    )
+                            }
+                        )
+                    } else {
+                        mapViewportState.setCameraOptions(
+                            cameraOptions {
+                                center(uiState.routeObject.centerPoint())
+                            }
+                        )
+                    }
                 }
             }
 
@@ -436,23 +439,91 @@ fun WaypointScreen(
                             )
                         }
 
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            contentAlignment = Alignment.CenterEnd
-                        ) {
-                            IconButton(
+                        if (uiState.selectedDisplayMode == WaypointGraph.WAYPOINT_GRAPH_MAP) {
+                            Box(
                                 modifier = Modifier
-                                    .padding(end = 6.dp),
-                                onClick = {
-
-                                }
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.CenterEnd
                             ) {
-                                Icon(
-                                    Icons.Outlined.Menu,
-                                    contentDescription = null,
-                                    tint = Color.Black
-                                )
+                                IconButton(
+                                    modifier = Modifier
+                                        .padding(end = 6.dp),
+                                    onClick = { isMenuExpanded = !isMenuExpanded }
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Menu,
+                                        contentDescription = null,
+                                        tint = Color.Black
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Column {
+                        AnimatedVisibility(
+                            isMenuExpanded,
+                            modifier = Modifier.padding(end = 10.dp),
+                            enter = expandVertically(
+                                expandFrom = Alignment.Top
+                            ) + fadeIn(),
+                            exit = shrinkVertically(
+                                shrinkTowards = Alignment.Top
+                            ) + fadeOut()
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.End,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+//                                // TODO: Search POI
+//                                FloatingActionButton(
+//                                    onClick = { /* 菜单1 */ },
+//                                    modifier = Modifier.size(40.dp),
+//                                    containerColor = MaterialTheme.colorScheme.surface,
+//                                    contentColor = MaterialTheme.colorScheme.onSurface
+//                                ) {
+//                                    Icon(Icons.Outlined.Search, null)
+//                                }
+
+                                FloatingActionButton(
+                                    onClick = {
+                                        mapViewportState.flyTo(
+                                            cameraOptions {
+                                                center(
+                                                    Point.fromLngLat(
+                                                        currentLocation?.lng ?: 0.0005,
+                                                        currentLocation?.lat ?: 51.4769
+                                                    )
+                                                )
+                                            }
+                                        )
+                                    },
+                                    modifier = Modifier.size(40.dp),
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                ) {
+                                    Icon(Icons.Outlined.MyLocation, null)
+                                }
+
+                                FloatingActionButton(
+                                    onClick = {
+                                        mapViewportState.flyTo(
+                                            cameraOptions {
+                                                center(uiState.routeObject.centerPoint())
+                                            }
+                                        )
+                                    },
+                                    modifier = Modifier.size(40.dp),
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                ) {
+                                    Icon(Icons.Outlined.LocationOn, null)
+                                }
                             }
                         }
                     }
@@ -468,52 +539,6 @@ fun WaypointScreen(
                     contentAlignment = Alignment.BottomEnd
                 ) {
                     Column {
-                        if (!isEditingConnectionMode) {
-                            AnimatedVisibility(isMenuExpanded) {
-                                Column(
-                                    horizontalAlignment = Alignment.End,
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-
-                                    FloatingActionButton(
-                                        onClick = { /* 菜单1 */ },
-                                        modifier = Modifier.size(40.dp),
-                                        containerColor = MaterialTheme.colorScheme.secondary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary
-                                    ) {
-                                        Icon(Icons.Default.Settings, null)
-                                    }
-
-                                    FloatingActionButton(
-                                        onClick = { /* 菜单2 */ },
-                                        modifier = Modifier.size(40.dp),
-                                        containerColor = MaterialTheme.colorScheme.secondary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary
-                                    ) {
-                                        Icon(Icons.Default.Edit, null)
-                                    }
-                                }
-                            }
-
-                            Spacer(Modifier.height(12.dp))
-
-                            FloatingActionButton(
-                                onClick = { isMenuExpanded = !isMenuExpanded },
-                                containerColor = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ) {
-                                Icon(
-                                    if (isMenuExpanded)
-                                        Icons.Default.Close
-                                    else
-                                        Icons.Default.Menu,
-                                    contentDescription = null
-                                )
-                            }
-
-                            Spacer(Modifier.height(12.dp))
-                        }
-
                         FloatingActionButton(
                             onClick = {
                                 if (isEditingConnectionMode) isEditingConnectionMode = false
