@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -73,6 +74,7 @@ import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.style.ColorValue
 import com.mapbox.maps.extension.compose.style.DoubleValue
+import com.mapbox.maps.extension.compose.style.layers.generated.CircleLayer
 import com.mapbox.maps.extension.compose.style.layers.generated.LineCapValue
 import com.mapbox.maps.extension.compose.style.layers.generated.LineJoinValue
 import com.mapbox.maps.extension.compose.style.layers.generated.LineLayer
@@ -95,7 +97,8 @@ import ink.moling.mocklocation.utils.WaypointSheet
 import ink.moling.mocklocation.utils.extensions.centerPoint
 import ink.moling.mocklocation.utils.extensions.isConnected
 import ink.moling.mocklocation.utils.extensions.isEmpty
-import ink.moling.mocklocation.utils.extensions.toLineString
+import ink.moling.mocklocation.utils.extensions.toFeatureList
+import ink.moling.mocklocation.utils.extensions.toMultiLineString
 import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.launch
 
@@ -280,7 +283,11 @@ fun WaypointScreen(
                     alignment = Alignment.BottomStart
                 ) },
                 logo = { Logo(Modifier.padding(bottom = 40.dp)) },
-                attribution = { Attribution(Modifier.padding(bottom = 40.dp)) }
+                attribution = { Attribution(Modifier.padding(bottom = 40.dp)) },
+                onMapClickListener = { point ->
+                    Log.d("Click at:", "${point.latitude()}, ${point.longitude()}")
+                    true
+                }
             ) {
                 // 1. Location puck + follow-puck
                 MapEffect(Unit) { mapView ->
@@ -290,28 +297,30 @@ fun WaypointScreen(
                     }
                 }
 
-                // 2. GeoJSON source for your route
-                val routeSource = rememberGeoJsonSourceState {
-                    // optional: lineMetrics if you want lineTrimOffset/lineProgress
-                    // lineMetrics = BooleanValue(true)
-                }
+                // 2. GeoJSON sources
+                val edgeSource  = rememberGeoJsonSourceState {}
+                val pointSource = rememberGeoJsonSourceState {}
 
-                // 3. Update source data whenever route changes
+                // 3. Update sources whenever route changes
                 LaunchedEffect(uiState.routeObject) {
-                    uiState.routeObject.let {
-                        val lineString = it.toLineString()
-                        routeSource.data = GeoJSONData(lineString)
-                    }
+                    edgeSource.data  = GeoJSONData(uiState.routeObject.toMultiLineString())
+                    pointSource.data = GeoJSONData(uiState.routeObject.toFeatureList())
                 }
 
-                // 4. Line layer that draws the route
-                LineLayer(
-                    sourceState = routeSource
-                ) {
+                // 4. Line layer — each edge as an independent segment, supports branches
+                LineLayer(sourceState = edgeSource) {
                     lineWidth = DoubleValue(4.0)
-                    lineColor = ColorValue(Color(0xFF2F7AC6)) // example color
-                    lineCap = LineCapValue.ROUND
-                    lineJoin = LineJoinValue.ROUND
+                    lineColor = ColorValue(Color(0xFF2F7AC6))
+                    lineCap   = LineCapValue.ROUND
+                    lineJoin  = LineJoinValue.ROUND
+                }
+
+                // 5. Circle layer — renders every node (including isolated ones)
+                CircleLayer(sourceState = pointSource) {
+                    circleRadius      = DoubleValue(6.0)
+                    circleColor       = ColorValue(Color(0xFF2F7AC6))
+                    circleStrokeWidth = DoubleValue(2.0)
+                    circleStrokeColor = ColorValue(Color.White)
                 }
 
                 LaunchedEffect(uiState.routeObject.isEmpty()) {
