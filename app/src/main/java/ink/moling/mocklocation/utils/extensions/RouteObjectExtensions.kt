@@ -1,6 +1,7 @@
 package ink.moling.mocklocation.utils.extensions
 
-import com.mapbox.geojson.LineString
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.MultiLineString
 import com.mapbox.geojson.Point
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RoutePoint
@@ -88,13 +89,38 @@ fun RouteObject.hasCycle(): Boolean {
     return false
 }
 
-fun RouteObject.toLineString(): LineString {
-    return LineString.fromLngLats(
-        points
-            .sortedBy { it.id }   // 如果需要按顺序
-            .map { Point.fromLngLat(it.lng, it.lat) }
-    )
+/**
+ * 将路线的每条 edge（连接关系）转换为 MultiLineString，支持分支拓扑。
+ * 每个独立 edge 作为一条 2 点 LineString，避免单条折线无法表达分支的问题。
+ */
+fun RouteObject.toMultiLineString(): MultiLineString {
+    val pointMap = toPointMap()
+    val lines = mutableListOf<List<Point>>()
+    val seenEdges = mutableSetOf<Pair<Int, Int>>()
+
+    for (point in points) {
+        for (neighborId in point.connects) {
+            val edgeKey = minOf(point.id, neighborId) to maxOf(point.id, neighborId)
+            if (seenEdges.add(edgeKey)) {
+                val neighbor = pointMap[neighborId] ?: continue
+                lines.add(
+                    listOf(
+                        Point.fromLngLat(point.lng, point.lat),
+                        Point.fromLngLat(neighbor.lng, neighbor.lat)
+                    )
+                )
+            }
+        }
+    }
+
+    return MultiLineString.fromLngLats(lines)
 }
+
+/**
+ * 将所有路点转换为 Feature 列表，用于在地图上绘制节点圆圈（包括孤立点）。
+ */
+fun RouteObject.toFeatureList(): List<Feature> =
+    points.map { Feature.fromGeometry(Point.fromLngLat(it.lng, it.lat)) }
 
 fun RouteObject.isEmpty(): Boolean {
     return this.points.isEmpty()
