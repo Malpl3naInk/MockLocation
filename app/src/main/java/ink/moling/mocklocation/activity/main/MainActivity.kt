@@ -266,7 +266,7 @@ class MainActivity : ComponentActivity() {
                         appName = getString(R.string.app_name),
                         onStartMockLocation = {
                             // 通过 ViewModel 启动模拟（保持架构清晰）
-                            if (uiState.selectedSimulation == MockMode.MOCK_MODE_POINT) {
+                            if (uiState.selectedSimulation == MockMode.POINT) {
                                 Logger.d(TAG, "Starting mock in Point mode")
                                 // 启动点位模拟
                                 viewModel.selectedMockPoint?.let { point ->
