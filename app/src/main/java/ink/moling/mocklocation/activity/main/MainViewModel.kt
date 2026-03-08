@@ -17,6 +17,8 @@ import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.utils.MockMode
+import ink.moling.mocklocation.utils.enumsToInt
+import ink.moling.mocklocation.utils.intToMockMode
 import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,8 +41,8 @@ data class ErrorState(
  * MainScreen 的 UI 状态
  */
 data class MainUiState(
-    // 模拟模式：0=Point, 1=Route
-    val selectedSimulation: Int = MockMode.MOCK_MODE_POINT,
+    // 模拟模式：使用枚举替代魔法数字
+    val selectedSimulation: MockMode = MockMode.POINT,
     // 点编辑状态
     val editingSimPoint: Boolean = false,
     val isPointModified: Boolean = false,
@@ -147,7 +149,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // 从 SharedPreferences 恢复模拟模式
         val savedSimulationMode = PrefsHelper.getMockMode(getApplication())
-        _uiState.update { it.copy(selectedSimulation = savedSimulationMode) }
+        _uiState.update { it.copy(selectedSimulation = intToMockMode(savedSimulationMode)) }
         
         // 从 SharedPreferences 恢复上次选择的模拟点 ID，然后从数据库查询
         val savedPointId = PrefsHelper.getSelectedPointId(getApplication())
@@ -534,10 +536,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // =====================================================
     
     /**
-     * 设置模拟模式：0=Point, 1=Route
+     * 设置模拟模式
      */
-    fun setSimulationMode(mode: Int) {
-        PrefsHelper.setMockMode(getApplication(), mode)
+    fun setSimulationMode(mode: MockMode) {
+        PrefsHelper.setMockMode(getApplication(), enumsToInt(mode))
         _uiState.update { it.copy(selectedSimulation = mode) }
     }
     

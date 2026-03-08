@@ -64,8 +64,8 @@ fun PageSimulationView(
         }
 
         when (uiState.selectedSimulation) {
-            MockMode.MOCK_MODE_POINT -> OptionsPointView(viewModel, scaffoldState)
-            MockMode.MOCK_MODE_ROUTE -> OptionsRouteView(viewModel, scaffoldState)
+            MockMode.POINT -> OptionsPointView(viewModel, scaffoldState)
+            MockMode.ROUTE -> OptionsRouteView(viewModel, scaffoldState)
         }
     }
 }
