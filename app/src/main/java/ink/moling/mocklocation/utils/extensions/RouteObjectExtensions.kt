@@ -122,6 +122,11 @@ fun RouteObject.toMultiLineString(): MultiLineString {
 fun RouteObject.toFeatureList(): List<Feature> =
     points.map { Feature.fromGeometry(Point.fromLngLat(it.lng, it.lat)) }
 
+fun RouteObject.toSelectedFeatureList(selected: Int): List<Feature> =
+    points
+        .filter { it.id == selected }
+        .map { Feature.fromGeometry(Point.fromLngLat(it.lng, it.lat)) }
+
 fun RouteObject.isEmpty(): Boolean {
     return this.points.isEmpty()
 }
