@@ -93,7 +93,7 @@ fun RouteObject.hasCycle(): Boolean {
  * 将路线的每条 edge（连接关系）转换为 MultiLineString，支持分支拓扑。
  * 每个独立 edge 作为一条 2 点 LineString，避免单条折线无法表达分支的问题。
  */
-fun RouteObject.toMultiLineString(tempPoint: Point? = null): MultiLineString {
+fun RouteObject.toMultiLineString(): MultiLineString {
     val pointMap = toPointMap()
     val lines = mutableListOf<List<Point>>()
     val seenEdges = mutableSetOf<Pair<Int, Int>>()
@@ -111,17 +111,6 @@ fun RouteObject.toMultiLineString(tempPoint: Point? = null): MultiLineString {
                 )
             }
         }
-    }
-
-    // 添加临时线段
-    if (tempPoint != null && points.isNotEmpty()) {
-        val last = points.last()
-        lines.add(
-            listOf(
-                Point.fromLngLat(last.lng, last.lat),
-                tempPoint
-            )
-        )
     }
 
     return MultiLineString.fromLngLats(lines)

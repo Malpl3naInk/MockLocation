@@ -290,9 +290,6 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
             id = newId,
             lat = lat,
             lng = lng,
-
-
-
             type = type,
             connects = connects
         )
