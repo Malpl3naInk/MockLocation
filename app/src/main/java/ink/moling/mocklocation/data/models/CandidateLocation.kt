@@ -20,4 +20,32 @@ data class CandidateLocation(
             source = Source.DEFAULT
         )
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CandidateLocation
+
+        if (lat != other.lat) return false
+        if (lng != other.lng) return false
+        if (alt != other.alt) return false
+        if (accuracy != other.accuracy) return false
+        if (time != other.time) return false
+        if (source != other.source) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = lat.hashCode()
+        result = 31 * result + lng.hashCode()
+        result = 31 * result + (alt?.hashCode() ?: 0)
+        result = 31 * result + accuracy.hashCode()
+        result = 31 * result + time.hashCode()
+        result = 31 * result + source.hashCode()
+        return result
+    }
+
+
 }
