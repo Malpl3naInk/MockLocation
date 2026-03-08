@@ -104,7 +104,7 @@ fun SheetPointView(
                                 Spacer(Modifier.weight(1f))
 
                                 IconButton(onClick = {
-                                    viewModel.setSheetDetail(1)
+                                    viewModel.setSheetDetail(ink.moling.mocklocation.utils.WaypointSheet.DETAIL)
                                 }) {
                                     Icon(
                                         Icons.Outlined.EditLocationAlt,

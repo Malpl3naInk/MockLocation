@@ -101,6 +101,7 @@ import ink.moling.mocklocation.ui.dialog.AddWaypointDialog
 import ink.moling.mocklocation.ui.dialog.UnsavedChangesDialog
 import ink.moling.mocklocation.utils.WaypointGraph
 import ink.moling.mocklocation.utils.WaypointSheet
+import ink.moling.mocklocation.utils.exitEditModes
 import ink.moling.mocklocation.utils.extensions.centerPoint
 import ink.moling.mocklocation.utils.extensions.isConnected
 import ink.moling.mocklocation.utils.extensions.isEmpty
@@ -133,16 +134,9 @@ fun WaypointScreen(
     
     // 添加路点对话框状态
     var showAddWaypointDialog by remember { mutableStateOf(false) }
-    
+
     // 编辑路点对话框状态
     var showEditWaypointDialog by remember { mutableStateOf(false) }
-
-    // 是否正在编辑连接点
-    var isEditingConnectionMode by remember { mutableStateOf(false) }
-
-    var isEditingRouteMode by remember { mutableStateOf(false) }
-
-    var isMenuExpanded by remember { mutableStateOf(false) }
 
     var mapInitialized by remember { mutableStateOf(false) }
 
@@ -242,11 +236,10 @@ fun WaypointScreen(
 
                     Spacer(Modifier.weight(1f))
 
-                    if (uiState.selectedSheetDetail == WaypointSheet.WAYPOINT_SHEET_POINTS) {
-                        if (uiState.selectedDisplayMode == WaypointGraph.WAYPOINT_GRAPH_MAP) {
+                    if (uiState.selectedSheetDetail == WaypointSheet.POINTS) {
+                        if (uiState.selectedDisplayMode == WaypointGraph.MAP) {
                             IconButton(onClick = {
-                                isEditingRouteMode = true
-                                isMenuExpanded = false
+                                viewModel.toggleRouteEditMode(true)
                                 scope.launch {
                                     scaffoldState.bottomSheetState.hide()
                                 }
@@ -270,18 +263,18 @@ fun WaypointScreen(
                 }
 
                 when (uiState.selectedSheetDetail) {
-                    WaypointSheet.WAYPOINT_SHEET_POINTS -> SheetPointView(
+                    WaypointSheet.POINTS -> SheetPointView(
                         viewModel,
                         uiState.selectedWaypointIndex
                     ) { index ->
                         viewModel.selectWaypoint(index)
                     }
-                    WaypointSheet.WAYPOINT_SHEET_DETAIL -> SheetDetailView(
+                    WaypointSheet.DETAIL -> SheetDetailView(
                         viewModel,
                         uiState.selectedWaypointIndex,
                         onWaypointEdit = { showEditWaypointDialog = true },
                         onConnectsEdit = {
-                            isEditingConnectionMode = true
+                            viewModel.toggleConnectionEditMode(true)
                             scope.launch {
                                 scaffoldState.bottomSheetState.hide()
                             }
@@ -352,9 +345,10 @@ fun WaypointScreen(
                     }
 
                     LaunchedEffect(
-                        mapViewportState.cameraState?.center
+                        mapViewportState.cameraState?.center,
+                        uiState.isEditingRouteMode
                     ) {
-                        if (isEditingRouteMode) {
+                        if (uiState.isEditingRouteMode) {
                             val lines = mutableListOf<List<Point>>()
                             val point = mapViewportState.cameraState?.center
                             if (point != null) {
@@ -422,7 +416,7 @@ fun WaypointScreen(
                     }
                 }
 
-                if (isEditingRouteMode) {
+                if (uiState.isEditingRouteMode) {
                     Icon(
                         imageVector = Icons.Filled.Place,
                         contentDescription = null,
@@ -435,7 +429,7 @@ fun WaypointScreen(
                 }
             }
 
-            if (uiState.selectedDisplayMode == WaypointGraph.WAYPOINT_GRAPH_CANVAS) {
+            if (uiState.selectedDisplayMode == WaypointGraph.CANVAS) {
                 Column(
                     modifier = Modifier.background(MaterialTheme.colorScheme.background)
                 ) {
@@ -452,13 +446,9 @@ fun WaypointScreen(
                             currentLocation.lng
                         ),
                         onPointClick = { index, _ ->
-                            if (isEditingConnectionMode) {
-                                Logger.d("WaypointScreen", "Clicked: $index, Selected: $uiState.selectedWaypointIndex")
-                                if (uiState.routeObject.isConnected(uiState.selectedWaypointIndex, index)) {
-                                    viewModel.removeWaypointConnections(uiState.selectedWaypointIndex, index)
-                                } else {
-                                    viewModel.addWaypointConnections(uiState.selectedWaypointIndex, index)
-                                }
+                            if (uiState.isEditingConnectionMode) {
+                                Logger.d("WaypointScreen", "Clicked: $index, Selected: ${uiState.selectedWaypointIndex}")
+                                viewModel.toggleWaypointConnection(uiState.selectedWaypointIndex, index)
                             } else {
                                 val isWaypointSelected = index == uiState.selectedWaypointIndex
                                 viewModel.selectWaypoint(if (isWaypointSelected) -1 else index)
@@ -471,7 +461,7 @@ fun WaypointScreen(
             }
 
             Column {
-                if (isEditingConnectionMode || isEditingRouteMode) {
+                if (uiState.isEditingConnectionMode || uiState.isEditingRouteMode) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -486,13 +476,13 @@ fun WaypointScreen(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (isEditingConnectionMode) {
+                        if (uiState.isEditingConnectionMode) {
                             Text(
                                 stringResource(R.string.waypoint_hint_connect_mode),
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
-                        } else if (isEditingRouteMode) {
+                        } else if (uiState.isEditingRouteMode) {
                             Text(
                                 stringResource(R.string.waypoint_hint_edit_route),
                                 fontWeight = FontWeight.Bold,
@@ -500,7 +490,7 @@ fun WaypointScreen(
                             )
                         }
                     }
-                    if (isEditingRouteMode) {
+                    if (uiState.isEditingRouteMode) {
                         Box(
                             modifier = Modifier.padding(horizontal = 20.dp)
                         ) {
@@ -548,7 +538,7 @@ fun WaypointScreen(
                                                 it.latitude(),
                                                 it.longitude()
                                             )
-                                            viewModel.addWaypointConnections(newId, lastId)
+                                            viewModel.toggleWaypointConnection(newId, lastId)
                                         }
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
@@ -587,7 +577,7 @@ fun WaypointScreen(
                                     Icons.Outlined.Save,
                                     contentDescription = null,
                                     tint = when (uiState.selectedDisplayMode) {
-                                        WaypointGraph.WAYPOINT_GRAPH_MAP -> Color.Black
+                                        WaypointGraph.MAP -> Color.Black
                                         else -> LocalContentColor.current
                                     }
                                 )
@@ -607,12 +597,12 @@ fun WaypointScreen(
                                 selectedIndex = uiState.selectedDisplayMode,
                                 onSelectedChange = {
                                     viewModel.setDisplayMode(it)
-                                    isMenuExpanded = false
+                                    if (uiState.isMenuExpanded) viewModel.toggleMenuExpanded()
                                 }
                             )
                         }
 
-                        if (uiState.selectedDisplayMode == WaypointGraph.WAYPOINT_GRAPH_MAP) {
+                        if (uiState.selectedDisplayMode == WaypointGraph.MAP) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth(),
@@ -621,7 +611,7 @@ fun WaypointScreen(
                                 IconButton(
                                     modifier = Modifier
                                         .padding(end = 6.dp),
-                                    onClick = { isMenuExpanded = !isMenuExpanded }
+                                    onClick = { viewModel.toggleMenuExpanded() }
                                 ) {
                                     Icon(
                                         Icons.Outlined.Menu,
@@ -640,7 +630,7 @@ fun WaypointScreen(
                 ) {
                     Column {
                         AnimatedVisibility(
-                            isMenuExpanded,
+                            uiState.isMenuExpanded,
                             modifier = Modifier.padding(end = 10.dp),
                             enter = expandVertically(
                                 expandFrom = Alignment.Top
@@ -714,8 +704,7 @@ fun WaypointScreen(
                     Column {
                         FloatingActionButton(
                             onClick = {
-                                if (isEditingConnectionMode) isEditingConnectionMode = false
-                                if (isEditingRouteMode) isEditingRouteMode = false
+                                viewModel.exitEditModes()
                                 scope.launch {
                                     scaffoldState.bottomSheetState.partialExpand()
                                 }
@@ -726,7 +715,7 @@ fun WaypointScreen(
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         ) {
                             Icon(
-                                imageVector = if (isEditingConnectionMode || isEditingRouteMode)
+                                imageVector = if (uiState.isEditingConnectionMode || uiState.isEditingRouteMode)
                                     Icons.Outlined.Check
                                 else
                                     Icons.Outlined.KeyboardArrowUp,
