@@ -23,12 +23,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Undo
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LocationOn
@@ -42,6 +46,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
@@ -65,6 +70,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mapbox.geojson.MultiLineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapboxDelicateApi
 import com.mapbox.maps.dsl.cameraOptions
@@ -72,6 +78,7 @@ import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.style.ColorValue
+import com.mapbox.maps.extension.compose.style.DoubleListValue
 import com.mapbox.maps.extension.compose.style.DoubleValue
 import com.mapbox.maps.extension.compose.style.layers.generated.CircleLayer
 import com.mapbox.maps.extension.compose.style.layers.generated.LineCapValue
@@ -292,101 +299,139 @@ fun WaypointScreen(
                 .fillMaxSize()
         ) {
             // Persistence map component
-            MapboxMap(
-                Modifier.fillMaxSize(),
-                mapViewportState = mapViewportState,
-                compass = { Compass(Modifier.padding(top = 120.dp)) },
-                scaleBar = { ScaleBar(
-                    Modifier.padding(bottom = 80.dp),
-                    alignment = Alignment.BottomStart
-                ) },
-                logo = { Logo(Modifier.padding(bottom = 40.dp)) },
-                attribution = { Attribution(Modifier.padding(bottom = 40.dp)) },
-                onMapClickListener = { point ->
-                    for (p in uiState.routeObject.points) {
-                        val distance = sqrt(
-                            abs(p.lat - point.latitude()) + abs(p.lng - point.longitude())
-                        )
-                        if (distance < 0.008) {
-                            viewModel.selectWaypoint(
-                                if (uiState.selectedWaypointIndex == p.id) -1 else p.id
+            Box(
+                Modifier.fillMaxSize()
+            ) {
+                MapboxMap(
+                    Modifier.fillMaxSize(),
+                    mapViewportState = mapViewportState,
+                    compass = { Compass(Modifier.padding(top = 120.dp)) },
+                    scaleBar = { ScaleBar(
+                        Modifier.padding(bottom = 80.dp),
+                        alignment = Alignment.BottomStart
+                    ) },
+                    logo = { Logo(Modifier.padding(bottom = 40.dp)) },
+                    attribution = { Attribution(Modifier.padding(bottom = 40.dp)) },
+                    onMapClickListener = { point ->
+                        for (p in uiState.routeObject.points) {
+                            val distance = sqrt(
+                                abs(p.lat - point.latitude()) + abs(p.lng - point.longitude())
                             )
-                            break
+                            if (distance < 0.008) {
+                                viewModel.selectWaypoint(
+                                    if (uiState.selectedWaypointIndex == p.id) -1 else p.id
+                                )
+                                break
+                            }
+                        }
+                        true
+                    }
+                ) {
+                    // 1. Location puck + follow-puck
+                    MapEffect(Unit) { mapView ->
+                        mapView.location.updateSettings {
+                            locationPuck = createDefault2DPuck()
+                            enabled = true
                         }
                     }
-                    true
-                }
-            ) {
-                // 1. Location puck + follow-puck
-                MapEffect(Unit) { mapView ->
-                    mapView.location.updateSettings {
-                        locationPuck = createDefault2DPuck()
-                        enabled = true
-                    }
-                }
 
-                // 2. GeoJSON sources
-                val edgeSource  = rememberGeoJsonSourceState {}
-                val pointSource = rememberGeoJsonSourceState {}
+                    // 2. GeoJSON sources
+                    val edgeSource  = rememberGeoJsonSourceState {}
+                    val pointSource = rememberGeoJsonSourceState {}
+                    val newRouteSource = rememberGeoJsonSourceState {}
 
-                // 3. Update sources whenever route changes
-                LaunchedEffect(
-                    uiState.routeObject,
-                    uiState.selectedWaypointIndex
-                ) {
-                    edgeSource.data  = GeoJSONData(uiState.routeObject.toMultiLineString())
-                    pointSource.data = GeoJSONData(
-                        uiState.routeObject.toSelectedFeatureList(uiState.selectedWaypointIndex)
-                    )
-                }
-
-                LaunchedEffect(
-                    mapViewportState.cameraState?.center
-                ) {
-                    if (isEditingRouteMode) {
-                        edgeSource.data  = GeoJSONData(
-                            uiState.routeObject.toMultiLineString(
-                                mapViewportState.cameraState?.center
-                            )
+                    // 3. Update sources whenever route changes
+                    LaunchedEffect(
+                        uiState.routeObject,
+                        uiState.selectedWaypointIndex
+                    ) {
+                        edgeSource.data  = GeoJSONData(uiState.routeObject.toMultiLineString())
+                        pointSource.data = GeoJSONData(
+                            uiState.routeObject.toSelectedFeatureList(uiState.selectedWaypointIndex)
                         )
                     }
-                }
 
-                // 4. Line layer — each edge as an independent segment, supports branches
-                LineLayer(sourceState = edgeSource) {
-                    lineWidth = DoubleValue(4.0)
-                    lineColor = ColorValue(Color(0xFF2F7AC6))
-                    lineCap   = LineCapValue.ROUND
-                    lineJoin  = LineJoinValue.ROUND
-                }
-
-                // 5. Circle layer — renders selected node
-                CircleLayer(sourceState = pointSource) {
-                    circleRadius      = DoubleValue(6.0)
-                    circleColor       = ColorValue(Color(0xFF2F7AC6))
-                    circleStrokeWidth = DoubleValue(2.0)
-                    circleStrokeColor = ColorValue(Color.White)
-                }
-
-                // 6. Move default camera location
-                LaunchedEffect(uiState.routeObject, currentLocation) {
-                    if (mapInitialized || currentLocation.source == Source.DEFAULT)
-                        return@LaunchedEffect
-
-                    val center = if (uiState.routeObject.isEmpty()) {
-                        Point.fromLngLat(currentLocation.lng, currentLocation.lat)
-                    } else {
-                        uiState.routeObject.centerPoint()
-                    }
-
-                    if (!mapInitialized) {
-                        mapViewportState.setCameraOptions(
-                            cameraOptions {
-                                center(center)
+                    LaunchedEffect(
+                        mapViewportState.cameraState?.center
+                    ) {
+                        if (isEditingRouteMode) {
+                            val lines = mutableListOf<List<Point>>()
+                            val point = mapViewportState.cameraState?.center
+                            if (point != null) {
+                                val lastPoint = uiState.routeObject.points.last()
+                                lines.add(
+                                    listOf(
+                                        Point.fromLngLat(point.longitude(), point.latitude()),
+                                        Point.fromLngLat(lastPoint.lng, lastPoint.lat)
+                                    )
+                                )
+                                newRouteSource.data  = GeoJSONData(
+                                    MultiLineString.fromLngLats(lines)
+                                )
                             }
-                        )
-                        mapInitialized = true
+                        }
                     }
+
+                    // 4. Line layer — each edge as an independent segment, supports branches
+                    LineLayer(sourceState = edgeSource) {
+                        lineWidth = DoubleValue(4.0)
+                        lineColor = ColorValue(Color(0xFF2F7AC6))
+                        lineCap   = LineCapValue.ROUND
+                        lineJoin  = LineJoinValue.ROUND
+                    }
+
+                    // New route line layer
+                    LineLayer(sourceState = newRouteSource) {
+                        lineWidth = DoubleValue(4.0)
+                        lineColor = ColorValue(Color(0xFF2F7AC6))
+                        lineCap   = LineCapValue.ROUND
+                        lineJoin  = LineJoinValue.ROUND
+                        lineDasharray = DoubleListValue(
+                            2.0,  // 实线
+                            2.0,  // 间隔
+                        )
+                    }
+
+                    // 5. Circle layer — renders selected node
+                    CircleLayer(sourceState = pointSource) {
+                        circleRadius      = DoubleValue(6.0)
+                        circleColor       = ColorValue(Color(0xFF2F7AC6))
+                        circleStrokeWidth = DoubleValue(2.0)
+                        circleStrokeColor = ColorValue(Color.White)
+                    }
+
+                    // 6. Move default camera location
+                    LaunchedEffect(uiState.routeObject, currentLocation) {
+                        if (mapInitialized || currentLocation.source == Source.DEFAULT)
+                            return@LaunchedEffect
+
+                        val center = if (uiState.routeObject.isEmpty()) {
+                            Point.fromLngLat(currentLocation.lng, currentLocation.lat)
+                        } else {
+                            uiState.routeObject.centerPoint()
+                        }
+
+                        if (!mapInitialized) {
+                            mapViewportState.setCameraOptions(
+                                cameraOptions {
+                                    center(center)
+                                }
+                            )
+                            mapInitialized = true
+                        }
+                    }
+                }
+
+                if (isEditingRouteMode) {
+                    Icon(
+                        imageVector = Icons.Filled.Place,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(72.dp)
+                            .padding(bottom = 36.dp)
+                    )
                 }
             }
 
@@ -441,11 +486,80 @@ fun WaypointScreen(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            stringResource(R.string.waypoint_hint_connect_mode),
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        if (isEditingConnectionMode) {
+                            Text(
+                                stringResource(R.string.waypoint_hint_connect_mode),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        } else if (isEditingRouteMode) {
+                            Text(
+                                stringResource(R.string.waypoint_hint_edit_route),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                    if (isEditingRouteMode) {
+                        Box(
+                            modifier = Modifier.padding(horizontal = 20.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surface,
+                                        shape = RoundedCornerShape(50)
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(
+                                    modifier = Modifier
+                                        .padding(horizontal = 3.dp),
+                                    onClick = {
+                                        viewModel.deleteWaypoint(
+                                            uiState.routeObject.points.last().id
+                                        )
+                                        val currentLastPoint = uiState.routeObject.points.last()
+                                        mapViewportState.setCameraOptions(
+                                            cameraOptions {
+                                                center(Point.fromLngLat(
+                                                    currentLastPoint.lng,
+                                                    currentLastPoint.lat
+                                                ))
+                                            }
+                                        )
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Outlined.Undo,
+                                        contentDescription = null
+                                    )
+                                }
+
+                                IconButton(
+                                    modifier = Modifier
+                                        .padding(horizontal = 3.dp),
+                                    onClick = {
+                                        mapViewportState.cameraState?.center!!.let {
+                                            val lastId = uiState.routeObject.points.last().id
+                                            val newId = viewModel.addWaypoint(
+                                                it.latitude(),
+                                                it.longitude()
+                                            )
+                                            viewModel.addWaypointConnections(newId, lastId)
+                                        }
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                    )
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Done,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
                     }
                 } else {
                     Box(
