@@ -101,7 +101,6 @@ import ink.moling.mocklocation.ui.dialog.AddWaypointDialog
 import ink.moling.mocklocation.ui.dialog.UnsavedChangesDialog
 import ink.moling.mocklocation.utils.WaypointGraph
 import ink.moling.mocklocation.utils.WaypointSheet
-import ink.moling.mocklocation.utils.exitEditModes
 import ink.moling.mocklocation.utils.extensions.centerPoint
 import ink.moling.mocklocation.utils.extensions.isConnected
 import ink.moling.mocklocation.utils.extensions.isEmpty
@@ -229,8 +228,8 @@ fun WaypointScreen(
                             PillSelection(Icons.Outlined.LocationOn, stringResource(R.string.waypoint_pill_waypoints)),
                             PillSelection(Icons.Outlined.Description, stringResource(R.string.waypoint_pill_details))
                         ),
-                        selectedIndex = uiState.selectedSheetDetail,
-                        onSelectedChange = { viewModel.setSheetDetail(it) },
+                        selectedIndex = if (uiState.selectedSheetDetail == WaypointSheet.POINTS) 0 else 1,
+                        onSelectedChange = { viewModel.setSheetDetail(if (it == 0) WaypointSheet.POINTS else WaypointSheet.DETAIL) },
                         selectedBackground = MaterialTheme.colorScheme.secondaryContainer
                     )
 
@@ -594,9 +593,9 @@ fun WaypointScreen(
                                     PillSelection(Icons.Outlined.Route, stringResource(R.string.waypoint_pill_route)),
                                     PillSelection(Icons.Outlined.Map, stringResource(R.string.waypoint_pill_map))
                                 ),
-                                selectedIndex = uiState.selectedDisplayMode,
+                                selectedIndex = if (uiState.selectedDisplayMode == WaypointGraph.CANVAS) 0 else 1,
                                 onSelectedChange = {
-                                    viewModel.setDisplayMode(it)
+                                    viewModel.setDisplayMode(if (it == 0) WaypointGraph.CANVAS else WaypointGraph.MAP)
                                     if (uiState.isMenuExpanded) viewModel.toggleMenuExpanded()
                                 }
                             )
