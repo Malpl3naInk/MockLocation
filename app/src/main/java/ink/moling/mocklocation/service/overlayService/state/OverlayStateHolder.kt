@@ -1,6 +1,5 @@
 package ink.moling.mocklocation.service.overlayService.state
 
-import ink.moling.mocklocation.utils.MockMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,7 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 object OverlayStateHolder {
     data class OverlayState(
-        val mockMode: Int = MockMode.MOCK_MODE_POINT,
+        val mockMode: Int = 0,  // 0 = POINT, 1 = ROUTE
         /* 点位模拟相关 */
         val direction: Float = 0f,      // 方向角度（弧度），0为北，顺时针增加
         val speed: Float = 0f,          // 速度（0-1），0为静止，1为最大速度
@@ -37,7 +36,7 @@ object OverlayStateHolder {
      */
     fun update(direction: Float, speed: Float, maxSpeed: Double = 5.0) {
         _state.value = OverlayState(
-            MockMode.MOCK_MODE_POINT,
+            0,  // POINT mode
             direction,
             speed,
             maxSpeed.coerceAtLeast(0.1) // 最小速度 0.1 m/s
@@ -50,7 +49,7 @@ object OverlayStateHolder {
      */
     fun update(speed: Float, maxSpeed: Double = 5.0) {
         _state.value = OverlayState(
-            MockMode.MOCK_MODE_ROUTE,
+            1,  // ROUTE mode
             0.0f,
             speed,
             maxSpeed.coerceAtLeast(0.1) // 最小速度 0.1 m/s

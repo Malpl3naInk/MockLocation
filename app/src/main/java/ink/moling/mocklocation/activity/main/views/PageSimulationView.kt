@@ -58,8 +58,8 @@ fun PageSimulationView(
                     PillSelection(Icons.Outlined.Route)
                 ),
                 enabled = !uiState.editingSimPoint,
-                selectedIndex = uiState.selectedSimulation,
-                onSelectedChange = { viewModel.setSimulationMode(it) }
+                selectedIndex = if (uiState.selectedSimulation == MockMode.POINT) 0 else 1,
+                onSelectedChange = { viewModel.setSimulationMode(if (it == 0) MockMode.POINT else MockMode.ROUTE) }
             )
         }
 

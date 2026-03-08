@@ -3,6 +3,7 @@ package ink.moling.mocklocation.activity.main.views
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.border
+import ink.moling.mocklocation.utils.MockMode
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -188,7 +189,7 @@ fun PageMainView(
                     )
                     Text(
                         text = when(uiState.selectedSimulation) {
-                            0    -> stringResource(R.string.main_selection_point, uiState.pointName)
+                            MockMode.POINT -> stringResource(R.string.main_selection_point, uiState.pointName)
                             else -> stringResource(R.string.main_selection_route, uiState.routeName)
                         }
                     )
@@ -199,7 +200,7 @@ fun PageMainView(
                 Icon(
                     imageVector = (
                             when(uiState.selectedSimulation) {
-                                0    -> Icons.Outlined.LocationOn
+                                MockMode.POINT -> Icons.Outlined.LocationOn
                                 else -> Icons.Outlined.Route
                             }
                             ),
