@@ -352,25 +352,23 @@ fun WaypointScreen(
                     circleStrokeColor = ColorValue(Color.White)
                 }
 
-                LaunchedEffect(uiState.routeObject.isEmpty()) {
-                    if (uiState.routeObject.isEmpty()) {
-                        mapViewportState.setCameraOptions(
-                            cameraOptions {
-                                center(
-                                    Point.fromLngLat(
-                                        currentLocation?.lng ?: 0.0005,
-                                        currentLocation?.lat ?: 51.4769
-                                    )
+                if (uiState.routeObject.isEmpty()) {
+                    mapViewportState.setCameraOptions(
+                        cameraOptions {
+                            center(
+                                Point.fromLngLat(
+                                    currentLocation?.lng ?: 0.0005,
+                                    currentLocation?.lat ?: 51.4769
                                 )
-                            }
-                        )
-                    } else {
-                        mapViewportState.setCameraOptions(
-                            cameraOptions {
-                                center(uiState.routeObject.centerPoint())
-                            }
-                        )
-                    }
+                            )
+                        }
+                    )
+                } else {
+                    mapViewportState.setCameraOptions(
+                        cameraOptions {
+                            center(uiState.routeObject.centerPoint())
+                        }
+                    )
                 }
             }
 
