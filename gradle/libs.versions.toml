@@ -1,7 +1,8 @@
 [versions]
 agp = "8.13.2"
 mapboxNdk27 = "11.19.0"
-kotlin = "2.0.21"
+kotlin = "2.3.10"
+ksp = "2.3.4"
 coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -12,7 +13,7 @@ composeBom = "2024.09.00"
 mapboxComposeNdk27 = "11.19.0"
 material3 = "1.4.0"
 lifecycleViewmodel = "2.8.7"
-room = "2.6.1"
+room = "2.7.1"
 gson = "2.10.1"
 openlocationcode = "1.0.4"
 lifecycleService = "2.8.7"
@@ -60,3 +61,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 license-report = { id = "com.jaredsburrows.license", version.ref = "licenseReport" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
