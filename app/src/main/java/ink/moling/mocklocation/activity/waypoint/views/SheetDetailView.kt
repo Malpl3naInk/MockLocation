@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.waypoint.WaypointViewModel
 import ink.moling.mocklocation.utils.WaypointGraph
+import ink.moling.mocklocation.utils.WaypointSheet
 
 @Composable
 fun SheetDetailView(
@@ -106,7 +107,7 @@ fun SheetDetailView(
                         Text(stringResource(R.string.waypoint_detail_button_change_location))
                     }
 
-                    if (uiState.selectedDisplayMode == WaypointGraph.WAYPOINT_GRAPH_CANVAS) {
+                    if (uiState.selectedDisplayMode == WaypointGraph.CANVAS) {
                         Button(
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
