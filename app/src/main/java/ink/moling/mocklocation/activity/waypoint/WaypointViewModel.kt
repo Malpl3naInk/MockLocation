@@ -36,7 +36,7 @@ data class WaypointUiState(
     
     // 编辑状态
     val isModified: Boolean = false,
-    val selectedWaypointIndex: Int? = null,
+    val selectedWaypointIndex: Int = -1,
     
     // UI 控制
     val selectedDisplayMode: Int = 0,  // 0=Route, 1=Map
@@ -377,7 +377,7 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
             it.copy(
                 routeObject = updatedRoute.copy(points = updatedPoints),
                 isModified = true,
-                selectedWaypointIndex = null
+                selectedWaypointIndex = -1
             ) 
         }
         Logger.d("WaypointViewModel", "Deleted waypoint #$deletedId at index $index")
@@ -418,7 +418,7 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
      * 
      * @param index 路点索引，null 表示取消选择
      */
-    fun selectWaypoint(index: Int?) {
+    fun selectWaypoint(index: Int) {
         _uiState.update { it.copy(selectedWaypointIndex = index) }
     }
     

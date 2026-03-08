@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
@@ -53,7 +54,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -97,10 +97,12 @@ import ink.moling.mocklocation.utils.WaypointSheet
 import ink.moling.mocklocation.utils.extensions.centerPoint
 import ink.moling.mocklocation.utils.extensions.isConnected
 import ink.moling.mocklocation.utils.extensions.isEmpty
-import ink.moling.mocklocation.utils.extensions.toFeatureList
 import ink.moling.mocklocation.utils.extensions.toMultiLineString
+import ink.moling.mocklocation.utils.extensions.toSelectedFeatureList
 import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class, MapboxDelicateApi::class)
 @Composable
@@ -196,8 +198,6 @@ fun WaypointScreen(
         }
     }
 
-    var selectedWaypoint by remember { mutableIntStateOf(-1) }
-
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 384.dp,
@@ -232,6 +232,17 @@ fun WaypointScreen(
                     Spacer(Modifier.weight(1f))
 
                     if (uiState.selectedSheetDetail == WaypointSheet.WAYPOINT_SHEET_POINTS) {
+                        if (uiState.selectedDisplayMode == WaypointGraph.WAYPOINT_GRAPH_MAP) {
+                            IconButton(onClick = {
+
+                            }) {
+                                Icon(
+                                    Icons.Outlined.Edit,
+                                    contentDescription = null
+                                )
+                            }
+                        }
+
                         IconButton(onClick = {
                             showAddWaypointDialog = true
                         }) {
@@ -246,14 +257,13 @@ fun WaypointScreen(
                 when (uiState.selectedSheetDetail) {
                     WaypointSheet.WAYPOINT_SHEET_POINTS -> SheetPointView(
                         viewModel,
-                        selectedWaypoint
+                        uiState.selectedWaypointIndex
                     ) { index ->
-                        selectedWaypoint = index
-                        viewModel.selectWaypoint(if (index == -1) null else index)
+                        viewModel.selectWaypoint(index)
                     }
                     WaypointSheet.WAYPOINT_SHEET_DETAIL -> SheetDetailView(
                         viewModel,
-                        selectedWaypoint,
+                        uiState.selectedWaypointIndex,
                         onWaypointEdit = { showEditWaypointDialog = true },
                         onConnectsEdit = {
                             isEditingConnectionMode = true
@@ -262,7 +272,7 @@ fun WaypointScreen(
                             }
                         },
                         onConnectsDelete = {
-                            viewModel.deleteWaypoint(selectedWaypoint)
+                            viewModel.deleteWaypoint(uiState.selectedWaypointIndex)
                         }
                     )
                 }
@@ -285,7 +295,21 @@ fun WaypointScreen(
                 logo = { Logo(Modifier.padding(bottom = 40.dp)) },
                 attribution = { Attribution(Modifier.padding(bottom = 40.dp)) },
                 onMapClickListener = { point ->
-                    Log.d("Click at:", "${point.latitude()}, ${point.longitude()}")
+                    Log.d("WayPointScreen", "Click at: ${point.latitude()}, ${point.longitude()}")
+                    mapViewportState.cameraState?.center?.let {
+                        Log.d("WayPointScreen", "Camera at: ${it.latitude()}, ${it.longitude()}")
+                    }
+                    for (p in uiState.routeObject.points) {
+                        val distance = sqrt(abs(p.lat - point.latitude()) + abs(p.lng - point.longitude()))
+                        Log.d("WayPointScreen", "Distance to [${p.id}]: $distance")
+                        if (distance < 0.008) {
+                            if (uiState.selectedWaypointIndex == p.id)
+                                viewModel.selectWaypoint(-1)
+                            else
+                                viewModel.selectWaypoint(p.id)
+                            break
+                        }
+                    }
                     true
                 }
             ) {
@@ -302,9 +326,14 @@ fun WaypointScreen(
                 val pointSource = rememberGeoJsonSourceState {}
 
                 // 3. Update sources whenever route changes
-                LaunchedEffect(uiState.routeObject) {
+                LaunchedEffect(
+                    uiState.routeObject,
+                    uiState.selectedWaypointIndex
+                ) {
                     edgeSource.data  = GeoJSONData(uiState.routeObject.toMultiLineString())
-                    pointSource.data = GeoJSONData(uiState.routeObject.toFeatureList())
+                    pointSource.data = GeoJSONData(
+                        uiState.routeObject.toSelectedFeatureList(uiState.selectedWaypointIndex)
+                    )
                 }
 
                 // 4. Line layer — each edge as an independent segment, supports branches
@@ -354,7 +383,7 @@ fun WaypointScreen(
                     LatLngScatter(
                         modifier = Modifier.fillMaxHeight(0.7f),
                         routeObject = uiState.routeObject,
-                        highlightPointId = uiState.selectedWaypointIndex?.let {
+                        highlightPointId = uiState.selectedWaypointIndex.let {
                             uiState.routeObject.points.getOrNull(it)?.id
                         },
                         currentLocation = Pair(
@@ -363,16 +392,15 @@ fun WaypointScreen(
                         ),
                         onPointClick = { index, _ ->
                             if (isEditingConnectionMode) {
-                                Logger.d("WaypointScreen", "Clicked: $index, Selected: $selectedWaypoint")
-                                if (uiState.routeObject.isConnected(selectedWaypoint, index)) {
-                                    viewModel.removeWaypointConnections(selectedWaypoint, index)
+                                Logger.d("WaypointScreen", "Clicked: $index, Selected: $uiState.selectedWaypointIndex")
+                                if (uiState.routeObject.isConnected(uiState.selectedWaypointIndex, index)) {
+                                    viewModel.removeWaypointConnections(uiState.selectedWaypointIndex, index)
                                 } else {
-                                    viewModel.addWaypointConnections(selectedWaypoint, index)
+                                    viewModel.addWaypointConnections(uiState.selectedWaypointIndex, index)
                                 }
                             } else {
-                                val isWaypointSelected = index == selectedWaypoint
-                                selectedWaypoint = if (isWaypointSelected) -1 else index
-                                viewModel.selectWaypoint(if (isWaypointSelected) null else index)
+                                val isWaypointSelected = index == uiState.selectedWaypointIndex
+                                viewModel.selectWaypoint(if (isWaypointSelected) -1 else index)
                             }
                         }
                     )
@@ -612,8 +640,8 @@ fun WaypointScreen(
     }
     
     // 编辑路点对话框
-    if (showEditWaypointDialog && selectedWaypoint != -1) {
-        val currentWaypoint = uiState.routeObject.points.getOrNull(selectedWaypoint)
+    if (showEditWaypointDialog && uiState.selectedWaypointIndex != -1) {
+        val currentWaypoint = uiState.routeObject.points.getOrNull(uiState.selectedWaypointIndex)
         currentWaypoint?.let { waypoint ->
             AddWaypointDialog(
                 currentLatitude = currentLocation?.lat,
@@ -623,7 +651,7 @@ fun WaypointScreen(
                 isEditMode = true,
                 onConfirm = { lat, lng ->
                     if (showEditWaypointDialog) {
-                        viewModel.updateWaypoint(selectedWaypoint, lat, lng)
+                        viewModel.updateWaypoint(uiState.selectedWaypointIndex, lat, lng)
                         showEditWaypointDialog = false
                     }
                 },
