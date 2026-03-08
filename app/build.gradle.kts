@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.license.report)
-    kotlin("kapt")
+    alias(libs.plugins.ksp)
 }
 
 licenseReport {
@@ -108,11 +108,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        jvmToolchain(17)
     }
     buildFeatures {
         compose = true
@@ -143,7 +143,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.savedstate.ktx)
     implementation(libs.androidx.documentfile)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     // Gson for JSON serialization
     implementation(libs.google.gson)
