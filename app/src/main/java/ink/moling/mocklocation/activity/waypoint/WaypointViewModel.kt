@@ -32,16 +32,21 @@ data class WaypointUiState(
     val isNewRoute: Boolean = true,
     val routeId: Long? = null,
 
-    var routeObject: RouteObject = RouteObject.Empty,
-    
+    val routeObject: RouteObject = RouteObject.Empty,
+
     // 编辑状态
     val isModified: Boolean = false,
     val selectedWaypointIndex: Int = -1,
-    
-    // UI 控制
-    val selectedDisplayMode: Int = 0,  // 0=Route, 1=Map
-    val selectedSheetDetail: Int = 0,  // 0=Waypoints, 1=Details
-    
+
+    // UI 控制 - 使用枚举替代魔法数字
+    val selectedDisplayMode: WaypointGraph = WaypointGraph.CANVAS,
+    val selectedSheetDetail: WaypointSheet = WaypointSheet.POINTS,
+
+    // 编辑模式状态（从 Screen 移到 ViewModel）
+    val isEditingConnectionMode: Boolean = false,
+    val isEditingRouteMode: Boolean = false,
+    val isMenuExpanded: Boolean = false,
+
     // 错误状态
     val errorMessage: String? = null
 )
@@ -381,31 +386,22 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
     }
     
     /**
-     * 添加路点的连接
-     * 
-     * @param from 起始路点索引
-     * @param to 中止路点索引
-     */
-    fun addWaypointConnections(from: Int, to: Int) {
-        _uiState.update { 
-            it.copy(
-                isModified = true,
-                routeObject = it.routeObject.addConn(from, to)
-            ) 
-        }
-    }
-
-    /**
-     * 添加路点的连接
+     * 切换路点连接状态（添加或移除）
      *
      * @param from 起始路点索引
-     * @param to 中止路点索引
+     * @param to 目标路点索引
      */
-    fun removeWaypointConnections(from: Int, to: Int) {
+    fun toggleWaypointConnection(from: Int, to: Int) {
+        val currentRoute = _uiState.value.routeObject
+        val isConnected = currentRoute.isConnected(from, to)
+
         _uiState.update {
             it.copy(
                 isModified = true,
-                routeObject = it.routeObject.removeConn(from, to)
+                routeObject = if (isConnected)
+                    it.routeObject.removeConn(from, to)
+                else
+                    it.routeObject.addConn(from, to)
             )
         }
     }
@@ -425,20 +421,59 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
     
     /**
      * 设置显示模式
-     * 
-     * @param mode 0=Route, 1=Map
      */
-    fun setDisplayMode(mode: Int) {
+    fun setDisplayMode(mode: WaypointGraph) {
         _uiState.update { it.copy(selectedDisplayMode = mode) }
     }
-    
+
     /**
      * 设置底部表单详情
-     * 
-     * @param detail 0=Waypoints, 1=Details
      */
-    fun setSheetDetail(detail: Int) {
+    fun setSheetDetail(detail: WaypointSheet) {
         _uiState.update { it.copy(selectedSheetDetail = detail) }
+    }
+
+    /**
+     * 切换连接编辑模式
+     */
+    fun toggleConnectionEditMode(enabled: Boolean) {
+        _uiState.update {
+            it.copy(
+                isEditingConnectionMode = enabled,
+                isEditingRouteMode = if (enabled) false else it.isEditingRouteMode
+            )
+        }
+    }
+
+    /**
+     * 切换路线编辑模式
+     */
+    fun toggleRouteEditMode(enabled: Boolean) {
+        _uiState.update {
+            it.copy(
+                isEditingRouteMode = enabled,
+                isEditingConnectionMode = if (enabled) false else it.isEditingConnectionMode
+            )
+        }
+    }
+
+    /**
+     * 切换菜单展开状态
+     */
+    fun toggleMenuExpanded() {
+        _uiState.update { it.copy(isMenuExpanded = !it.isMenuExpanded) }
+    }
+
+    /**
+     * 关闭所有编辑模式
+     */
+    fun exitEditModes() {
+        _uiState.update {
+            it.copy(
+                isEditingConnectionMode = false,
+                isEditingRouteMode = false
+            )
+        }
     }
     
     /**
