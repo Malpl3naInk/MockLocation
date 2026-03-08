@@ -9,6 +9,22 @@ enum class MockMode {
 }
 
 /**
+ * Int 转 MockMode
+ */
+fun intToMockMode(value: Int): MockMode = when (value) {
+    1 -> MockMode.ROUTE
+    else -> MockMode.POINT
+}
+
+/**
+ * MockMode 转 Int
+ */
+fun enumsToInt(mode: MockMode): Int = when (mode) {
+    MockMode.POINT -> 0
+    MockMode.ROUTE -> 1
+}
+
+/**
  * 底部表单页面枚举
  */
 enum class WaypointSheet {

@@ -164,8 +164,8 @@ fun MainScreen(
                     .padding(vertical = 16.dp, horizontal = 32.dp)
             ) {
                 when (uiState.selectedSimulation) {
-                    MockMode.MOCK_MODE_POINT -> SheetPointsView(viewModel)
-                    MockMode.MOCK_MODE_ROUTE -> SheetRoutesView(viewModel)
+                    MockMode.POINT -> SheetPointsView(viewModel)
+                    MockMode.ROUTE -> SheetRoutesView(viewModel)
                 }
             }
         }
