@@ -30,9 +30,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AddLocationAlt
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LocationOn
@@ -516,18 +516,20 @@ fun WaypointScreen(
                                     modifier = Modifier
                                         .padding(horizontal = 3.dp),
                                     onClick = {
-                                        viewModel.deleteWaypoint(
-                                            uiState.routeObject.points.last().id
-                                        )
-                                        val currentLastPoint = uiState.routeObject.points.last()
-                                        mapViewportState.setCameraOptions(
-                                            cameraOptions {
-                                                center(Point.fromLngLat(
-                                                    currentLastPoint.lng,
-                                                    currentLastPoint.lat
-                                                ))
-                                            }
-                                        )
+                                        val points = uiState.routeObject.points
+                                        val last = points.lastOrNull() ?: return@IconButton
+
+                                        val secondLast = points.getOrNull(points.lastIndex - 1)
+
+                                        viewModel.deleteWaypoint(last.id)
+
+                                        secondLast?.let {
+                                            mapViewportState.setCameraOptions(
+                                                cameraOptions {
+                                                    center(Point.fromLngLat(it.lng, it.lat))
+                                                }
+                                            )
+                                        }
                                     }
                                 ) {
                                     Icon(
@@ -550,12 +552,13 @@ fun WaypointScreen(
                                         }
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                        containerColor = MaterialTheme.colorScheme.primary
                                     )
                                 ) {
                                     Icon(
-                                        Icons.Outlined.Done,
-                                        contentDescription = null
+                                        Icons.Outlined.AddLocationAlt,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
                             }
