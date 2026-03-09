@@ -82,7 +82,7 @@ fun OverlayScreen(
     var joystickLocked      by remember { mutableStateOf(true) }
     // 随 Selected preset 修改 State holder 中的最大速度
     LaunchedEffect(selectedSpeedPreset) {
-        if (overlayState.mockMode == MockMode.MOCK_MODE_POINT) {
+        if (overlayState.mockMode == 0) {
             OverlayStateHolder.update(
                 overlayState.direction,
                 overlayState.speed,
@@ -159,7 +159,7 @@ fun OverlayScreen(
             }
             if (!isOverlayMinimized) {
                 // 摇杆锁定
-                if (overlayState.mockMode == MockMode.MOCK_MODE_POINT) {
+                if (overlayState.mockMode == 0) {
                     // 模式为点位模拟时显示摇杆锁定按钮
                     Box(
                         modifier = Modifier
@@ -225,7 +225,7 @@ fun OverlayScreen(
                 Spacer(Modifier.height(8.dp))
 
                 when (overlayState.mockMode) {
-                    MockMode.MOCK_MODE_POINT -> OverlayPointView(
+                    0 -> OverlayPointView(
                         currentSpeedPer,
                         joystickDirection,
                         currentSpeedPresets[selectedSpeedPreset],
@@ -241,7 +241,7 @@ fun OverlayScreen(
                             currentSpeedPresets[selectedSpeedPreset]
                         )
                     }
-                    MockMode.MOCK_MODE_ROUTE -> OverlayRouteView(
+                    1 -> OverlayRouteView(
                         currentSpeedPer,
                         currentSpeedPresets[selectedSpeedPreset]
                     ) { speed ->
@@ -256,7 +256,7 @@ fun OverlayScreen(
 
                 Row {
                     IconButton(onClick = {
-                        if (overlayState.mockMode == MockMode.MOCK_MODE_ROUTE) {
+                        if (overlayState.mockMode == 1) {
                             val currentSpeed =
                                 currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
                             val newPreset = currentSpeedPresets[0]
@@ -275,7 +275,7 @@ fun OverlayScreen(
                         )
                     }
                     IconButton(onClick = {
-                        if (overlayState.mockMode == MockMode.MOCK_MODE_ROUTE) {
+                        if (overlayState.mockMode == 1) {
                             val currentSpeed =
                                 currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
                             val newPreset = currentSpeedPresets[1]
@@ -294,7 +294,7 @@ fun OverlayScreen(
                         )
                     }
                     IconButton(onClick = {
-                        if (overlayState.mockMode == MockMode.MOCK_MODE_ROUTE) {
+                        if (overlayState.mockMode == 1) {
                             val currentSpeed =
                                 currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
                             val newPreset = currentSpeedPresets[2]

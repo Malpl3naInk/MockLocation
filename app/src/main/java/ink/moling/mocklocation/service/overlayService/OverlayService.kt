@@ -58,7 +58,7 @@ class OverlayService : LifecycleService(), SavedStateRegistryOwner {
                 }
             }
             OverlayStateHolder.setMode(
-                it.getIntExtra(EXTRA_DISPLAY_MODE, MockMode.MOCK_MODE_POINT)
+                it.getIntExtra(EXTRA_DISPLAY_MODE, 0)
             )
         }
         return super.onStartCommand(intent, flags, startId)

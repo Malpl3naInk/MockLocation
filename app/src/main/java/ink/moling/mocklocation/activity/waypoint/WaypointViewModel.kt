@@ -10,8 +10,12 @@ import ink.moling.mocklocation.data.models.PointType
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RoutePoint
 import ink.moling.mocklocation.data.models.RouteType
+import ink.moling.mocklocation.utils.WaypointGraph
+import ink.moling.mocklocation.utils.WaypointSheet
 import ink.moling.mocklocation.utils.extensions.addConn
 import ink.moling.mocklocation.utils.extensions.hasCycle
+import ink.moling.mocklocation.utils.extensions.isConnected
+import ink.moling.mocklocation.utils.extensions.isValidLoopOrChain
 import ink.moling.mocklocation.utils.extensions.removeConn
 import ink.moling.mocklocation.utils.logger.Logger
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -191,9 +195,9 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
             return
         }
 
-        // 验证路径中不存在环
-        if (state.routeObject.hasCycle()) {
-            _uiEvent.tryEmit(WaypointUiEvent.ShowToast(getApplication<Application>().getString(R.string.waypoint_toast_cycle_detected)))
+        // 验证路径结构有效（允许首尾相连的环，但不允许其他分支）
+        if (!state.routeObject.isValidLoopOrChain()) {
+            _uiEvent.tryEmit(WaypointUiEvent.ShowToast(getApplication<Application>().getString(R.string.waypoint_toast_invalid_structure)))
             return
         }
         

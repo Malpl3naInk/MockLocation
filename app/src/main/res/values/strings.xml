@@ -124,4 +124,5 @@
     <string name="waypoint_toast_save_success">Route saved successfully</string>
     <string name="waypoint_toast_save_failed">Failed to save route: %1$s</string>
     <string name="waypoint_toast_cycle_detected">Route contains a cycle, please check connections</string>
+    <string name="waypoint_toast_invalid_structure">Invalid route structure: must be a single loop or chain without branches</string>
 </resources>

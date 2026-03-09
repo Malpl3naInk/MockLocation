@@ -12,7 +12,7 @@ class OverlayServiceController(
     private val context: Context
 ) {
     private var isServiceStarted = false
-    private var displayMode = MockMode.MOCK_MODE_POINT // Point = 0, Route = 1
+    private var displayMode = 0 // Point = 0, Route = 1
     
     fun start() {
         val intent = Intent(context, OverlayService::class.java).apply {
