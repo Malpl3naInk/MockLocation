@@ -158,7 +158,7 @@ class LocationService : Service() {
             mockCtrl.start()
 
             // 设置显示模式
-            overlayCtrl.setMode(MockMode.MOCK_MODE_POINT)
+            overlayCtrl.setMode(0)
             // 启动悬浮控件
             overlayCtrl.start()
             
@@ -204,7 +204,7 @@ class LocationService : Service() {
             mockCtrl.start()
 
             // 设置显示模式
-            overlayCtrl.setMode(MockMode.MOCK_MODE_ROUTE)
+            overlayCtrl.setMode(1)
             // 启动悬浮控件
             overlayCtrl.start()
 
