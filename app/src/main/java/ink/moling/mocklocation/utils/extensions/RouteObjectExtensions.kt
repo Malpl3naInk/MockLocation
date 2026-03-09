@@ -125,19 +125,19 @@ fun RouteObject.isValidLoopOrChain(): Boolean {
  */
 fun RouteObject.isFullyConnected(): Boolean {
     if (points.isEmpty()) return true
-    
+
     val pointMap = toPointMap()
     val visited = mutableSetOf<Int>()
     val queue = ArrayDeque<Int>()
-    
+
     // 从第一个点开始 BFS
     queue.add(points.first().id)
-    
+
     while (queue.isNotEmpty()) {
         val currentId = queue.removeFirst()
         if (currentId in visited) continue
         visited.add(currentId)
-        
+
         val point = pointMap[currentId] ?: continue
         for (neighborId in point.connects) {
             if (neighborId !in visited) {
@@ -145,9 +145,24 @@ fun RouteObject.isFullyConnected(): Boolean {
             }
         }
     }
-    
+
     // 所有点都应该被访问到
     return visited.size == points.size
+}
+
+/**
+ * 检查路径是否为环形（首尾相连，没有端点）
+ */
+fun RouteObject.isLoop(): Boolean {
+    if (points.isEmpty()) return false
+
+    // 检查每个点的连接数
+    // 环形：每个点都有且仅有 2 个连接
+    // 链形：有 2 个端点（连接数为 1），其余点连接数为 2
+    val endpoints = points.filter { it.connects.size == 1 }
+
+    // 如果没有端点，说明是环形
+    return endpoints.isEmpty() && points.all { it.connects.size == 2 }
 }
 
 /**
