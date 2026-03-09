@@ -329,7 +329,7 @@ fun WaypointScreen(
                     // 2. GeoJSON sources
                     val edgeSource  = rememberGeoJsonSourceState {}
                     val pointSource = rememberGeoJsonSourceState {}
-                    val newRouteSource = rememberGeoJsonSourceState {}
+                    var newRouteSource = rememberGeoJsonSourceState {}
 
                     // 3. Update sources whenever route changes
                     LaunchedEffect(
@@ -374,15 +374,17 @@ fun WaypointScreen(
                     }
 
                     // New route line layer
-                    LineLayer(sourceState = newRouteSource) {
-                        lineWidth = DoubleValue(4.0)
-                        lineColor = ColorValue(Color(0xFF2F7AC6))
-                        lineCap   = LineCapValue.ROUND
-                        lineJoin  = LineJoinValue.ROUND
-                        lineDasharray = DoubleListValue(
-                            2.0,  // 实线
-                            2.0,  // 间隔
-                        )
+                    if (uiState.isEditingRouteMode) {
+                        LineLayer(sourceState = newRouteSource) {
+                            lineWidth = DoubleValue(4.0)
+                            lineColor = ColorValue(Color(0xFF2F7AC6))
+                            lineCap   = LineCapValue.ROUND
+                            lineJoin  = LineJoinValue.ROUND
+                            lineDasharray = DoubleListValue(
+                                2.0,  // 实线
+                                2.0,  // 间隔
+                            )
+                        }
                     }
 
                     // 5. Circle layer — renders selected node
@@ -708,6 +710,7 @@ fun WaypointScreen(
                         FloatingActionButton(
                             onClick = {
                                 viewModel.exitEditModes()
+
                                 scope.launch {
                                     scaffoldState.bottomSheetState.partialExpand()
                                 }
