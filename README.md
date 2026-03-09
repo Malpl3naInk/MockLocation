@@ -49,7 +49,7 @@ MocakLocation
 
 ### Color system
 
-| Paramater                               | Color          |
+| Parameter                               | Color          |
 |-----------------------------------------|----------------|
 | AlertDialog.containerColor              | surfaceVariant |
 | BottomSheetScaffold.containerColor      | background     |
@@ -63,8 +63,8 @@ MocakLocation
 - [x] [#350](https://github.com/ZCShou/GoGoGo/issues/350) - [悬浮窗控制] 建议可以隐藏悬浮窗
 - [x] [#346](https://github.com/ZCShou/GoGoGo/issues/346) - [悬浮窗控制] 最小化悬浮窗
 - [ ] [#335](https://github.com/ZCShou/GoGoGo/issues/335) - [平台支持] 提供iOS版本
-- [ ] [#331](https://github.com/ZCShou/GoGoGo/issues/331) - [地图功能] 添加地图复位回正，指向正北的功能
-- [ ] [#325](https://github.com/ZCShou/GoGoGo/issues/325) - [平台支持] 加入对ARM v7的支持
+- [x] [#331](https://github.com/ZCShou/GoGoGo/issues/331) - [地图功能] 添加地图复位回正，指向正北的功能
+- [x] [#325](https://github.com/ZCShou/GoGoGo/issues/325) - [平台支持] 加入对ARM v7的支持
 - [x] [#314](https://github.com/ZCShou/GoGoGo/issues/314) - [悬浮窗控制] 添加悬浮框开启关闭的功能
 - [x] [#304](https://github.com/ZCShou/GoGoGo/issues/304) - [悬浮窗控制] 请求摇杆隐藏/缩小
 - [ ] [#284](https://github.com/ZCShou/GoGoGo/issues/284) - [权限管理] 通过Root或Lsposed实现功能，避免使用开发者选项
@@ -92,7 +92,7 @@ MocakLocation
 - [ ] [数据导入导出] 支持KML格式的导入和导出
 - [ ] [地图功能] 位置搜索功能（地址搜索和POI搜索）
 - [ ] [轨迹功能] 轨迹录制和回放功能
-- [ ] [速度控制] 预设速度模板（步行、跑步、骑行、驾车等）
+- [x] [速度控制] 预设速度模板（步行、跑步、骑行、驾车等）
 - [ ] [模拟增强] 根据经纬度自动获取真实海拔数据
 - [ ] [自动化] 定时任务功能（定时启动/停止模拟）
 - [ ] [路线模拟] 多点随机模式，在多个点位之间随机切换
@@ -102,7 +102,7 @@ MocakLocation
 - [ ] [模拟增强] 信号强度模拟
 - [ ] [模拟增强] GPS卫星数量模拟
 - [ ] [地图功能] 离线地图支持
-- [ ] [用户体验] 主题切换功能（深色/浅色模式）
+- [x] [用户体验] 主题切换功能（深色/浅色模式）
 - [ ] [悬浮窗控制] 悬浮窗透明度调节
 - [ ] [悬浮窗控制] 悬浮窗大小自定义
 - [x] [路线控制] 路线暂停/继续功能
@@ -110,22 +110,25 @@ MocakLocation
 - [x] [数据管理] 点位和路线的导出分享功能
 - [ ] [安全性] 应用锁功能（密码/生物识别保护）
 
+### Fixing queue
 
-## Dependences
+ - 保存新路径后 MainActivity 未及时更新
 
-| Dependency                        | Version        | Purpose                           |
-|------------------------------------|---------------|-----------------------------------|
-| Core KTX                           | 1.17.0        | Kotlin extensions                 |
-| Jetpack Compose BOM                | 2024.09.00    | UI toolkit                        |
-| Activity Compose                   | 1.12.0        | Activity-Compose integration      |
-| Material3                          | 1.4.0         | UI Components                     |
-| Lifecycle ViewModel                | 2.8.7         | MVVM Architecture                 |
-| Lifecycle Runtime                  | 2.10.0        | Lifecycle management              |
-| Lifecycle Service                  | 2.8.7         | Service lifecycle support         |
-| SavedState KTX                     | 1.4.0         | State preservation                |
-| Room                               | 2.6.1         | Database storage                  |
-| Gson                               | 2.10.1        | JSON serialization                |
-| Google Open Location Code          | 1.0.4         | Plus codes support                |
+## Dependencies
+
+| Dependency                | Version    | Purpose                      |
+|---------------------------|------------|------------------------------|
+| Core KTX                  | 1.17.0     | Kotlin extensions            |
+| Jetpack Compose BOM       | 2024.09.00 | UI toolkit                   |
+| Activity Compose          | 1.12.0     | Activity-Compose integration |
+| Material3                 | 1.4.0      | UI Components                |
+| Lifecycle ViewModel       | 2.8.7      | MVVM Architecture            |
+| Lifecycle Runtime         | 2.10.0     | Lifecycle management         |
+| Lifecycle Service         | 2.8.7      | Service lifecycle support    |
+| SavedState KTX            | 1.4.0      | State preservation           |
+| Room                      | 2.6.1      | Database storage             |
+| Gson                      | 2.10.1     | JSON serialization           |
+| Google Open Location Code | 1.0.4      | Plus codes support           |
 
 > 依赖版本以 `build.gradle` 文件为准。
 
