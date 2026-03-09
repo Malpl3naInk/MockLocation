@@ -23,6 +23,7 @@ MocakLocation
 │  ├─main
 │  │  └─views
 │  ├─settings
+│  │  └─views
 │  └─waypoint
 │      └─views
 ├─data
@@ -47,14 +48,6 @@ MocakLocation
     └─simulators
 ```
 
-### Color system
-
-| Parameter                               | Color          |
-|-----------------------------------------|----------------|
-| AlertDialog.containerColor              | surfaceVariant |
-| BottomSheetScaffold.containerColor      | background     |
-| BottomSheetScaffold.sheetContainerColor | surface        |
-
 ## Roadmap
 
 ### Feature requests from [ZCShou/GoGoGo](https://github.com/ZCShou/GoGoGo/issues)
@@ -62,7 +55,6 @@ MocakLocation
 - [x] [#355](https://github.com/ZCShou/GoGoGo/issues/355) - [路线模拟] 路线模拟功能请求
 - [x] [#350](https://github.com/ZCShou/GoGoGo/issues/350) - [悬浮窗控制] 建议可以隐藏悬浮窗
 - [x] [#346](https://github.com/ZCShou/GoGoGo/issues/346) - [悬浮窗控制] 最小化悬浮窗
-- [ ] [#335](https://github.com/ZCShou/GoGoGo/issues/335) - [平台支持] 提供iOS版本
 - [x] [#331](https://github.com/ZCShou/GoGoGo/issues/331) - [地图功能] 添加地图复位回正，指向正北的功能
 - [x] [#325](https://github.com/ZCShou/GoGoGo/issues/325) - [平台支持] 加入对ARM v7的支持
 - [x] [#314](https://github.com/ZCShou/GoGoGo/issues/314) - [悬浮窗控制] 添加悬浮框开启关闭的功能
@@ -77,7 +69,6 @@ MocakLocation
 - [x] [#118](https://github.com/ZCShou/GoGoGo/issues/118) - [国际化] 添加英语语言支持
 - [ ] [#116](https://github.com/ZCShou/GoGoGo/issues/116) - [权限管理] 考虑加入Root支持
 - [ ] [#103](https://github.com/ZCShou/GoGoGo/issues/103) - [模拟增强] 高度模拟功能
-- [ ] [#88](https://github.com/ZCShou/GoGoGo/issues/88) - [地图功能] 加入多地图选择的功能，比如支持Mapbox
 - [ ] [#77](https://github.com/ZCShou/GoGoGo/issues/77) - [路线控制] 摇杆移动添加控制整体完成时间功能
 - [ ] [#50](https://github.com/ZCShou/GoGoGo/issues/50) - [模拟增强] 加入基站伪装以实现更全面的虚拟定位
 - [ ] [#46](https://github.com/ZCShou/GoGoGo/issues/46) - [模拟增强] 模拟步频功能
@@ -85,8 +76,6 @@ MocakLocation
 
 ### Suggested Features
 
-- [ ] [数据管理] 点位和路线的分组管理（收藏夹功能）
-- [ ] [数据管理] 历史记录功能，记录最近使用的位置
 - [ ] [用户体验] 快速切换面板，在常用位置间快速切换
 - [ ] [数据导入导出] 支持GPX格式的导入和导出
 - [ ] [数据导入导出] 支持KML格式的导入和导出
@@ -94,25 +83,19 @@ MocakLocation
 - [ ] [轨迹功能] 轨迹录制和回放功能
 - [x] [速度控制] 预设速度模板（步行、跑步、骑行、驾车等）
 - [ ] [模拟增强] 根据经纬度自动获取真实海拔数据
-- [ ] [自动化] 定时任务功能（定时启动/停止模拟）
-- [ ] [路线模拟] 多点随机模式，在多个点位之间随机切换
 - [ ] [路线模拟] 路线平滑处理，使移动轨迹更自然
-- [ ] [性能优化] 后台省电模式
 - [ ] [数据管理] 配置备份和恢复功能
 - [ ] [模拟增强] 信号强度模拟
 - [ ] [模拟增强] GPS卫星数量模拟
-- [ ] [地图功能] 离线地图支持
 - [x] [用户体验] 主题切换功能（深色/浅色模式）
 - [ ] [悬浮窗控制] 悬浮窗透明度调节
 - [ ] [悬浮窗控制] 悬浮窗大小自定义
 - [x] [路线控制] 路线暂停/继续功能
-- [ ] [路线控制] 路线进度显示和跳转
 - [x] [数据管理] 点位和路线的导出分享功能
-- [ ] [安全性] 应用锁功能（密码/生物识别保护）
 
 ### Fixing queue
 
- - 保存新路径后 MainActivity 未及时更新
+ - NONE
 
 ## Dependencies
 

@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.waypoint.WaypointViewModel
 import ink.moling.mocklocation.utils.WaypointGraph
-import ink.moling.mocklocation.utils.WaypointSheet
 
 @Composable
 fun SheetDetailView(

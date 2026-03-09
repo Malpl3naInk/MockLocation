@@ -20,7 +20,7 @@ class SettingsActivity : ComponentActivity() {
         setContent {
             MockLocationTheme {
                 Surface(
-                    modifier = Modifier.Companion.fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     SettingsScreen()
                 }
