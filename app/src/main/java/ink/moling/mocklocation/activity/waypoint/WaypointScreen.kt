@@ -102,7 +102,6 @@ import ink.moling.mocklocation.ui.dialog.UnsavedChangesDialog
 import ink.moling.mocklocation.utils.WaypointGraph
 import ink.moling.mocklocation.utils.WaypointSheet
 import ink.moling.mocklocation.utils.extensions.centerPoint
-import ink.moling.mocklocation.utils.extensions.isConnected
 import ink.moling.mocklocation.utils.extensions.isEmpty
 import ink.moling.mocklocation.utils.extensions.toMultiLineString
 import ink.moling.mocklocation.utils.extensions.toSelectedFeatureList
@@ -348,17 +347,18 @@ fun WaypointScreen(
                         uiState.isEditingRouteMode
                     ) {
                         if (uiState.isEditingRouteMode) {
-                            val lines = mutableListOf<List<Point>>()
                             val point = mapViewportState.cameraState?.center
-                            if (point != null) {
-                                val lastPoint = uiState.routeObject.points.last()
-                                lines.add(
+                            val lastPoint = uiState.routeObject.points.lastOrNull()
+
+                            if (point != null && lastPoint != null) {
+                                val lines = listOf(
                                     listOf(
                                         Point.fromLngLat(point.longitude(), point.latitude()),
                                         Point.fromLngLat(lastPoint.lng, lastPoint.lat)
                                     )
                                 )
-                                newRouteSource.data  = GeoJSONData(
+
+                                newRouteSource.data = GeoJSONData(
                                     MultiLineString.fromLngLats(lines)
                                 )
                             }
@@ -532,12 +532,16 @@ fun WaypointScreen(
                                         .padding(horizontal = 3.dp),
                                     onClick = {
                                         mapViewportState.cameraState?.center!!.let {
-                                            val lastId = uiState.routeObject.points.last().id
+                                            val lastPoint = uiState.routeObject.points.lastOrNull()
                                             val newId = viewModel.addWaypoint(
                                                 it.latitude(),
                                                 it.longitude()
                                             )
-                                            viewModel.toggleWaypointConnection(newId, lastId)
+                                            if (lastPoint != null) {
+                                                viewModel.toggleWaypointConnection(
+                                                    newId, lastPoint.id
+                                                )
+                                            }
                                         }
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
