@@ -13,7 +13,6 @@ import ink.moling.mocklocation.data.models.RouteType
 import ink.moling.mocklocation.utils.WaypointGraph
 import ink.moling.mocklocation.utils.WaypointSheet
 import ink.moling.mocklocation.utils.extensions.addConn
-import ink.moling.mocklocation.utils.extensions.hasCycle
 import ink.moling.mocklocation.utils.extensions.isConnected
 import ink.moling.mocklocation.utils.extensions.isValidLoopOrChain
 import ink.moling.mocklocation.utils.extensions.removeConn

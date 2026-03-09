@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,14 +36,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import ink.moling.mocklocation.R
 import com.google.gson.JsonSyntaxException
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.waypoint.WaypointActivity
 import ink.moling.mocklocation.data.models.RouteObjectJson
 import ink.moling.mocklocation.data.models.RouteType
 import ink.moling.mocklocation.utils.extensions.isValid
 import ink.moling.mocklocation.utils.extensions.label
+import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 @Composable
@@ -50,6 +52,7 @@ fun SheetRoutesView(
     viewModel: MainViewModel
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var importedUri by remember { mutableStateOf<Uri?>(null) }
     LaunchedEffect(importedUri) {
         val uri = importedUri ?: return@LaunchedEffect
@@ -87,8 +90,9 @@ fun SheetRoutesView(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         when (result.resultCode) {
-            WaypointActivity.RESULT_EDIT_OK -> { }
-            WaypointActivity.RESULT_NEW_OK -> { }
+            in intArrayOf(WaypointActivity.RESULT_EDIT_OK, WaypointActivity.RESULT_NEW_OK) -> {
+                scope.launch { viewModel.getRoutes() }
+            }
             else -> { }
         }
     }

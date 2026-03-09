@@ -19,7 +19,6 @@ class WaypointActivity : ComponentActivity() {
         const val RESULT_EDIT_OK        = 0xE0
         const val RESULT_EDIT_CANCELED  = 0xEC
         const val RESULT_NEW_OK         = 0xA0
-        const val RESULT_NEW_CANCELLED  = 0xAC
         
         // Intent extras
         const val EXTRA_ROUTE_NAME = "selectedRoute"
