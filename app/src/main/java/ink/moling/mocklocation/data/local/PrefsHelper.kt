@@ -27,6 +27,7 @@ object PrefsHelper {
     private const val KEY_MAX_SPEED_JOYSTICK_PRESET_2 = "max_speed_joystick_preset_2"
     private const val KEY_THEME_MODE = "theme_mode"
     private const val KEY_JOYSTICK_SIZE = "joystick_size"
+    private const val KEY_RANDOM_OFFSET = "random_offset"
 
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -118,5 +119,15 @@ object PrefsHelper {
 
     fun getJoystickSize(context: Context): Float {
         return getPrefs(context).getFloat(KEY_JOYSTICK_SIZE, 120f)
+    }
+
+    fun setRandomOffset(context: Context, enabled: Boolean) {
+        getPrefs(context).edit {
+            putBoolean(KEY_RANDOM_OFFSET, enabled)
+        }
+    }
+
+    fun getRandomOffset(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_RANDOM_OFFSET, false)
     }
 }

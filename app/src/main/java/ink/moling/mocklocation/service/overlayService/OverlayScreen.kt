@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.OpenWith
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -51,7 +52,6 @@ import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
 import ink.moling.mocklocation.service.overlayService.views.OverlayPointView
 import ink.moling.mocklocation.service.overlayService.views.OverlayRouteView
-import ink.moling.mocklocation.utils.MockMode
 import kotlin.math.roundToInt
 
 @Composable
@@ -80,6 +80,7 @@ fun OverlayScreen(
     // 摇杆状态
     var joystickDirection   by remember { mutableFloatStateOf(0f) }
     var joystickLocked      by remember { mutableStateOf(true) }
+    var featureRandomOffsetEnabled      by remember { mutableStateOf(PrefsHelper.getRandomOffset(context)) }
     // 随 Selected preset 修改 State holder 中的最大速度
     LaunchedEffect(selectedSpeedPreset) {
         if (overlayState.mockMode == 0) {
@@ -202,7 +203,7 @@ fun OverlayScreen(
                         offset = DpOffset(x = 10.dp, y = 0.dp)
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Hide Overlay") },
+                            text = { Text("Hide overlay") },
                             onClick =  {
                                 isOverlayMenuExpanded = false
                                 val intent = android.content.Intent(
@@ -211,6 +212,25 @@ fun OverlayScreen(
                                     setPackage(context.packageName)
                                 }
                                 context.sendBroadcast(intent)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Row {
+                                    Text("Random offset")
+
+                                    Spacer(Modifier.weight(1f))
+
+                                    Checkbox(
+                                        checked = featureRandomOffsetEnabled,
+                                        onCheckedChange = null
+                                    )
+                                }
+                            },
+                            onClick =  {
+                                featureRandomOffsetEnabled = !featureRandomOffsetEnabled
+                                PrefsHelper.setRandomOffset(context, featureRandomOffsetEnabled)
+                                OverlayStateHolder.setRandomOffset(featureRandomOffsetEnabled)
                             }
                         )
                     }

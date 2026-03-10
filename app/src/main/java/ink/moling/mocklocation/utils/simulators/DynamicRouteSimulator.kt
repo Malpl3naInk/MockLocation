@@ -34,6 +34,10 @@ class DynamicRouteSimulator(
     private var currentBearing: Float = 0f
     private var currentSpeed: Double = 0.0
 
+    // 随机偏移状态（垂直路径方向，单位：米）
+    private var smoothOffsetM: Double = 0.0
+    private val maxOffsetM = 8.0
+
     // 地球半径（米）
     private val earthRadiusM = 6371000.0
 
@@ -113,6 +117,20 @@ class DynamicRouteSimulator(
         Logger.d("DynamicRouteSimulator",
             "Point: $currentPointIndex->$nextPointIndex, Progress: %.2f%%, Bearing: %.1f°, Speed: %.1f m/s, Loop: $isLoop, Completed: $routeCompleted"
                 .format(segmentProgress * 100, currentBearing, currentSpeed))
+
+        if (overlayState.randomOffset) {
+            smoothOffsetM = (smoothOffsetM + (Math.random() - 0.5) * 1.2).coerceIn(-maxOffsetM, maxOffsetM)
+            val perpBearingRad = Math.toRadians((currentBearing + 90.0) % 360.0)
+            val offsetLat = (smoothOffsetM * cos(perpBearingRad)) / 111111.0
+            val offsetLng = (smoothOffsetM * sin(perpBearingRad)) / (111111.0 * cos(Math.toRadians(currentLat)))
+            return SimulatedLocation(
+                lat = currentLat + offsetLat,
+                lng = currentLng + offsetLng,
+                alt = currentAlt,
+                bearing = currentBearing,
+                speed = currentSpeed
+            )
+        }
 
         return SimulatedLocation(
             lat = currentLat,
@@ -294,6 +312,7 @@ class DynamicRouteSimulator(
             previousPointIndex = -1
             segmentProgress = 0.0
             routeCompleted = false
+            smoothOffsetM = 0.0
             currentLat = route.points[0].lat
             currentLng = route.points[0].lng
 

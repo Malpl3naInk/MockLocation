@@ -9,6 +9,7 @@ import android.location.LocationManager
 import android.os.Binder
 import android.os.IBinder
 import androidx.annotation.RequiresPermission
+import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.data.models.CandidateLocation
@@ -198,6 +199,7 @@ class LocationService : Service() {
 
             // 重置StateHolder状态
             OverlayStateHolder.reset()
+            OverlayStateHolder.setRandomOffset(PrefsHelper.getRandomOffset(this@LocationService))
 
             // 设置模拟器并启动模拟控制器（支持摇杆动态移动）
             mockCtrl.setSimulator(DynamicRouteSimulator(route))
