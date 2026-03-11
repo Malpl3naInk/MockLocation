@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Gamepad
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Shuffle
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.settings.views.SettingJoystickSize
+import ink.moling.mocklocation.activity.settings.views.SettingRandomOffset
 import ink.moling.mocklocation.activity.settings.views.SettingSpeedPreset
 import ink.moling.mocklocation.activity.settings.views.SettingThemeMode
 import ink.moling.mocklocation.ui.components.DebugOnly
@@ -68,7 +70,8 @@ import kotlinx.coroutines.launch
 enum class SettingOption {
     SPEED_PRESETS,
     THEME_MODE,
-    JOYSTICK_SIZE
+    JOYSTICK_SIZE,
+    RANDOM_OFFSET
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,6 +101,7 @@ fun SettingsScreen() {
                 SettingOption.SPEED_PRESETS -> SettingSpeedPreset(scaffoldState)
                 SettingOption.THEME_MODE    -> SettingThemeMode(scaffoldState)
                 SettingOption.JOYSTICK_SIZE -> SettingJoystickSize(scaffoldState)
+                SettingOption.RANDOM_OFFSET -> SettingRandomOffset(scaffoldState)
             }
         }
     ) {
@@ -196,6 +200,51 @@ fun SettingsScreen() {
                                 )
                                 Text(
                                     stringResource(R.string.settings_item_joystick_size),
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+                item {
+                    Text(
+                        modifier = Modifier.padding(vertical = 6.dp),
+                        text = stringResource(R.string.settings_section_mock_options),
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(6.dp),
+                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.Transparent
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 0.dp
+                        )
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        settingOption = SettingOption.RANDOM_OFFSET
+                                        scope.launch {
+                                            scaffoldState.bottomSheetState.expand()
+                                        }
+                                    }
+                                    .padding(12.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Shuffle,
+                                    contentDescription = null
+                                )
+                                Text(
+                                    stringResource(R.string.settings_item_random_offset),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }

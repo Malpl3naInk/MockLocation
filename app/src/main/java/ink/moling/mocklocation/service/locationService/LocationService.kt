@@ -199,7 +199,8 @@ class LocationService : Service() {
 
             // 重置StateHolder状态
             OverlayStateHolder.reset()
-            OverlayStateHolder.setRandomOffset(PrefsHelper.getRandomOffset(this@LocationService))
+            OverlayStateHolder.setRandomOffset(PrefsHelper.getRandomOffsetEnabled(this@LocationService))
+            OverlayStateHolder.setMaxRandomOffset(PrefsHelper.getMaxRandomOffset(this@LocationService))
 
             // 设置模拟器并启动模拟控制器（支持摇杆动态移动）
             mockCtrl.setSimulator(DynamicRouteSimulator(route))

@@ -15,7 +15,8 @@ object OverlayStateHolder {
         val direction: Float = 0f,      // 方向角度（弧度），0为北，顺时针增加
         val speed: Float = 0f,          // 速度（0-1），0为静止，1为最大速度
         val maxSpeed: Double = 5.0,     // 最大速度（米/秒），默认为 5 m/s (约18 km/h，步行速度)
-        val randomOffset: Boolean = false
+        val randomOffset: Boolean = false,
+        val maxRandomOffset: Double = 8.0
     )
 
     private val _state = MutableStateFlow(OverlayState())
@@ -54,6 +55,10 @@ object OverlayStateHolder {
 
     fun setRandomOffset(enabled: Boolean) {
         _state.value = _state.value.copy(randomOffset = enabled)
+    }
+
+    fun setMaxRandomOffset(maxOffset: Double) {
+        _state.value = _state.value.copy(maxRandomOffset = maxOffset.coerceIn(0.0, 50.0))
     }
 
     /**
