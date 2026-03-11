@@ -4,7 +4,11 @@ import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
 import ink.moling.mocklocation.utils.extensions.isLoop
 import ink.moling.mocklocation.utils.logger.Logger
-import kotlin.math.*
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * 动态路线模拟器，沿指定路线移动
@@ -36,7 +40,6 @@ class DynamicRouteSimulator(
 
     // 随机偏移状态（垂直路径方向，单位：米）
     private var smoothOffsetM: Double = 0.0
-    private val maxOffsetM = 8.0
 
     // 地球半径（米）
     private val earthRadiusM = 6371000.0
@@ -119,7 +122,8 @@ class DynamicRouteSimulator(
                 .format(segmentProgress * 100, currentBearing, currentSpeed))
 
         if (overlayState.randomOffset) {
-            smoothOffsetM = (smoothOffsetM + (Math.random() - 0.5) * 1.2).coerceIn(-maxOffsetM, maxOffsetM)
+            val maxOffsetM = overlayState.maxRandomOffset
+            smoothOffsetM = (smoothOffsetM + (Math.random() - 0.5) * (maxOffsetM * 0.15)).coerceIn(-maxOffsetM, maxOffsetM)
             val perpBearingRad = Math.toRadians((currentBearing + 90.0) % 360.0)
             val offsetLat = (smoothOffsetM * cos(perpBearingRad)) / 111111.0
             val offsetLng = (smoothOffsetM * sin(perpBearingRad)) / (111111.0 * cos(Math.toRadians(currentLat)))

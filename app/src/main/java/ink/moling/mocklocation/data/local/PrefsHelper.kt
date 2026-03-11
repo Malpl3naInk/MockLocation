@@ -28,6 +28,7 @@ object PrefsHelper {
     private const val KEY_THEME_MODE = "theme_mode"
     private const val KEY_JOYSTICK_SIZE = "joystick_size"
     private const val KEY_RANDOM_OFFSET = "random_offset"
+    private const val KEY_MAX_RANDOM_OFFSET = "max_random_offset"
 
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -106,7 +107,7 @@ object PrefsHelper {
     fun getThemeMode(context: Context): ThemeMode {
         return try {
             ThemeMode.from(getPrefs(context).getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name))
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             ThemeMode.SYSTEM
         }
     }
@@ -121,13 +122,23 @@ object PrefsHelper {
         return getPrefs(context).getFloat(KEY_JOYSTICK_SIZE, 120f)
     }
 
-    fun setRandomOffset(context: Context, enabled: Boolean) {
+    fun setRandomOffsetEnabled(context: Context, enabled: Boolean) {
         getPrefs(context).edit {
             putBoolean(KEY_RANDOM_OFFSET, enabled)
         }
     }
 
-    fun getRandomOffset(context: Context): Boolean {
+    fun getRandomOffsetEnabled(context: Context): Boolean {
         return getPrefs(context).getBoolean(KEY_RANDOM_OFFSET, false)
+    }
+
+    fun setMaxRandomOffset(context: Context, offset: Double) {
+        getPrefs(context).edit {
+            putLong(KEY_MAX_RANDOM_OFFSET, offset.toLong())
+        }
+    }
+
+    fun getMaxRandomOffset(context: Context): Double {
+        return getPrefs(context).getLong(KEY_MAX_RANDOM_OFFSET, 8L).toDouble()
     }
 }

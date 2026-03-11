@@ -80,7 +80,7 @@ fun OverlayScreen(
     // 摇杆状态
     var joystickDirection   by remember { mutableFloatStateOf(0f) }
     var joystickLocked      by remember { mutableStateOf(true) }
-    var featureRandomOffsetEnabled      by remember { mutableStateOf(PrefsHelper.getRandomOffset(context)) }
+    var featureRandomOffsetEnabled      by remember { mutableStateOf(PrefsHelper.getRandomOffsetEnabled(context)) }
     // 随 Selected preset 修改 State holder 中的最大速度
     LaunchedEffect(selectedSpeedPreset) {
         if (overlayState.mockMode == 0) {
@@ -229,7 +229,7 @@ fun OverlayScreen(
                             },
                             onClick =  {
                                 featureRandomOffsetEnabled = !featureRandomOffsetEnabled
-                                PrefsHelper.setRandomOffset(context, featureRandomOffsetEnabled)
+                                PrefsHelper.setRandomOffsetEnabled(context, featureRandomOffsetEnabled)
                                 OverlayStateHolder.setRandomOffset(featureRandomOffsetEnabled)
                             }
                         )
