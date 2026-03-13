@@ -3,7 +3,6 @@ package ink.moling.mocklocation.activity.main.views
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.border
-import ink.moling.mocklocation.utils.MockMode
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +42,7 @@ import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.settings.SettingsActivity
 import ink.moling.mocklocation.data.local.repository.MockServiceState
+import ink.moling.mocklocation.utils.MockMode
 
 @Composable
 fun PageMainView(
@@ -115,13 +115,24 @@ fun PageMainView(
                     if (mockStatus == MockServiceState.Enabled || mockStatus is MockServiceState.Error) {
                         onStopMockLocation()
                     } else if (mockStatus == MockServiceState.Disabled) {
-                        if (!viewModel.hasSelectedPoint()) {
-                            Toast.makeText(
-                                context,
-                                strSelectPoint,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            return@Button
+                        if (uiState.selectedSimulation == MockMode.POINT) {
+                            if (!viewModel.hasSelectedPoint()) {
+                                Toast.makeText(
+                                    context,
+                                    strSelectPoint,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                return@Button
+                            }
+                        } else if (uiState.selectedSimulation == MockMode.ROUTE) {
+                            if (!viewModel.hasSelectedRoute()) {
+                                Toast.makeText(
+                                    context,
+                                    "Please select route",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                return@Button
+                            }
                         }
                         onStartMockLocation()
                     }
