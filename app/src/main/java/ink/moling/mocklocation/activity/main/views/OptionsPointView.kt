@@ -210,142 +210,139 @@ fun OptionsPointView(
             }
         }
 
-        // 只有在选中点时才显示操作按钮
-        if (viewModel.hasSelectedPoint()) {
-            Row(
-                modifier = Modifier
-                    .padding(vertical = 6.dp, horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedButton(
-                    onClick = {
-                        if (uiState.editingSimPoint) {
-                            viewModel.savePoint()
-                        } else {
-                            viewModel.startEditPoint()
-                        }
-                    },
-                    modifier = Modifier
-                        .padding(horizontal = 6.dp),
-                    border = BorderStroke(
-                        2.dp,
-                        color = (
-                                if (uiState.editingSimPoint && uiState.isPointModified)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.secondary
-                                )
-                    ),
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 20.dp,
-                        top = 8.dp,
-                        bottom = 8.dp
-                    )
-                ) {
-                    Icon(
-                        imageVector = (
-                                if (uiState.editingSimPoint)
-                                    Icons.Outlined.Save
-                                else
-                                    Icons.Outlined.Edit
-                                ),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = (
-                                if (uiState.editingSimPoint && uiState.isPointModified)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.secondary
-                                )
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = (
-                                if (uiState.editingSimPoint)
-                                    stringResource(R.string.button_save)
-                                else
-                                    stringResource(R.string.button_edit)
-                                ),
-                        color = (
-                                if (uiState.editingSimPoint && uiState.isPointModified)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.secondary
-                                )
-                    )
-                }
-
-                if (uiState.editingSimPoint && !uiState.isCreatingPoint) {
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 6.dp)
-                            .size(42.dp)
-                            .border(
-                                2.dp,
-                                MaterialTheme.colorScheme.secondary,
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        IconButton(
-                            onClick = { viewModel.cancelEditPoint() },
-                            modifier = Modifier
-                                .fillMaxSize()
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Outlined.Undo,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.secondary
-                            )
-                        }
+        Row(
+            modifier = Modifier
+                .padding(vertical = 6.dp, horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedButton(
+                onClick = {
+                    if (uiState.editingSimPoint) {
+                        viewModel.savePoint()
+                    } else {
+                        viewModel.startEditPoint()
                     }
-                }
+                },
+                modifier = Modifier
+                    .padding(horizontal = 6.dp),
+                border = BorderStroke(
+                    2.dp,
+                    color = (
+                            if (uiState.editingSimPoint && uiState.isPointModified)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.secondary
+                            )
+                ),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 20.dp,
+                    top = 8.dp,
+                    bottom = 8.dp
+                )
+            ) {
+                Icon(
+                    imageVector = (
+                            if (uiState.editingSimPoint)
+                                Icons.Outlined.Save
+                            else
+                                Icons.Outlined.Edit
+                            ),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = (
+                            if (uiState.editingSimPoint && uiState.isPointModified)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.secondary
+                            )
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = (
+                            if (uiState.editingSimPoint)
+                                stringResource(R.string.button_save)
+                            else
+                                stringResource(R.string.button_edit)
+                            ),
+                    color = (
+                            if (uiState.editingSimPoint && uiState.isPointModified)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.secondary
+                            )
+                )
+            }
 
+            if (uiState.editingSimPoint && !uiState.isCreatingPoint) {
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 6.dp)
                         .size(42.dp)
                         .border(
                             2.dp,
-                            MaterialTheme.colorScheme.error,
+                            MaterialTheme.colorScheme.secondary,
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
-                        onClick = { viewModel.showDeletePointConfirmDialog() },
+                        onClick = { viewModel.cancelEditPoint() },
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
                         Icon(
-                            Icons.Outlined.Delete,
+                            Icons.AutoMirrored.Outlined.Undo,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     }
                 }
+            }
 
-                if (uiState.editingSimPoint) {
-                    // Fill with current location
-                    IconButton(
-                        onClick = { viewModel.fillCurrentLocation() }
-                    ) {
-                        Icon(
-                            Icons.Outlined.MyLocation,
-                            contentDescription = null
-                        )
-                    }
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 6.dp)
+                    .size(42.dp)
+                    .border(
+                        2.dp,
+                        MaterialTheme.colorScheme.error,
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                IconButton(
+                    onClick = { viewModel.showDeletePointConfirmDialog() },
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    Icon(
+                        Icons.Outlined.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
 
-                    // Select from map
-                    IconButton(
-                        onClick = { }
-                    ) {
-                        Icon(
-                            Icons.Outlined.Map,
-                            contentDescription = null
-                        )
-                    }
+            if (uiState.editingSimPoint) {
+                // Fill with current location
+                IconButton(
+                    onClick = { viewModel.fillCurrentLocation() }
+                ) {
+                    Icon(
+                        Icons.Outlined.MyLocation,
+                        contentDescription = null
+                    )
+                }
+
+                // Select from map
+                IconButton(
+                    onClick = { }
+                ) {
+                    Icon(
+                        Icons.Outlined.Map,
+                        contentDescription = null
+                    )
                 }
             }
         }
