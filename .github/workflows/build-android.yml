@@ -90,6 +90,7 @@ jobs:
         with:
           name: app-release-${{ github.event_name == 'workflow_dispatch' && inputs.version_suffix || 'alpha' }}
           path: app/build/outputs/apk/release/*.apk
+          retention-days: 3
 
   # FOSSA 依赖扫描 - 在构建成功后执行
   fossa:
