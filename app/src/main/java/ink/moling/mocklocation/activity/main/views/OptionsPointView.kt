@@ -232,134 +232,71 @@ fun OptionsPointView(
             }
         }
 
-        Row(
-            modifier = Modifier
-                .padding(vertical = 6.dp, horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedButton(
-                onClick = {
-                    if (uiState.editingSimPoint) {
-                        viewModel.savePoint()
-                    } else {
-                        viewModel.startEditPoint()
-                    }
-                },
+        // 操作按钮组（仅当选中项目时显示）
+        if (viewModel.selectedMockPoint != null) {
+            Row(
                 modifier = Modifier
-                    .padding(horizontal = 6.dp),
-                border = BorderStroke(
-                    2.dp,
-                    color = (
-                            if (uiState.editingSimPoint && uiState.isPointModified)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.secondary
-                            )
-                ),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 20.dp,
-                    top = 8.dp,
-                    bottom = 8.dp
-                )
+                    .padding(vertical = 6.dp, horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = (
-                            if (uiState.editingSimPoint)
-                                Icons.Outlined.Save
-                            else
-                                Icons.Outlined.Edit
-                            ),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = (
-                            if (uiState.editingSimPoint && uiState.isPointModified)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.secondary
-                            )
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = (
-                            if (uiState.editingSimPoint)
-                                stringResource(R.string.button_save)
-                            else
-                                stringResource(R.string.button_edit)
-                            ),
-                    color = (
-                            if (uiState.editingSimPoint && uiState.isPointModified)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.secondary
-                            )
-                )
-            }
+                // 主操作按钮：编辑/保存
+                val isSaveMode = uiState.editingSimPoint
+                val primaryColor = if (isSaveMode && uiState.isPointModified)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.secondary
 
-            if (uiState.editingSimPoint && !uiState.isCreatingPoint) {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 6.dp)
-                        .size(42.dp)
-                        .border(
-                            2.dp,
-                            MaterialTheme.colorScheme.secondary,
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
+                OutlinedButton(
+                    onClick = {
+                        if (isSaveMode) viewModel.savePoint()
+                        else viewModel.startEditPoint()
+                    },
+                    modifier = Modifier.padding(horizontal = 6.dp),
+                    border = BorderStroke(2.dp, primaryColor),
+                    contentPadding = PaddingValues(
+                        start = 16.dp, end = 20.dp, top = 8.dp, bottom = 8.dp
+                    )
                 ) {
-                    IconButton(
-                        onClick = { viewModel.cancelEditPoint() },
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.Undo,
-                            contentDescription = null,
+                    Icon(
+                        imageVector = if (isSaveMode) Icons.Outlined.Save else Icons.Outlined.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = primaryColor
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(
+                            if (isSaveMode) R.string.button_save else R.string.button_edit
+                        ),
+                        color = primaryColor
+                    )
+                }
+
+                // 编辑模式下的辅助按钮组
+                if (isSaveMode) {
+                    // 取消编辑（仅编辑已有项目时显示）
+                    if (!uiState.isCreatingPoint) {
+                        CircleIconButton(
+                            onClick = { viewModel.cancelEditPoint() },
+                            icon = Icons.AutoMirrored.Outlined.Undo,
                             tint = MaterialTheme.colorScheme.secondary
                         )
                     }
-                }
-            }
 
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 6.dp)
-                    .size(42.dp)
-                    .border(
-                        2.dp,
-                        MaterialTheme.colorScheme.error,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                IconButton(
-                    onClick = { viewModel.showDeletePointConfirmDialog() },
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    Icon(
-                        Icons.Outlined.Delete,
-                        contentDescription = null,
+                    // 删除按钮
+                    CircleIconButton(
+                        onClick = { viewModel.showDeletePointConfirmDialog() },
+                        icon = Icons.Outlined.Delete,
                         tint = MaterialTheme.colorScheme.error
                     )
-                }
-            }
 
-            if (uiState.editingSimPoint) {
-                // Fill with current location
-                IconButton(
-                    onClick = { viewModel.fillCurrentLocation() }
-                ) {
-                    Icon(
-                        Icons.Outlined.MyLocation,
-                        contentDescription = null
-                    )
-                }
+                    // 填充当前位置
+                    IconButton(onClick = { viewModel.fillCurrentLocation() }) {
+                        Icon(Icons.Outlined.MyLocation, contentDescription = null)
+                    }
 
-                // Select from map
-                IconButton(
-                    onClick = {
+                    // 地图选点
+                    IconButton(onClick = {
                         val intent = Intent(context, MapPickerActivity::class.java).apply {
                             val currentLat = uiState.pointLat.toDoubleOrNull() ?: 0.0
                             val currentLng = uiState.pointLng.toDoubleOrNull() ?: 0.0
@@ -369,11 +306,15 @@ fun OptionsPointView(
                             }
                         }
                         mapPickerLauncher.launch(intent)
+                    }) {
+                        Icon(Icons.Outlined.Map, contentDescription = null)
                     }
-                ) {
-                    Icon(
-                        Icons.Outlined.Map,
-                        contentDescription = null
+                } else {
+                    // 非编辑模式：仅显示删除按钮
+                    CircleIconButton(
+                        onClick = { viewModel.showDeletePointConfirmDialog() },
+                        icon = Icons.Outlined.Delete,
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }
@@ -417,6 +358,31 @@ fun OptionsPointView(
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * 圆形边框图标按钮 - 用于操作按钮组中的辅助操作
+ */
+@Composable
+private fun CircleIconButton(
+    onClick: () -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: Color
+) {
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 6.dp)
+            .size(42.dp)
+            .border(2.dp, tint, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Icon(icon, contentDescription = null, tint = tint)
         }
     }
 }
