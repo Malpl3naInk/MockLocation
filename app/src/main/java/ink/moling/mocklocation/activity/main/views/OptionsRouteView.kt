@@ -5,8 +5,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropUp
 import androidx.compose.material.icons.outlined.Delete
@@ -47,6 +44,7 @@ import androidx.documentfile.provider.DocumentFile
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.waypoint.WaypointActivity
 import ink.moling.mocklocation.data.models.RouteObjectJson
+import ink.moling.mocklocation.ui.components.CircleIconButton
 import ink.moling.mocklocation.ui.components.LatLngScatter
 import kotlinx.coroutines.launch
 
@@ -248,31 +246,6 @@ fun OptionsRouteView(
                     contentDescription = null
                 )
             }
-        }
-    }
-}
-
-/**
- * 圆形边框图标按钮 - 用于操作按钮组中的辅助操作
- */
-@Composable
-private fun CircleIconButton(
-    onClick: () -> Unit,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    tint: Color
-) {
-    Box(
-        modifier = Modifier
-            .padding(horizontal = 6.dp)
-            .size(42.dp)
-            .border(2.dp, tint, CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        IconButton(
-            onClick = onClick,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Icon(icon, contentDescription = null, tint = tint)
         }
     }
 }
