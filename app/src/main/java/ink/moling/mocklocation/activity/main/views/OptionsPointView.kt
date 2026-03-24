@@ -4,18 +4,14 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Undo
@@ -50,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.mappicker.MapPickerActivity
+import ink.moling.mocklocation.ui.components.CircleIconButton
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -358,31 +355,6 @@ fun OptionsPointView(
                     )
                 }
             }
-        }
-    }
-}
-
-/**
- * 圆形边框图标按钮 - 用于操作按钮组中的辅助操作
- */
-@Composable
-private fun CircleIconButton(
-    onClick: () -> Unit,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    tint: Color
-) {
-    Box(
-        modifier = Modifier
-            .padding(horizontal = 6.dp)
-            .size(42.dp)
-            .border(2.dp, tint, CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        IconButton(
-            onClick = onClick,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Icon(icon, contentDescription = null, tint = tint)
         }
     }
 }
