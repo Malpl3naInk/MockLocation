@@ -4,7 +4,10 @@ package ink.moling.mocklocation.service.locationService
 
 import android.Manifest
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.location.LocationManager
 import android.os.Binder
 import android.os.IBinder
@@ -21,6 +24,12 @@ import ink.moling.mocklocation.service.locationService.controller.RealLocationCo
 import ink.moling.mocklocation.service.locationService.controller.TestProviderManager
 import ink.moling.mocklocation.service.locationService.state.LocationMode
 import ink.moling.mocklocation.service.locationService.state.LocationStateHolder
+import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_ALT
+import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_ID
+import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_LAT
+import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_LNG
+import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_NAME
+import ink.moling.mocklocation.service.overlayService.ACTION_SELECT_POINT
 import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
 import ink.moling.mocklocation.utils.KalmanFilter
 import ink.moling.mocklocation.utils.MockMode
@@ -56,6 +65,24 @@ class LocationService : Service() {
     // 数据绑定
     private val binder = MockLocationServiceBinder()
     override fun onBind(intent: Intent?): IBinder = binder
+
+    // 广播接收器
+    private val selectPointReceiver = object : BroadcastReceiver() {
+        @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                ACTION_SELECT_POINT -> {
+                    val name = intent.getStringExtra(EXTRA_POINT_NAME) ?: return
+                    val lat = intent.getDoubleExtra(EXTRA_POINT_LAT, 0.0)
+                    val lng = intent.getDoubleExtra(EXTRA_POINT_LNG, 0.0)
+                    val alt = intent.getDoubleExtra(EXTRA_POINT_ALT, 0.0)
+                    if (lat != 0.0 || lng != 0.0) {
+                        binder.setStaticPoint(name, lat, lng, alt)
+                    }
+                }
+            }
+        }
+    }
 
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onCreate() {
@@ -100,9 +127,15 @@ class LocationService : Service() {
 
         // Service 启动但未开始模拟，状态为 Disabled
         MockServiceStatusRepository.state.value = MockServiceState.Disabled
+
+        // 注册广播接收器
+        registerReceiver(selectPointReceiver, IntentFilter(ACTION_SELECT_POINT),
+            Context.RECEIVER_NOT_EXPORTED
+        )
     }
 
     override fun onDestroy() {
+        unregisterReceiver(selectPointReceiver)
         mockCtrl.stop()
         realCtrl.stop()
         notifyCtrl.stopForeground()

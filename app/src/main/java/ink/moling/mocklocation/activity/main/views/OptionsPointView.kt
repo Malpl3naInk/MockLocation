@@ -229,8 +229,8 @@ fun OptionsPointView(
             }
         }
 
-        // 操作按钮组（仅当选中项目时显示）
-        if (viewModel.selectedMockPoint != null) {
+        // 操作按钮组（仅当编辑模式或已选中项目时显示）
+        if (uiState.editingSimPoint || viewModel.selectedMockPoint != null) {
             Row(
                 modifier = Modifier
                     .padding(vertical = 6.dp, horizontal = 12.dp),
