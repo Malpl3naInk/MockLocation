@@ -125,12 +125,17 @@ fun MapPickerScreen(
         }
     }
 
-    // 当获取到当前位置且没有初始位置时，自动移动到当前位置
+    // 标记是否已经执行过初始定位
+    var hasAutoCentered by remember { mutableStateOf(false) }
+
+    // 当获取到当前位置且没有初始位置时，自动移动到当前位置（仅执行一次）
     LaunchedEffect(currentLocation) {
-        if (initialLat == 0.0 && initialLng == 0.0 &&
+        if (!hasAutoCentered &&
+            initialLat == 0.0 && initialLng == 0.0 &&
             currentLocation != null &&
             currentLocation?.source != Source.DEFAULT
         ) {
+            hasAutoCentered = true
             mapViewportState.flyTo(
                 cameraOptions {
                     center(Point.fromLngLat(currentLocation!!.lng, currentLocation!!.lat))
@@ -177,15 +182,16 @@ fun MapPickerScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 48.dp, start = 16.dp, end = 16.dp)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.6f),
+                            Color.Black.copy(alpha = 0.7f),
+                            Color.Black.copy(alpha = 0.5f),
                             Color.Transparent
                         )
                     )
                 )
+                .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
             // 关闭按钮
             IconButton(
