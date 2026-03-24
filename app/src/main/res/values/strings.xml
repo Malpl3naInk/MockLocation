@@ -57,6 +57,8 @@
     <!-- Shared button / label texts -->
     <string name="button_edit">Edit</string>
     <string name="button_save">Save</string>
+    <string name="button_confirm">Confirm</string>
+    <string name="button_cancel">Cancel</string>
     <string name="label_select_target">Select target</string>
 
     <!-- SheetRoutesView -->
@@ -113,6 +115,9 @@
     <string name="waypoint_pill_map">Map</string>
     <string name="waypoint_hint_connect_mode">Click waypoint to connect / disconnect</string>
     <string name="waypoint_hint_edit_route">Move map to draw route</string>
+
+    <!-- MapPickerScreen -->
+    <string name="map_picker_title">Select Location</string>
 
     <!-- SheetDetailView -->
     <string name="waypoint_detail_waypoint_title">Waypoint #%1$s</string>

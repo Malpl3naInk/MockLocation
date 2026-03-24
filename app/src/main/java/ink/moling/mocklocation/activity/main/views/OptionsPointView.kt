@@ -1,5 +1,8 @@
 package ink.moling.mocklocation.activity.main.views
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -40,11 +43,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.main.MainViewModel
+import ink.moling.mocklocation.activity.mappicker.MapPickerActivity
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,9 +58,26 @@ fun OptionsPointView(
     viewModel: MainViewModel,
     scaffoldState: BottomSheetScaffoldState
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     val uiState by viewModel.uiState.collectAsState()
+
+    // 地图选点结果回调
+    val mapPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            result.data?.let { data ->
+                val lat = data.getDoubleExtra(MapPickerActivity.EXTRA_RESULT_LATITUDE, 0.0)
+                val lng = data.getDoubleExtra(MapPickerActivity.EXTRA_RESULT_LONGITUDE, 0.0)
+                if (lat != 0.0 || lng != 0.0) {
+                    viewModel.updatePointLat(lat.toString())
+                    viewModel.updatePointLng(lng.toString())
+                }
+            }
+        }
+    }
 
     Column {
         Card(
@@ -337,7 +359,17 @@ fun OptionsPointView(
 
                 // Select from map
                 IconButton(
-                    onClick = { }
+                    onClick = {
+                        val intent = Intent(context, MapPickerActivity::class.java).apply {
+                            val currentLat = uiState.pointLat.toDoubleOrNull() ?: 0.0
+                            val currentLng = uiState.pointLng.toDoubleOrNull() ?: 0.0
+                            if (currentLat != 0.0 || currentLng != 0.0) {
+                                putExtra(MapPickerActivity.EXTRA_INITIAL_LATITUDE, currentLat)
+                                putExtra(MapPickerActivity.EXTRA_INITIAL_LONGITUDE, currentLng)
+                            }
+                        }
+                        mapPickerLauncher.launch(intent)
+                    }
                 ) {
                     Icon(
                         Icons.Outlined.Map,
