@@ -163,77 +163,52 @@ fun OptionsRouteView(
             }
         }
 
-        Row(
-            modifier = Modifier
-                .padding(vertical = 6.dp, horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedButton(
-                onClick = {
-                    waypointActivityLauncher.launch(
-                        Intent(context, WaypointActivity::class.java).apply {
-                            putExtra("selectedRoute", uiState.routeName)
-                        }
+        // 操作按钮组（仅当选中项目时显示）
+        if (viewModel.selectedMockRoute != null) {
+            Row(
+                modifier = Modifier
+                    .padding(vertical = 6.dp, horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 主操作按钮：编辑路线
+                OutlinedButton(
+                    onClick = {
+                        waypointActivityLauncher.launch(
+                            Intent(context, WaypointActivity::class.java).apply {
+                                putExtra("selectedRoute", uiState.routeName)
+                            }
+                        )
+                    },
+                    modifier = Modifier.padding(horizontal = 6.dp),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.secondary),
+                    contentPadding = PaddingValues(
+                        start = 16.dp, end = 20.dp, top = 8.dp, bottom = 8.dp
                     )
-                },
-                modifier = Modifier
-                    .padding(horizontal = 6.dp),
-                border = BorderStroke(
-                    2.dp,
-                    MaterialTheme.colorScheme.secondary
-                ),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 20.dp,
-                    top = 8.dp,
-                    bottom = 8.dp
-                )
-            ) {
-                Icon(
-                    Icons.Outlined.Edit,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    stringResource(R.string.button_edit),
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 6.dp)
-                    .size(42.dp)
-                    .border(
-                        2.dp,
-                        MaterialTheme.colorScheme.error,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                IconButton(
-                    onClick = { viewModel.showDeleteRouteConfirmDialog() },
-                    modifier = Modifier
-                        .fillMaxSize()
                 ) {
                     Icon(
-                        Icons.Outlined.Delete,
+                        Icons.Outlined.Edit,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        stringResource(R.string.button_edit),
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
-            }
 
-            // Export route button
-            IconButton(
-                onClick = { exportRouteFileLauncher.launch(null) }
-            ) {
-                Icon(
-                    Icons.Outlined.FileUpload,
-                    contentDescription = null
+                // 删除按钮
+                CircleIconButton(
+                    onClick = { viewModel.showDeleteRouteConfirmDialog() },
+                    icon = Icons.Outlined.Delete,
+                    tint = MaterialTheme.colorScheme.error
                 )
+
+                // 导出按钮
+                IconButton(onClick = { exportRouteFileLauncher.launch(null) }) {
+                    Icon(Icons.Outlined.FileUpload, contentDescription = null)
+                }
             }
         }
 
@@ -273,6 +248,31 @@ fun OptionsRouteView(
                     contentDescription = null
                 )
             }
+        }
+    }
+}
+
+/**
+ * 圆形边框图标按钮 - 用于操作按钮组中的辅助操作
+ */
+@Composable
+private fun CircleIconButton(
+    onClick: () -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: Color
+) {
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 6.dp)
+            .size(42.dp)
+            .border(2.dp, tint, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Icon(icon, contentDescription = null, tint = tint)
         }
     }
 }
