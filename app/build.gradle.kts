@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.license.report)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
 }
 
 licenseReport {
@@ -93,7 +94,6 @@ android {
         }
         debug {
             versionNameSuffix = versionPre + versionBuild
-            applicationIdSuffix = ".dev"
         }
         release {
             signingConfig = signingConfigs.getByName("release")
@@ -160,6 +160,11 @@ dependencies {
     // Mapbox map service
     implementation(libs.mapbox.ndk27)
     implementation(libs.mapbox.compose.ndk27)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    // implementation(libs.firebase.crashlytics)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
