@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1094120626405",
+    "project_id": "mocklocation-a64be",
+    "storage_bucket": "mocklocation-a64be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1094120626405:android:fe51ddfe43312e660c9c0c",
+        "android_client_info": {
+          "package_name": "ink.moling.mocklocation"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYWtpQCmjdR_dN44HHKLPte3d745rmxWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
