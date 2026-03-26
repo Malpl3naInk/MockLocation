@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Gamepad
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Shuffle
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,6 +64,7 @@ import androidx.core.net.toUri
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.osslicense.OssLicenseActivity
 import ink.moling.mocklocation.activity.settings.views.SettingJoystickSize
+import ink.moling.mocklocation.activity.settings.views.SettingLanguage
 import ink.moling.mocklocation.activity.settings.views.SettingRandomOffset
 import ink.moling.mocklocation.activity.settings.views.SettingSpeedPreset
 import ink.moling.mocklocation.activity.settings.views.SettingThemeMode
@@ -70,8 +73,9 @@ import ink.moling.mocklocation.utils.logger.LoggerFile
 import kotlinx.coroutines.launch
 
 enum class SettingOption {
-    SPEED_PRESETS,
     THEME_MODE,
+    LANGUAGE,
+    SPEED_PRESETS,
     JOYSTICK_SIZE,
     RANDOM_OFFSET
 }
@@ -83,7 +87,7 @@ fun SettingsScreen() {
     val scope = rememberCoroutineScope()
     val strOpenLog = stringResource(R.string.settings_chooser_open_log)
 
-    var settingOption by remember { mutableStateOf(SettingOption.SPEED_PRESETS) }
+    var settingOption by rememberSaveable { mutableStateOf(SettingOption.SPEED_PRESETS) }
     val scaffoldState = rememberBottomSheetScaffoldState()
     val sheetState = scaffoldState.bottomSheetState
     val scaffoldExpanded by remember {
@@ -100,8 +104,9 @@ fun SettingsScreen() {
         sheetContainerColor = MaterialTheme.colorScheme.surface,
         sheetContent = {
             when (settingOption) {
-                SettingOption.SPEED_PRESETS -> SettingSpeedPreset(scaffoldState)
                 SettingOption.THEME_MODE    -> SettingThemeMode(scaffoldState)
+                SettingOption.LANGUAGE      -> SettingLanguage(scaffoldState)
+                SettingOption.SPEED_PRESETS -> SettingSpeedPreset(scaffoldState)
                 SettingOption.JOYSTICK_SIZE -> SettingJoystickSize(scaffoldState)
                 SettingOption.RANDOM_OFFSET -> SettingRandomOffset(scaffoldState)
             }
@@ -143,7 +148,6 @@ fun SettingsScreen() {
                         )
                     ) {
                         Column {
-
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -161,6 +165,27 @@ fun SettingsScreen() {
                                 )
                                 Text(
                                     stringResource(R.string.settings_item_theme_mode),
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        settingOption = SettingOption.LANGUAGE
+                                        scope.launch {
+                                            scaffoldState.bottomSheetState.expand()
+                                        }
+                                    }
+                                    .padding(12.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Translate,
+                                    contentDescription = null
+                                )
+                                Text(
+                                    stringResource(R.string.settings_item_language),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }

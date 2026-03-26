@@ -153,8 +153,9 @@
     <string name="settings_section_debug">Debug</string>
 
     <!-- Settings Items -->
-    <string name="settings_item_speed_presets">Speed presets</string>
     <string name="settings_item_theme_mode">App Theme</string>
+    <string name="settings_item_language">Language</string>
+    <string name="settings_item_speed_presets">Speed presets</string>
     <string name="settings_item_joystick_size">Joystick Size</string>
     <string name="settings_item_random_offset">Random offset</string>
     <string name="settings_item_release_repo">Release repo</string>
@@ -162,6 +163,18 @@
     <string name="settings_item_export_log">Export log</string>
     <string name="settings_item_crash_test">Crash test (Long press)</string>
     <string name="settings_chooser_open_log">Open log with…</string>
+
+    <!-- App Theme -->
+    <string name="settings_theme_mode_title">App Theme</string>
+    <string name="settings_theme_mode_system">System</string>
+    <string name="settings_theme_mode_light">Light</string>
+    <string name="settings_theme_mode_dark">Dark</string>
+
+    <!-- Language -->
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_english" translatable="false">English</string>
+    <string name="settings_language_chinese" translatable="false">中文</string>
 
     <!-- Joystick Size -->
     <string name="settings_joystick_size_title">Joystick Size</string>
@@ -176,12 +189,6 @@
     <string name="settings_speed_preset_walking">Walking speed</string>
     <string name="settings_speed_preset_running">Running speed</string>
     <string name="settings_speed_preset_bicycling">Bicycling speed</string>
-
-    <!-- App Theme -->
-    <string name="settings_theme_mode_title">App Theme</string>
-    <string name="settings_theme_mode_system">System</string>
-    <string name="settings_theme_mode_light">Light</string>
-    <string name="settings_theme_mode_dark">Dark</string>
 
     <!-- ==================== Delete Dialog ==================== -->
     <string name="delete_dialog_title">Confirm delete</string>

@@ -150,6 +150,7 @@
     <string name="settings_section_debug">调试</string>
 
     <!-- Settings Items -->
+    <string name="settings_item_language">语言</string>
     <string name="settings_item_speed_presets">速度预设</string>
     <string name="settings_item_theme_mode">应用主题</string>
     <string name="settings_item_joystick_size">摇杆大小</string>
@@ -208,5 +209,7 @@
     <string name="oss_license_project_url">项目地址</string>
     <string name="oss_license_license_url">许可证地址</string>
     <string name="oss_license_dependency">依赖</string>
+    <string name="settings_language_title">语言</string>
+    <string name="settings_language_system">系统语言</string>
 
 </resources>

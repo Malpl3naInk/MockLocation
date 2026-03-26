@@ -1,5 +1,6 @@
 package ink.moling.mocklocation.activity.mappicker
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,8 +11,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
+import ink.moling.mocklocation.utils.LocaleHelper
 
 class MapPickerActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(newBase?.let { LocaleHelper.setLocale(it) })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 检查语言是否变化，如果变化则重新创建 Activity
+        if (LocaleHelper.hasLanguageChanged(this)) {
+            recreate()
+        }
+    }
+
     companion object {
         const val EXTRA_INITIAL_LATITUDE = "initial_latitude"
         const val EXTRA_INITIAL_LONGITUDE = "initial_longitude"

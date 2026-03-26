@@ -16,6 +16,18 @@ enum class ThemeMode(val value: String) {
     }
 }
 
+enum class AppLanguage(val value: String, val localeTag: String) {
+    SYSTEM("system", ""),
+    ENGLISH("english", "en"),
+    CHINESE("chinese", "zh");
+
+    companion object {
+        fun from(value: String?): AppLanguage {
+            return entries.find { it.value == value } ?: SYSTEM
+        }
+    }
+}
+
 object PrefsHelper {
     private const val PREFS_NAME = "MockLocation"
     private const val KEY_IS_FIRST_LAUNCH = "is_first_launch"
@@ -26,6 +38,7 @@ object PrefsHelper {
     private const val KEY_MAX_SPEED_JOYSTICK_PRESET_1 = "max_speed_joystick_preset_1"
     private const val KEY_MAX_SPEED_JOYSTICK_PRESET_2 = "max_speed_joystick_preset_2"
     private const val KEY_THEME_MODE = "theme_mode"
+    private const val KEY_LANGUAGE = "language"
     private const val KEY_JOYSTICK_SIZE = "joystick_size"
     private const val KEY_RANDOM_OFFSET = "random_offset"
     private const val KEY_MAX_RANDOM_OFFSET = "max_random_offset"
@@ -109,6 +122,20 @@ object PrefsHelper {
             ThemeMode.from(getPrefs(context).getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name))
         } catch (_: Exception) {
             ThemeMode.SYSTEM
+        }
+    }
+
+    fun setLanguage(context: Context, language: AppLanguage) {
+        getPrefs(context).edit {
+            putString(KEY_LANGUAGE, language.value)
+        }
+    }
+
+    fun getLanguage(context: Context): AppLanguage {
+        return try {
+            AppLanguage.from(getPrefs(context).getString(KEY_LANGUAGE, AppLanguage.SYSTEM.value))
+        } catch (_: Exception) {
+            AppLanguage.SYSTEM
         }
     }
 

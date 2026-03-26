@@ -1,5 +1,6 @@
 package ink.moling.mocklocation.activity.waypoint
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
@@ -12,9 +13,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
+import ink.moling.mocklocation.utils.LocaleHelper
 import ink.moling.mocklocation.utils.logger.Logger
 
 class WaypointActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(newBase?.let { LocaleHelper.setLocale(it) })
+    }
     companion object {
         const val RESULT_EDIT_OK        = 0xE0
         const val RESULT_EDIT_CANCELED  = 0xEC
@@ -61,7 +67,7 @@ class WaypointActivity : ComponentActivity() {
                             viewModel.loadRoute(selectedRoute)
                         }
                     }
-                    
+
                     WaypointScreen(
                         viewModel = viewModel,
                         onSaveSuccess = {
@@ -77,6 +83,14 @@ class WaypointActivity : ComponentActivity() {
                     )
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 检查语言是否变化，如果变化则重新创建 Activity
+        if (LocaleHelper.hasLanguageChanged(this)) {
+            recreate()
         }
     }
 }
