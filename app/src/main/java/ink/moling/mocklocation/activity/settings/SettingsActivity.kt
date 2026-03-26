@@ -1,5 +1,6 @@
 package ink.moling.mocklocation.activity.settings
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,8 +11,14 @@ import androidx.compose.ui.Modifier
 import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.ui.theme.ThemeStateHolder
+import ink.moling.mocklocation.utils.LocaleHelper
 
 class SettingsActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(newBase?.let { LocaleHelper.setLocale(it) })
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

@@ -1,6 +1,7 @@
 package ink.moling.mocklocation.activity.main
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
@@ -23,6 +24,7 @@ import ink.moling.mocklocation.ui.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.dialog.RequestPermissionDialog
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.ui.theme.ThemeStateHolder
+import ink.moling.mocklocation.utils.LocaleHelper
 import ink.moling.mocklocation.utils.MockMode
 import ink.moling.mocklocation.utils.PermissionHandler
 import ink.moling.mocklocation.utils.logger.CrashHandler
@@ -30,6 +32,10 @@ import ink.moling.mocklocation.utils.logger.Logger
 import ink.moling.mocklocation.utils.logger.LoggerFile
 
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(newBase?.let { LocaleHelper.setLocale(it) })
+    }
     private lateinit var connection: ServiceConnection
     private lateinit var permissionHandler: PermissionHandler
 
@@ -142,6 +148,14 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 检查语言是否变化，如果变化则重新创建 Activity
+        if (LocaleHelper.hasLanguageChanged(this)) {
+            recreate()
         }
     }
 
