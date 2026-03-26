@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ==================== Common Buttons ==================== -->
+    <string name="button_add">添加</string>
+    <string name="button_save">保存</string>
+    <string name="button_edit">编辑</string>
+    <string name="button_confirm">确认</string>
+    <string name="button_cancel">取消</string>
+    <string name="button_delete">删除</string>
+    <string name="button_grant_permission">授予权限</string>
+    <string name="dialog_button_cancel">取消</string>
+    <string name="label_select_target">选择目标</string>
+
+    <!-- ==================== Common Labels ==================== -->
+    <string name="label_name">名称</string>
+    <string name="label_location">位置</string>
+    <string name="label_latitude">纬度</string>
+    <string name="label_longitude">经度</string>
+    <string name="label_altitude">海拔</string>
+    <string name="label_status">状态</string>
+    <string name="label_map">地图</string>
+
+    <!-- ==================== Common Units ==================== -->
+    <string name="unit_meters_per_second">米/秒</string>
+    <string name="unit_meters_per_second_max">%.2f 米/秒 (最大)</string>
+    <string name="unit_speed_format">%.2f 米/秒</string>
+    <string name="format_direction_angle_speed">%1$s %2$d° %3$.2f 米/秒</string>
+
+    <!-- ==================== Permissions ==================== -->
+    <string name="permission_dialog_title">需要权限</string>
+    <string name="permission_dialog_description">使用位置模拟功能需要以下权限：</string>
+    <string name="permission_dialog_note_special">点击"授予权限"后，系统将跳转到系统设置页面手动开启权限。</string>
+    <string name="permission_dialog_note_normal">点击"授予权限"后，系统将弹出权限请求对话框。</string>
+    <string name="permission_label_optional">可选</string>
+    <string name="permission_label_requires_manual_setup">需要在系统设置中手动开启</string>
+
+    <!-- Permission Names -->
+    <string name="permission_fine_location_name">精确位置</string>
+    <string name="permission_coarse_location_name">粗略位置</string>
+    <string name="permission_notifications_name">通知</string>
+    <string name="permission_background_location_name">后台位置</string>
+    <string name="permission_overlay_name">悬浮窗</string>
+
+    <!-- Permission Descriptions -->
+    <string name="permission_fine_location_desc">用于访问和模拟精确位置信息</string>
+    <string name="permission_coarse_location_desc">用于访问和模拟粗略位置信息</string>
+    <string name="permission_notifications_desc">用于显示前台服务通知</string>
+    <string name="permission_background_location_desc">用于在应用处于后台时继续模拟位置</string>
+    <string name="permission_overlay_desc">用于显示悬浮摇杆以便快速调整位置</string>
+
+    <!-- ==================== Main Screen ==================== -->
+    <string name="main_toast_select_point">请选择一个点位</string>
+    <string name="main_toast_select_route">请选择一条路线</string>
+    <string name="main_button_start">开始</string>
+    <string name="main_button_stop">停止</string>
+    <string name="main_button_wait">请稍候…</string>
+    <string name="main_label_current_selection">当前模拟</string>
+    <string name="main_selection_point">点位模拟 &gt; %1$s</string>
+    <string name="main_selection_route">路线模拟 &gt; %1$s</string>
+    <string name="main_label_status">模拟状态</string>
+    <string name="main_status_mocking">模拟中</string>
+    <string name="main_status_initializing">初始化中</string>
+    <string name="main_status_idle">空闲</string>
+
+    <!-- Main Screen Dialogs -->
+    <string name="main_dialog_delete_point">删除点位"%1$s"?</string>
+    <string name="main_dialog_delete_route">删除路线"%1$s"?</string>
+
+    <!-- ==================== Simulation ==================== -->
+    <string name="simulation_title">模拟选项</string>
+    <string name="simulation_movement_speed">移动速度</string>
+    <string name="simulation_max_speed_preset">最大速度预设</string>
+
+    <!-- ==================== Point Options ==================== -->
+    <string name="options_point_label_name">点位名称</string>
+    <string name="options_point_label_location">位置</string>
+    <string name="options_point_label_latitude">纬度</string>
+    <string name="options_point_label_longitude">经度</string>
+    <string name="options_point_label_altitude">海拔</string>
+
+    <!-- ==================== Route Options ==================== -->
+    <string name="options_route_label_name">路线名称</string>
+    <string name="options_route_label_map">地图概览</string>
+    <string name="options_route_no_data">无路线数据</string>
+    <string name="options_route_toast_exported">%1$s 已导出</string>
+
+    <!-- ==================== Bottom Sheets ==================== -->
+    <string name="sheet_routes_title">已保存路线</string>
+    <string name="sheet_routes_toast_canceled">用户已取消</string>
+    <string name="sheet_points_title">已保存点位</string>
+
+    <!-- ==================== Waypoint Dialog ==================== -->
+    <string name="waypoint_dialog_title_add">添加路径点</string>
+    <string name="waypoint_dialog_title_edit">编辑路径点</string>
+    <string name="waypoint_dialog_text_latitude">纬度</string>
+    <string name="waypoint_dialog_example_latitude">例如：39.9042</string>
+    <string name="waypoint_dialog_text_latitude_invalid">无效的纬度 (-90 到 90)</string>
+    <string name="waypoint_dialog_text_longitude">经度</string>
+    <string name="waypoint_dialog_example_longitude">例如：116.4074</string>
+    <string name="waypoint_dialog_text_longitude_invalid">无效的经度 (-180 到 180)</string>
+    <string name="waypoint_dialog_text_current_location">使用当前位置</string>
+    <string name="waypoint_dialog_text_waiting_location">等待定位中…</string>
+    <string name="waypoint_dialog_button_add">添加</string>
+    <string name="waypoint_dialog_button_save">保存</string>
+
+    <!-- ==================== Waypoint Screen ==================== -->
+    <string name="waypoint_pill_waypoints">路径点</string>
+    <string name="waypoint_pill_details">路线详情</string>
+    <string name="waypoint_pill_route">路线视图</string>
+    <string name="waypoint_pill_map">地图视图</string>
+    <string name="waypoint_hint_connect_mode">点击另一路径点连接或断开与当前路径点的连接</string>
+    <string name="waypoint_hint_edit_route">移动地图绘制路线</string>
+
+    <!-- Waypoint Toasts -->
+    <string name="waypoint_toast_enter_route_name">请输入路线名称</string>
+    <string name="waypoint_toast_add_waypoint">请至少添加一个路径点</string>
+    <string name="waypoint_toast_save_success">路线保存成功</string>
+    <string name="waypoint_toast_save_failed">路线保存失败：%1$s</string>
+    <string name="waypoint_toast_cycle_detected">路线包含环路，请检查连接</string>
+    <string name="waypoint_toast_invalid_structure">无效的路线结构：必须是单个环路或无分支的链条</string>
+
+    <!-- Waypoint Detail Sheet -->
+    <string name="waypoint_detail_waypoint_title">路径点 #%1$s</string>
+    <string name="waypoint_detail_button_change_location">更改位置</string>
+    <string name="waypoint_detail_button_connections">连接</string>
+    <string name="waypoint_detail_button_delete">删除</string>
+
+    <!-- Waypoint Point Types -->
+    <string name="waypoint_point_type_road">普通道路</string>
+    <string name="waypoint_point_type_loop">环形</string>
+    <string name="waypoint_point_type_walk">人行道</string>
+
+    <!-- ==================== Map Picker ==================== -->
+    <string name="map_picker_title">选择位置</string>
+
+    <!-- ==================== Overlay ==================== -->
+    <string name="overlay_menu_hide">隐藏悬浮窗</string>
+    <string name="overlay_menu_random_offset">随机偏移</string>
+    <string name="overlay_menu_points">已保存点位 …</string>
+    <string name="overlay_no_saved_points">无已保存点位</string>
+
+    <!-- ==================== Settings ==================== -->
+    <string name="settings_title">设置</string>
+
+    <!-- Settings Sections -->
+    <string name="settings_section_general">通用</string>
+    <string name="settings_section_mock_options">模拟选项</string>
+    <string name="settings_section_about">关于</string>
+    <string name="settings_section_debug">调试</string>
+
+    <!-- Settings Items -->
+    <string name="settings_item_speed_presets">速度预设</string>
+    <string name="settings_item_theme_mode">应用主题</string>
+    <string name="settings_item_joystick_size">摇杆大小</string>
+    <string name="settings_item_random_offset">随机偏移</string>
+    <string name="settings_item_release_repo">发布仓库</string>
+    <string name="settings_item_oss_license">开源许可证</string>
+    <string name="settings_item_export_log">导出日志</string>
+    <string name="settings_item_crash_test">崩溃测试（长按）</string>
+    <string name="settings_chooser_open_log">使用应用打开日志…</string>
+
+    <!-- Joystick Size -->
+    <string name="settings_joystick_size_title">摇杆大小</string>
+
+    <!-- Random Offset -->
+    <string name="settings_random_offset_title">随机偏移</string>
+    <string name="settings_random_offset_legend_original">原始路线</string>
+    <string name="settings_random_offset_legend_offset">模拟偏移</string>
+
+    <!-- Speed Presets -->
+    <string name="settings_speed_preset_title">速度预设</string>
+    <string name="settings_speed_preset_walking">步行速度</string>
+    <string name="settings_speed_preset_running">跑步速度</string>
+    <string name="settings_speed_preset_bicycling">骑行速度</string>
+
+    <!-- App Theme -->
+    <string name="settings_theme_mode_title">应用主题</string>
+    <string name="settings_theme_mode_system">跟随系统</string>
+    <string name="settings_theme_mode_light">浅色主题</string>
+    <string name="settings_theme_mode_dark">深色主题</string>
+
+    <!-- ==================== Delete Dialog ==================== -->
+    <string name="delete_dialog_title">确认删除</string>
+    <string name="delete_dialog_tip">此操作无法撤销。</string>
+    <string name="delete_dialog_button_delete">删除</string>
+
+    <!-- ==================== Unsaved Changes Dialog ==================== -->
+    <string name="unsaved_dialog_title">未保存的更改</string>
+    <string name="unsaved_dialog_text_tip">您有未保存的更改。</string>
+    <string name="unsaved_dialog_text_quest">是否保存这些更改？</string>
+    <string name="unsaved_dialog_button_save">保存</string>
+    <string name="unsaved_dialog_button_discard">放弃并退出</string>
+
+    <!-- ==================== Error Dialog ==================== -->
+    <string name="error_dialog_text_stack_trace">堆栈跟踪（长按复制）：</string>
+    <string name="error_dialog_toast_copied">堆栈跟踪已复制</string>
+    <string name="error_dialog_button_ok">确定</string>
+
+    <!-- ==================== OSS License ==================== -->
+    <string name="oss_license_title">开源许可证</string>
+    <string name="oss_license_back">返回</string>
+    <string name="oss_license_unknown">未知许可证</string>
+    <string name="oss_license_section_libraries">引用库列表</string>
+    <string name="oss_license_version">版本</string>
+    <string name="oss_license_description">描述</string>
+    <string name="oss_license_developers">开发者</string>
+    <string name="oss_license_project_url">项目地址</string>
+    <string name="oss_license_license_url">许可证地址</string>
+    <string name="oss_license_dependency">依赖</string>
+
+</resources>

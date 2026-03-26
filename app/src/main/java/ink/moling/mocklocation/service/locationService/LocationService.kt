@@ -210,7 +210,6 @@ class LocationService : Service() {
             MockServiceStatusRepository.state.value = MockServiceState.Enabled
         }
 
-        /* TODO: Path simulation */
         @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
         fun setDynamicRoute(
             route: RouteObject
