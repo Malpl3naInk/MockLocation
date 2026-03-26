@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import ink.moling.mocklocation.R
+import ink.moling.mocklocation.activity.osslicense.OssLicenseActivity
 import ink.moling.mocklocation.activity.settings.views.SettingJoystickSize
 import ink.moling.mocklocation.activity.settings.views.SettingRandomOffset
 import ink.moling.mocklocation.activity.settings.views.SettingSpeedPreset
@@ -142,26 +143,6 @@ fun SettingsScreen() {
                         )
                     ) {
                         Column {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        settingOption = SettingOption.SPEED_PRESETS
-                                        scope.launch {
-                                            scaffoldState.bottomSheetState.expand()
-                                        }
-                                    }
-                                    .padding(12.dp)
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Outlined.DirectionsWalk,
-                                    contentDescription = null
-                                )
-                                Text(
-                                    stringResource(R.string.settings_item_speed_presets),
-                                    modifier = Modifier.padding(start = 8.dp)
-                                )
-                            }
 
                             Row(
                                 modifier = Modifier
@@ -180,27 +161,6 @@ fun SettingsScreen() {
                                 )
                                 Text(
                                     stringResource(R.string.settings_item_theme_mode),
-                                    modifier = Modifier.padding(start = 8.dp)
-                                )
-                            }
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        settingOption = SettingOption.JOYSTICK_SIZE
-                                        scope.launch {
-                                            scaffoldState.bottomSheetState.expand()
-                                        }
-                                    }
-                                    .padding(12.dp)
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Gamepad,
-                                    contentDescription = null
-                                )
-                                Text(
-                                    stringResource(R.string.settings_item_joystick_size),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
@@ -233,6 +193,27 @@ fun SettingsScreen() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
+                                        settingOption = SettingOption.SPEED_PRESETS
+                                        scope.launch {
+                                            scaffoldState.bottomSheetState.expand()
+                                        }
+                                    }
+                                    .padding(12.dp)
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Outlined.DirectionsWalk,
+                                    contentDescription = null
+                                )
+                                Text(
+                                    stringResource(R.string.settings_item_speed_presets),
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
                                         settingOption = SettingOption.RANDOM_OFFSET
                                         scope.launch {
                                             scaffoldState.bottomSheetState.expand()
@@ -246,6 +227,27 @@ fun SettingsScreen() {
                                 )
                                 Text(
                                     stringResource(R.string.settings_item_random_offset),
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        settingOption = SettingOption.JOYSTICK_SIZE
+                                        scope.launch {
+                                            scaffoldState.bottomSheetState.expand()
+                                        }
+                                    }
+                                    .padding(12.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Gamepad,
+                                    contentDescription = null
+                                )
+                                Text(
+                                    stringResource(R.string.settings_item_joystick_size),
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
@@ -301,7 +303,8 @@ fun SettingsScreen() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        /* TODO: OSS license activity */
+                                        val intent = Intent(context, OssLicenseActivity::class.java)
+                                        context.startActivity(intent)
                                     }
                                     .padding(12.dp)
                             ) {

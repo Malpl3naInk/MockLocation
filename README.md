@@ -23,6 +23,7 @@ MocakLocation
 │  ├─main
 │  │  └─views
 │  ├─mappicker
+│  ├─osslicense
 │  ├─settings
 │  │  └─views
 │  └─waypoint
@@ -31,7 +32,8 @@ MocakLocation
 │  ├─local
 │  │  ├─db
 │  │  └─repository
-│  └─models
+│  ├─models
+│  └─repository
 ├─service
 │  ├─locationService
 │  │  ├─controller
@@ -83,7 +85,7 @@ MocakLocation
 - [ ] [地图功能] 位置搜索功能（地址搜索和POI搜索）
 - [ ] [轨迹功能] 轨迹录制和回放功能
 - [x] [速度控制] 预设速度模板（步行、跑步、骑行、驾车等）
-- [ ] [模拟增强] 根据经纬度自动获取真实海拔数据
+- [ ] ~~[模拟增强] 根据经纬度自动获取真实海拔数据~~
 - [ ] [路线模拟] 路线平滑处理，使移动轨迹更自然
 - [ ] [数据管理] 配置备份和恢复功能
 - [ ] [模拟增强] 信号强度模拟

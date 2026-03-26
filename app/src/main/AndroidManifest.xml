@@ -46,6 +46,10 @@
             android:name=".activity.mappicker.MapPickerActivity"
             android:theme="@style/Theme.MockLocation">
         </activity>
+        <activity
+            android:name=".activity.osslicense.OssLicenseActivity"
+            android:theme="@style/Theme.MockLocation">
+        </activity>
 
         <service
             android:name=".service.locationService.LocationService"
