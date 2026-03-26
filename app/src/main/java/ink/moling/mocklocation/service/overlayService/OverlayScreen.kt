@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
@@ -229,7 +230,7 @@ fun OverlayScreen(
                             offset = DpOffset(x = 10.dp, y = 0.dp)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Hide overlay") },
+                                text = { Text(stringResource(R.string.overlay_menu_hide)) },
                                 onClick =  {
                                     isOverlayMenuExpanded = false
                                     val intent = android.content.Intent(
@@ -245,7 +246,7 @@ fun OverlayScreen(
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text("Random offset")
+                                        Text(stringResource(R.string.overlay_menu_random_offset))
 
                                         Spacer(Modifier.width(10.dp))
 
@@ -262,7 +263,7 @@ fun OverlayScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Points ...") },
+                                text = { Text(stringResource(R.string.overlay_menu_points)) },
                                 onClick =  {
                                     isOverlayMenuExpanded = false
                                     isPointsMenuExpanded = true
@@ -418,7 +419,7 @@ fun OverlayScreen(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = "No saved points",
+                                text = stringResource(R.string.overlay_no_saved_points),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )

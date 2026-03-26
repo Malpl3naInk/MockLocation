@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.settings.views.SettingJoystickSize
 import ink.moling.mocklocation.activity.settings.views.SettingRandomOffset
@@ -277,7 +278,11 @@ fun SettingsScreen() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        /* TODO: OSS license activity */
+                                        val intent = Intent(Intent.ACTION_VIEW,
+                                            "https://github.com/Malpl3naInk/MockLocation-releases"
+                                                .toUri()
+                                        )
+                                        context.startActivity(intent)
                                     }
                                     .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically

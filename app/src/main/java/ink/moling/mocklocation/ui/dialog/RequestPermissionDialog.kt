@@ -44,12 +44,12 @@ fun RequestPermissionDialog(
         icon = {
             Icon(
                 imageVector = Icons.Default.Info,
-                contentDescription = "Permission Info"
+                contentDescription = null
             )
         },
         title = {
             Text(
-                text = "Permissions Required",
+                text = stringResource(R.string.permission_dialog_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -61,7 +61,7 @@ fun RequestPermissionDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = "To use location mocking features, the following permissions are required:",
+                    text = stringResource(R.string.permission_dialog_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -77,9 +77,9 @@ fun RequestPermissionDialog(
                 
                 Text(
                     text = if (hasSpecialPermission) {
-                        "After clicking \"Grant Permission\", you will be redirected to system settings to manually enable the permission."
+                        stringResource(R.string.permission_dialog_note_special)
                     } else {
-                        "After clicking \"Grant Permission\", the system will display a permission request dialog."
+                        stringResource(R.string.permission_dialog_note_normal)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary
@@ -90,7 +90,7 @@ fun RequestPermissionDialog(
             Button(
                 onClick = onConfirm
             ) {
-                Text("Grant Permission")
+                Text(stringResource(R.string.button_grant_permission))
             }
         },
         dismissButton = {
@@ -140,7 +140,7 @@ private fun PermissionItem(permission: PermissionInfo) {
                     
                     if (!permission.isRequired) {
                         Text(
-                            text = "Optional",
+                            text = stringResource(R.string.permission_label_optional),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier
@@ -160,7 +160,7 @@ private fun PermissionItem(permission: PermissionInfo) {
                 if (permission.isSpecialPermission) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Requires manual setup in system settings",
+                        text = stringResource(R.string.permission_label_requires_manual_setup),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.tertiary,
                         fontWeight = FontWeight.Medium

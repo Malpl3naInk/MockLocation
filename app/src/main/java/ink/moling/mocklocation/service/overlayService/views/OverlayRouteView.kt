@@ -9,6 +9,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import ink.moling.mocklocation.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,15 +29,13 @@ fun OverlayRouteView(
     ) {
         Row {
             Text(
-                "Movement speed",
+                stringResource(R.string.simulation_movement_speed),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 10.sp
             )
             Spacer(Modifier.weight(1f))
             Text(
-                "%.2f m/s".format(
-                    currentSpeedPer * currentSpeedPreset
-                ),
+                stringResource(R.string.unit_speed_format, currentSpeedPer * currentSpeedPreset),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 10.sp
             )
@@ -58,15 +58,13 @@ fun OverlayRouteView(
 
         Row {
             Text(
-                "Maximum speed preset",
+                stringResource(R.string.simulation_max_speed_preset),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 10.sp
             )
             Spacer(Modifier.weight(1f))
             Text(
-                "%.2f m/s (Max)".format(
-                    currentSpeedPreset
-                ),
+                stringResource(R.string.unit_meters_per_second_max, currentSpeedPreset),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 10.sp
             )
