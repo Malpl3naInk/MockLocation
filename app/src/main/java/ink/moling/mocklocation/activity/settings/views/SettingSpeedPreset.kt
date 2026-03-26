@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,10 +43,12 @@ fun SettingSpeedPreset(
     var speedPresetWalk by remember { mutableStateOf("5.0") }
     var speedPresetRun  by remember { mutableStateOf("12.0") }
     var speedPresetBike by remember { mutableStateOf("25.0") }
-    PrefsHelper.getMaxSpeedPresets(context).let {
-        speedPresetWalk = it[0].toString()
-        speedPresetRun  = it[1].toString()
-        speedPresetBike = it[2].toString()
+    LaunchedEffect(Unit) {
+        PrefsHelper.getMaxSpeedPresets(context).let {
+            speedPresetWalk = it[0].toString()
+            speedPresetRun  = it[1].toString()
+            speedPresetBike = it[2].toString()
+        }
     }
 
     Column(
@@ -68,7 +71,7 @@ fun SettingSpeedPreset(
             TextField(
                 value = speedPresetWalk,
                 isError = !speedPresetWalk.isFloat(strict = true),
-                onValueChange = { if (it.isFloat()) speedPresetWalk = it },
+                onValueChange = { speedPresetWalk = it },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal
                 ),
@@ -92,7 +95,7 @@ fun SettingSpeedPreset(
             TextField(
                 value = speedPresetRun,
                 isError = !speedPresetRun.isFloat(strict = true),
-                onValueChange = { if (it.isFloat()) speedPresetRun = it },
+                onValueChange = { speedPresetRun = it },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal
                 ),
@@ -116,7 +119,7 @@ fun SettingSpeedPreset(
             TextField(
                 value = speedPresetBike,
                 isError = !speedPresetBike.isFloat(strict = true),
-                onValueChange = { if (it.isFloat()) speedPresetBike = it },
+                onValueChange = { speedPresetBike = it },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal
                 ),
