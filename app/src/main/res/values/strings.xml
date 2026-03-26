@@ -200,4 +200,16 @@
     <string name="error_dialog_toast_copied">Stack trace copied</string>
     <string name="error_dialog_button_ok">OK</string>
 
+    <!-- ==================== OSS License ==================== -->
+    <string name="oss_license_title">Open Source Licenses</string>
+    <string name="oss_license_back">Back</string>
+    <string name="oss_license_unknown">Unknown License</string>
+    <string name="oss_license_section_libraries">Libraries</string>
+    <string name="oss_license_version">Version</string>
+    <string name="oss_license_description">Description</string>
+    <string name="oss_license_developers">Developers</string>
+    <string name="oss_license_project_url">Project URL</string>
+    <string name="oss_license_license_url">License URL</string>
+    <string name="oss_license_dependency">Dependency</string>
+
 </resources>

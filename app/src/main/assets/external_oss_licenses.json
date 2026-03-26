@@ -1,0 +1,17 @@
+[
+  {
+    "project": "Open Location Code",
+    "description": "Open Location Code is a short, easy-to-share code for any location",
+    "version": "1.0.4",
+    "developers": [
+      "Google"
+    ],
+    "url": "https://github.com/google/open-location-code",
+    "licenses": [
+      {
+        "license": "Apache-2.0",
+        "license_url": "https://www.apache.org/licenses/LICENSE-2.0.txt"}
+    ],
+    "dependency": "com.google.openlocationcode:openlocationcode:1.0.4"
+  }
+]
