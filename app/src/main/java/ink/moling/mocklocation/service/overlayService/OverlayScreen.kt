@@ -311,62 +311,36 @@ fun OverlayScreen(
                     }
 
                     Row {
-                        IconButton(onClick = {
-                            if (overlayState.mockMode == 1) {
-                                val currentSpeed =
-                                    currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
-                                val newPreset = currentSpeedPresets[0]
-                                currentSpeedPer = if (currentSpeed >= newPreset) {
-                                    1f
-                                } else {
-                                    (currentSpeed / newPreset).toFloat()
+                        val presetIcons = listOf(
+                            Icons.AutoMirrored.Outlined.DirectionsWalk,
+                            Icons.AutoMirrored.Outlined.DirectionsRun,
+                            Icons.AutoMirrored.Outlined.DirectionsBike
+                        )
+
+                        presetIcons.forEachIndexed { index, icon ->
+                            val isSelected = selectedSpeedPreset == index
+                            IconButton(
+                                onClick = {
+                                    if (overlayState.mockMode == 1) {
+                                        val currentSpeed =
+                                            currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
+                                        val newPreset = currentSpeedPresets[index]
+                                        currentSpeedPer = if (currentSpeed >= newPreset) {
+                                            1f
+                                        } else {
+                                            (currentSpeed / newPreset).toFloat()
+                                        }
+                                    }
+                                    selectedSpeedPreset = index
                                 }
+                            ) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.primary
+                                            else Color.White.copy(alpha = 0.5f)
+                                )
                             }
-                            selectedSpeedPreset = 0
-                        }) {
-                            Icon(
-                                Icons.AutoMirrored.Outlined.DirectionsWalk,
-                                contentDescription = null,
-                                tint = Color.White.copy(alpha = 0.7f)
-                            )
-                        }
-                        IconButton(onClick = {
-                            if (overlayState.mockMode == 1) {
-                                val currentSpeed =
-                                    currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
-                                val newPreset = currentSpeedPresets[1]
-                                currentSpeedPer = if (currentSpeed >= newPreset) {
-                                    1f
-                                } else {
-                                    (currentSpeed / newPreset).toFloat()
-                                }
-                            }
-                            selectedSpeedPreset = 1
-                        }) {
-                            Icon(
-                                Icons.AutoMirrored.Outlined.DirectionsRun,
-                                contentDescription = null,
-                                tint = Color.White.copy(alpha = 0.7f)
-                            )
-                        }
-                        IconButton(onClick = {
-                            if (overlayState.mockMode == 1) {
-                                val currentSpeed =
-                                    currentSpeedPer * currentSpeedPresets[selectedSpeedPreset]
-                                val newPreset = currentSpeedPresets[2]
-                                currentSpeedPer = if (currentSpeed >= newPreset) {
-                                    1f
-                                } else {
-                                    (currentSpeed / newPreset).toFloat()
-                                }
-                            }
-                            selectedSpeedPreset = 2
-                        }) {
-                            Icon(
-                                Icons.AutoMirrored.Outlined.DirectionsBike,
-                                contentDescription = null,
-                                tint = Color.White.copy(alpha = 0.7f)
-                            )
                         }
                     }
 
