@@ -1,5 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- ==================== Application ==================== -->
     <string name="app_name" translatable="false">MockLocation</string>
+
+    <!-- ==================== Common Buttons ==================== -->
+    <string name="button_add">Add</string>
+    <string name="button_save">Save</string>
+    <string name="button_edit">Edit</string>
+    <string name="button_confirm">Confirm</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_delete">Delete</string>
+    <string name="button_grant_permission">Grant Permission</string>
+    <string name="dialog_button_cancel">Cancel</string>
+    <string name="label_select_target">Select target</string>
+
+    <!-- ==================== Common Labels ==================== -->
+    <string name="label_name">Name</string>
+    <string name="label_location">Location</string>
+    <string name="label_latitude">Latitude</string>
+    <string name="label_longitude">Longitude</string>
+    <string name="label_altitude">Altitude</string>
+    <string name="label_status">Status</string>
+    <string name="label_map">Map</string>
+
+    <!-- ==================== Common Units ==================== -->
+    <string name="unit_meters_per_second">m/s</string>
+    <string name="unit_meters_per_second_max">%.2f m/s (Max)</string>
+    <string name="unit_speed_format">%.2f m/s</string>
+    <string name="format_direction_angle_speed">%1$s %2$d° %3$.2f m/s</string>
+
+    <!-- ==================== Permissions ==================== -->
+    <string name="permission_dialog_title">Permissions Required</string>
+    <string name="permission_dialog_description">To use location mocking features, the following permissions are required:</string>
+    <string name="permission_dialog_note_special">After clicking "Grant Permission", you will be redirected to system settings to manually enable the permission.</string>
+    <string name="permission_dialog_note_normal">After clicking "Grant Permission", the system will display a permission request dialog.</string>
+    <string name="permission_label_optional">Optional</string>
+    <string name="permission_label_requires_manual_setup">Requires manual setup in system settings</string>
+
+    <!-- Permission Names -->
+    <string name="permission_fine_location_name">Fine Location</string>
+    <string name="permission_coarse_location_name">Coarse Location</string>
+    <string name="permission_notifications_name">Notifications</string>
+    <string name="permission_background_location_name">Background Location</string>
+    <string name="permission_overlay_name">Display Over Other Apps</string>
+
+    <!-- Permission Descriptions -->
+    <string name="permission_fine_location_desc">Required to access and mock precise location information</string>
+    <string name="permission_coarse_location_desc">Required to access and mock approximate location information</string>
+    <string name="permission_notifications_desc">Required to display foreground service notifications</string>
+    <string name="permission_background_location_desc">Required to continue mocking location when app is in background</string>
+    <string name="permission_overlay_desc">Required to display floating joystick for quick location adjustments</string>
+
+    <!-- ==================== Main Screen ==================== -->
+    <string name="main_toast_select_point">Please select a point</string>
+    <string name="main_toast_select_route">Please select a route</string>
+    <string name="main_button_start">Start</string>
+    <string name="main_button_stop">Stop</string>
+    <string name="main_button_wait">Wait…</string>
+    <string name="main_label_current_selection">Current selection</string>
+    <string name="main_selection_point">Point &gt; %1$s</string>
+    <string name="main_selection_route">Route &gt; %1$s</string>
+    <string name="main_label_status">Status</string>
+    <string name="main_status_mocking">Mocking</string>
+    <string name="main_status_initializing">Initializing</string>
+    <string name="main_status_idle">Idle</string>
+
+    <!-- Main Screen Dialogs -->
+    <string name="main_dialog_delete_point">Delete point "%1$s"?</string>
+    <string name="main_dialog_delete_route">Delete route "%1$s"?</string>
+
+    <!-- ==================== Simulation ==================== -->
+    <string name="simulation_title">Simulation</string>
+    <string name="simulation_movement_speed">Movement speed</string>
+    <string name="simulation_max_speed_preset">Maximum speed preset</string>
+
+    <!-- ==================== Point Options ==================== -->
+    <string name="options_point_label_name">Point name</string>
+    <string name="options_point_label_location">Location</string>
+    <string name="options_point_label_latitude">Latitude</string>
+    <string name="options_point_label_longitude">Longitude</string>
+    <string name="options_point_label_altitude">Altitude</string>
+
+    <!-- ==================== Route Options ==================== -->
+    <string name="options_route_label_name">Route name</string>
+    <string name="options_route_label_map">Map</string>
+    <string name="options_route_no_data">No route data</string>
+    <string name="options_route_toast_exported">%1$s exported</string>
+
+    <!-- ==================== Bottom Sheets ==================== -->
+    <string name="sheet_routes_title">Saved routes</string>
+    <string name="sheet_routes_toast_canceled">User canceled</string>
+    <string name="sheet_points_title">Saved points</string>
+
+    <!-- ==================== Waypoint Dialog ==================== -->
     <string name="waypoint_dialog_title_add">Add Waypoint</string>
     <string name="waypoint_dialog_title_edit">Edit Waypoint</string>
     <string name="waypoint_dialog_text_latitude">Latitude</string>
@@ -12,103 +106,8 @@
     <string name="waypoint_dialog_text_waiting_location">Waiting for location…</string>
     <string name="waypoint_dialog_button_add">Add</string>
     <string name="waypoint_dialog_button_save">Save</string>
-    <string name="dialog_button_cancel">Cancel</string>
-    <string name="delete_dialog_title">Confirm delete</string>
-    <string name="delete_dialog_tip">This action cannot be undone.</string>
-    <string name="delete_dialog_button_delete">Delete</string>
-    <string name="error_dialog_text_stack_trace">Stack Trace (Long press to copy):</string>
-    <string name="error_dialog_toast_copied">Stack trace copied</string>
-    <string name="error_dialog_button_ok">OK</string>
-    <string name="unsaved_dialog_title">Unsaved Changes</string>
-    <string name="unsaved_dialog_text_tip">You have unsaved changes.</string>
-    <string name="unsaved_dialog_text_quest">Do you want to save these changes?</string>
-    <string name="unsaved_dialog_button_save">Save</string>
-    <string name="unsaved_dialog_button_discard">Discard &amp; Quit</string>
 
-    <!-- PageMainView -->
-    <string name="main_toast_select_point">Please select a point</string>
-    <string name="main_button_start">Start</string>
-    <string name="main_button_stop">Stop</string>
-    <string name="main_button_wait">Wait…</string>
-    <string name="main_label_current_selection">Current selection</string>
-    <string name="main_selection_point">Point > %1$s</string>
-    <string name="main_selection_route">Route > %1$s</string>
-    <string name="main_label_status">Status</string>
-    <string name="main_status_mocking">Mocking</string>
-    <string name="main_status_initializing">Initializing</string>
-    <string name="main_status_idle">Idle</string>
-
-    <!-- PageSimulationView -->
-    <string name="simulation_title">Simulation</string>
-
-    <!-- OptionsRouteView -->
-    <string name="options_route_label_name">Route name</string>
-    <string name="options_route_label_map">Map</string>
-    <string name="options_route_no_data">No route data</string>
-    <string name="options_route_toast_exported">%1$s exported</string>
-
-    <!-- OptionsPointView -->
-    <string name="options_point_label_name">Point name</string>
-    <string name="options_point_label_location">Location</string>
-    <string name="options_point_label_latitude">Latitude</string>
-    <string name="options_point_label_longitude">Longitude</string>
-    <string name="options_point_label_altitude">Altitude</string>
-
-    <!-- Shared button / label texts -->
-    <string name="button_edit">Edit</string>
-    <string name="button_save">Save</string>
-    <string name="button_confirm">Confirm</string>
-    <string name="button_cancel">Cancel</string>
-    <string name="label_select_target">Select target</string>
-
-    <!-- SheetRoutesView -->
-    <string name="sheet_routes_title">Saved routes</string>
-    <string name="sheet_routes_toast_canceled">User canceled</string>
-
-    <!-- SheetPointsView -->
-    <string name="sheet_points_title">Saved points</string>
-
-    <!-- MainScreen dialogs -->
-    <string name="main_dialog_delete_point">Delete point \"%1$s\"?</string>
-    <string name="main_dialog_delete_route">Delete route \"%1$s\"?</string>
-
-    <!-- SettingsScreen -->
-    <string name="settings_title">Settings</string>
-    <string name="settings_section_general">General</string>
-    <string name="settings_item_speed_presets">Speed presets</string>
-    <string name="settings_item_theme_mode">App Theme</string>
-    <string name="settings_item_joystick_size">Joystick Size</string>
-    <string name="settings_section_mock_options">Mock options</string>
-    <string name="settings_item_random_offset">Random offset</string>
-    <string name="settings_section_about">About</string>
-    <string name="settings_item_release_repo">Release repo</string>
-    <string name="settings_item_oss_license">Open Source License</string>
-    <string name="settings_section_debug">Debug</string>
-    <string name="settings_item_export_log">Export log</string>
-    <string name="settings_item_crash_test">Crash test (Long press)</string>
-    <string name="settings_chooser_open_log">Open log with…</string>
-
-    <!-- SettingJoystickSize -->
-    <string name="settings_joystick_size_title">Joystick Size</string>
-
-    <!-- SettingRandomOffset -->
-    <string name="settings_random_offset_title">Random Offset</string>
-    <string name="settings_random_offset_legend_original">Original route</string>
-    <string name="settings_random_offset_legend_offset">Simulated offset</string>
-
-    <!-- SettingSpeedPreset -->
-    <string name="settings_speed_preset_title">Speed Presets</string>
-    <string name="settings_speed_preset_walking">Walking speed</string>
-    <string name="settings_speed_preset_running">Running speed</string>
-    <string name="settings_speed_preset_bicycling">Bicycling speed</string>
-
-    <!-- SettingAppTheme -->
-    <string name="settings_theme_mode_title">App Theme</string>
-    <string name="settings_theme_mode_system">System</string>
-    <string name="settings_theme_mode_light">Light</string>
-    <string name="settings_theme_mode_dark">Dark</string>
-
-    <!-- WaypointScreen -->
+    <!-- ==================== Waypoint Screen ==================== -->
     <string name="waypoint_pill_waypoints">Waypoints</string>
     <string name="waypoint_pill_details">Details</string>
     <string name="waypoint_pill_route">Route</string>
@@ -116,25 +115,89 @@
     <string name="waypoint_hint_connect_mode">Click waypoint to connect / disconnect</string>
     <string name="waypoint_hint_edit_route">Move map to draw route</string>
 
-    <!-- MapPickerScreen -->
-    <string name="map_picker_title">Select Location</string>
-
-    <!-- SheetDetailView -->
-    <string name="waypoint_detail_waypoint_title">Waypoint #%1$s</string>
-    <string name="waypoint_detail_button_change_location">Change location</string>
-    <string name="waypoint_detail_button_connections">Connections</string>
-    <string name="waypoint_detail_button_delete">Delete</string>
-
-    <!-- SheetPointView -->
-    <string name="waypoint_point_type_road">Common road</string>
-    <string name="waypoint_point_type_loop">Loop ring</string>
-    <string name="waypoint_point_type_walk">Walk way</string>
-
-    <!-- WaypointViewModel toasts -->
+    <!-- Waypoint Toasts -->
     <string name="waypoint_toast_enter_route_name">Please enter a route name</string>
     <string name="waypoint_toast_add_waypoint">Please add at least one waypoint</string>
     <string name="waypoint_toast_save_success">Route saved successfully</string>
     <string name="waypoint_toast_save_failed">Failed to save route: %1$s</string>
     <string name="waypoint_toast_cycle_detected">Route contains a cycle, please check connections</string>
     <string name="waypoint_toast_invalid_structure">Invalid route structure: must be a single loop or chain without branches</string>
+
+    <!-- Waypoint Detail Sheet -->
+    <string name="waypoint_detail_waypoint_title">Waypoint #%1$s</string>
+    <string name="waypoint_detail_button_change_location">Change location</string>
+    <string name="waypoint_detail_button_connections">Connections</string>
+    <string name="waypoint_detail_button_delete">Delete</string>
+
+    <!-- Waypoint Point Types -->
+    <string name="waypoint_point_type_road">Common road</string>
+    <string name="waypoint_point_type_loop">Loop ring</string>
+    <string name="waypoint_point_type_walk">Walk way</string>
+
+    <!-- ==================== Map Picker ==================== -->
+    <string name="map_picker_title">Select Location</string>
+
+    <!-- ==================== Overlay ==================== -->
+    <string name="overlay_menu_hide">Hide overlay</string>
+    <string name="overlay_menu_random_offset">Random offset</string>
+    <string name="overlay_menu_points">Points …</string>
+    <string name="overlay_no_saved_points">No saved points</string>
+
+    <!-- ==================== Settings ==================== -->
+    <string name="settings_title">Settings</string>
+
+    <!-- Settings Sections -->
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_mock_options">Mock options</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_section_debug">Debug</string>
+
+    <!-- Settings Items -->
+    <string name="settings_item_speed_presets">Speed presets</string>
+    <string name="settings_item_theme_mode">App Theme</string>
+    <string name="settings_item_joystick_size">Joystick Size</string>
+    <string name="settings_item_random_offset">Random offset</string>
+    <string name="settings_item_release_repo">Release repo</string>
+    <string name="settings_item_oss_license">Open Source License</string>
+    <string name="settings_item_export_log">Export log</string>
+    <string name="settings_item_crash_test">Crash test (Long press)</string>
+    <string name="settings_chooser_open_log">Open log with…</string>
+
+    <!-- Joystick Size -->
+    <string name="settings_joystick_size_title">Joystick Size</string>
+
+    <!-- Random Offset -->
+    <string name="settings_random_offset_title">Random Offset</string>
+    <string name="settings_random_offset_legend_original">Original route</string>
+    <string name="settings_random_offset_legend_offset">Simulated offset</string>
+
+    <!-- Speed Presets -->
+    <string name="settings_speed_preset_title">Speed Presets</string>
+    <string name="settings_speed_preset_walking">Walking speed</string>
+    <string name="settings_speed_preset_running">Running speed</string>
+    <string name="settings_speed_preset_bicycling">Bicycling speed</string>
+
+    <!-- App Theme -->
+    <string name="settings_theme_mode_title">App Theme</string>
+    <string name="settings_theme_mode_system">System</string>
+    <string name="settings_theme_mode_light">Light</string>
+    <string name="settings_theme_mode_dark">Dark</string>
+
+    <!-- ==================== Delete Dialog ==================== -->
+    <string name="delete_dialog_title">Confirm delete</string>
+    <string name="delete_dialog_tip">This action cannot be undone.</string>
+    <string name="delete_dialog_button_delete">Delete</string>
+
+    <!-- ==================== Unsaved Changes Dialog ==================== -->
+    <string name="unsaved_dialog_title">Unsaved Changes</string>
+    <string name="unsaved_dialog_text_tip">You have unsaved changes.</string>
+    <string name="unsaved_dialog_text_quest">Do you want to save these changes?</string>
+    <string name="unsaved_dialog_button_save">Save</string>
+    <string name="unsaved_dialog_button_discard">Discard &amp; Quit</string>
+
+    <!-- ==================== Error Dialog ==================== -->
+    <string name="error_dialog_text_stack_trace">Stack Trace (Long press to copy):</string>
+    <string name="error_dialog_toast_copied">Stack trace copied</string>
+    <string name="error_dialog_button_ok">OK</string>
+
 </resources>

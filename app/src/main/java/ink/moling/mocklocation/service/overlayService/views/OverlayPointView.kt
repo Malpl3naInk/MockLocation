@@ -9,8 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ink.moling.mocklocation.R
 import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.ui.components.JoystickControl
 import ink.moling.mocklocation.utils.azimuthToDirection
@@ -29,7 +31,7 @@ fun OverlayPointView(
         val angle = Math.toDegrees(joystickDirection.toDouble()).toInt()
         val realSpeed = (currentSpeedPreset * currentSpeedPer)
         Text(
-            "${azimuthToDirection(angle)} ${angle}° ${"%.2f".format(realSpeed)}m/s",
+            stringResource(R.string.format_direction_angle_speed, azimuthToDirection(angle), angle, realSpeed),
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 10.sp
         )

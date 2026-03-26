@@ -55,6 +55,7 @@ fun PageMainView(
     val uiState by viewModel.uiState.collectAsState()
     val mockStatus by viewModel.mockStatus.collectAsState()
     val strSelectPoint = stringResource(R.string.main_toast_select_point)
+    val strSelectRoute = stringResource(R.string.main_toast_select_route)
 
     Column(
         modifier = Modifier
@@ -128,7 +129,7 @@ fun PageMainView(
                             if (!viewModel.hasSelectedRoute()) {
                                 Toast.makeText(
                                     context,
-                                    "Please select route",
+                                    strSelectRoute,
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 return@Button
