@@ -39,6 +39,7 @@ object PrefsHelper {
     private const val KEY_MAX_SPEED_JOYSTICK_PRESET_2 = "max_speed_joystick_preset_2"
     private const val KEY_THEME_MODE = "theme_mode"
     private const val KEY_LANGUAGE = "language"
+    private const val KEY_SYSTEM_LOCALE = "system_locale"
     private const val KEY_JOYSTICK_SIZE = "joystick_size"
     private const val KEY_RANDOM_OFFSET = "random_offset"
     private const val KEY_MAX_RANDOM_OFFSET = "max_random_offset"
@@ -137,6 +138,22 @@ object PrefsHelper {
         } catch (_: Exception) {
             AppLanguage.SYSTEM
         }
+    }
+
+    /**
+     * 保存系统原始语言，在应用启动时调用一次
+     */
+    fun setSystemLocale(context: Context, locale: String) {
+        getPrefs(context).edit {
+            putString(KEY_SYSTEM_LOCALE, locale)
+        }
+    }
+
+    /**
+     * 获取系统原始语言
+     */
+    fun getSystemLocale(context: Context): String? {
+        return getPrefs(context).getString(KEY_SYSTEM_LOCALE, null)
     }
 
     fun setJoystickSize(context: Context, size: Float) {
