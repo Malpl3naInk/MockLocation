@@ -14,7 +14,7 @@ object LocaleHelper {
     }
 
     private fun updateLocale(context: Context, language: AppLanguage): Context {
-        val locale = getLocaleFromLanguage(language)
+        val locale = getLocaleFromLanguage(context, language)
 
         Locale.setDefault(locale)
 
@@ -25,12 +25,23 @@ object LocaleHelper {
     }
 
     fun getLocale(context: Context): Locale {
-        return getLocaleFromLanguage(PrefsHelper.getLanguage(context))
+        return getLocaleFromLanguage(context, PrefsHelper.getLanguage(context))
     }
 
-    private fun getLocaleFromLanguage(language: AppLanguage): Locale {
+    /**
+     * 获取 Locale，对于 SYSTEM 语言使用保存的系统原始语言
+     */
+    private fun getLocaleFromLanguage(context: Context, language: AppLanguage): Locale {
         return when (language) {
-            AppLanguage.SYSTEM -> Locale.getDefault()
+            AppLanguage.SYSTEM -> {
+                // 使用保存的系统原始语言，如果没有保存则使用当前 Locale.getDefault()
+                val savedSystemLocale = PrefsHelper.getSystemLocale(context)
+                if (savedSystemLocale != null) {
+                    Locale(savedSystemLocale)
+                } else {
+                    Locale.getDefault()
+                }
+            }
             AppLanguage.ENGLISH -> Locale.ENGLISH
             AppLanguage.CHINESE -> Locale.CHINESE
         }
@@ -50,10 +61,16 @@ object LocaleHelper {
      * 获取应该使用的 Locale
      */
     fun getTargetLocale(context: Context): Locale {
-        return when (PrefsHelper.getLanguage(context)) {
-            AppLanguage.SYSTEM -> Locale.getDefault()
-            AppLanguage.ENGLISH -> Locale.ENGLISH
-            AppLanguage.CHINESE -> Locale.CHINESE
+        return getLocaleFromLanguage(context, PrefsHelper.getLanguage(context))
+    }
+
+    /**
+     * 初始化系统语言，应在应用启动时调用一次
+     */
+    fun initSystemLocale(context: Context) {
+        if (PrefsHelper.getSystemLocale(context) == null) {
+            val systemLocale = Locale.getDefault().language
+            PrefsHelper.setSystemLocale(context, systemLocale)
         }
     }
 }

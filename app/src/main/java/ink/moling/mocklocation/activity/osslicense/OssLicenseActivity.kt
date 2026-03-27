@@ -16,6 +16,8 @@ import ink.moling.mocklocation.utils.LocaleHelper
 class OssLicenseActivity : ComponentActivity() {
 
     override fun attachBaseContext(newBase: Context?) {
+        // 尽早初始化系统语言（在 setLocale 修改 Locale.getDefault() 之前）
+        newBase?.let { LocaleHelper.initSystemLocale(it) }
         super.attachBaseContext(newBase?.let { LocaleHelper.setLocale(it) })
     }
 
