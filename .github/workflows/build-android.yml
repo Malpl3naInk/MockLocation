@@ -5,15 +5,6 @@ on:
     branches: [ "main", "master" ]
   pull_request:
   workflow_dispatch:  # 添加手动触发
-    inputs:
-      version_suffix:
-        description: 'Version suffix'
-        required: false
-        default: 'beta'
-        type: choice
-        options:
-          - alpha
-          - beta
 
 jobs:
   build:
@@ -21,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # 获取完整的 git 历史，用于 gitCommitCount
 
@@ -31,34 +22,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-wrapper-
-
-      - name: Cache Gradle Build Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/build-cache-*
-          key: ${{ runner.os }}-gradle-build-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-build-
-
-      - name: Cache Kotlin Compiler
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.kotlin
-          key: ${{ runner.os }}-kotlin-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: |
-            ${{ runner.os }}-kotlin-
 
       - name: Decode Keystore
         env:
@@ -79,11 +42,12 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            ./gradlew assembleRelease -PACTION -PVERSION_SUFFIX=${{ inputs.version_suffix }} --build-cache --parallel --daemon --no-watch-fs
-          else
-            ./gradlew assembleRelease -PACTION -PVERSION_SUFFIX=alpha --build-cache --parallel --daemon --no-watch-fs
-          fi
+          ./gradlew assembleRelease \
+            -x lint -x test \
+            --parallel \
+            --build-cache \
+            --daemon \
+            --configuration-cache
 
       - name: Install MinIO client
         run: |
@@ -113,10 +77,3 @@ jobs:
       - name: Upload artifact
         run: |
           mc cp ./app/build/outputs/apk/release/*.apk myminio/mocklocation-artifacts/
-
-      # - name: Upload APK
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: app-release-${{ github.event_name == 'workflow_dispatch' && inputs.version_suffix || 'alpha' }}
-      #     path: app/build/outputs/apk/release/*.apk
-      #     retention-days: 3
