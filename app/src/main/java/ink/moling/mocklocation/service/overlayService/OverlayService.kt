@@ -1,5 +1,6 @@
 package ink.moling.mocklocation.service.overlayService
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.IBinder
@@ -19,13 +20,18 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
-import ink.moling.mocklocation.utils.MockMode
+import ink.moling.mocklocation.utils.LocaleHelper
 
 const val ACTION_TOGGLE_JOYSTICK_VISIBILITY = "ink.moling.mocklocation.ACTION_TOGGLE_JOYSTICK_VISIBILITY"
 const val EXTRA_VISIBILITY = "extra_visibility"
 const val EXTRA_DISPLAY_MODE = "extra_display_mode"
 
 class OverlayService : LifecycleService(), SavedStateRegistryOwner {
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(newBase?.let { LocaleHelper.setLocale(it) })
+    }
+
     private lateinit var windowManager: WindowManager
     private lateinit var composeView: ComposeView
     private lateinit var params: WindowManager.LayoutParams

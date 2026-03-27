@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.data.local.AppLanguage
 import ink.moling.mocklocation.data.local.PrefsHelper
+import ink.moling.mocklocation.service.overlayService.OverlayService
 import ink.moling.mocklocation.utils.LocaleHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,7 +123,16 @@ private fun LanguageOption(
 }
 
 private fun updateLocaleAndRestart(context: Context, language: AppLanguage) {
+    // Restart OverlayService to apply language change immediately
+    restartOverlayService(context)
+
     // Recreate activity to apply language change
     val activity = context as? Activity
     activity?.recreate()
+}
+
+private fun restartOverlayService(context: Context) {
+    // Stop OverlayService if running, it will be restarted with correct locale
+    // when user resumes simulation or toggles overlay visibility
+    context.stopService(Intent(context, OverlayService::class.java))
 }
