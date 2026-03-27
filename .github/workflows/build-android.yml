@@ -1,9 +1,9 @@
 name: Android CI
 
 on:
-  # push:
-  #   branches: [ "main", "master" ]
-  # pull_request:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
   workflow_dispatch:  # 添加手动触发
     inputs:
       version_suffix:
@@ -85,9 +85,38 @@ jobs:
             ./gradlew assembleRelease -PACTION -PVERSION_SUFFIX=alpha --build-cache --parallel --daemon --no-watch-fs
           fi
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-${{ github.event_name == 'workflow_dispatch' && inputs.version_suffix || 'alpha' }}
-          path: app/build/outputs/apk/release/*.apk
-          retention-days: 3
+      - name: Install MinIO client
+        run: |
+          curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p 56393 ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Create Tunnel
+        run: |
+          ssh -p 56393 -f -N \
+              -L 9000:127.0.0.1:9000 \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
+
+      - name: Configure MinIO client
+        run: |
+          mc alias set myminio http://127.0.0.1:9000 \
+            ${{ secrets.MINIO_ACCESS_KEY }} \
+            ${{ secrets.MINIO_SECRET_KEY }}
+
+      - name: Upload artifact
+        run: |
+          mc cp ./app/build/outputs/apk/release/*.apk myminio/mocklocation-artifacts/
+
+      # - name: Upload APK
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: app-release-${{ github.event_name == 'workflow_dispatch' && inputs.version_suffix || 'alpha' }}
+      #     path: app/build/outputs/apk/release/*.apk
+      #     retention-days: 3

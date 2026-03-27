@@ -107,6 +107,15 @@ android {
             )
         }
     }
+
+    applicationVariants.all {
+        outputs.all {
+            val name = "MockLocation-build-${gitCommitCount()}-${gitCommitHash()}.apk"
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
+                .outputFileName = name
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
