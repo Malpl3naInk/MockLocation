@@ -16,19 +16,22 @@ android {
         consumerProguardFiles("consumer-rules.pro")
         externalNativeBuild {
             cmake {
-                cppFlags("-std=c++17")
-                arguments += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
+                cppFlags("-std=c++17 -fvisibility=hidden -fvisibility-inlines-hidden")
+                arguments += listOf(
+                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+                    "-DCMAKE_BUILD_TYPE=MinSizeRel"
+                )
             }
+        }
+        ndk {
+            abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
         }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isMinifyEnabled = true
+            consumerProguardFiles("consumer-rules.pro")
         }
     }
     externalNativeBuild {
