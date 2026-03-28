@@ -20,7 +20,6 @@ import ink.moling.mocklocation.activity.BaseActivity
 import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.nativelib.NativeLib
 import ink.moling.mocklocation.service.locationService.LocationService
-import ink.moling.mocklocation.ui.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.dialog.RequestPermissionDialog
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.ui.theme.ThemeStateHolder
@@ -112,18 +111,6 @@ class MainActivity : BaseActivity() {
                                 permissionHandler.requestOverlayPermission()
                             },
                             onDismiss = { permissionHandler.dismissOverlayPermissionDialog() }
-                        )
-                    }
-
-                    // 错误对话框
-                    val errorInfo by viewModel.errorInfo.collectAsState()
-                    errorInfo?.let { error ->
-                        ErrorDialog(
-                            onDismiss = { viewModel.clearError() },
-                            title = error.title,
-                            text = error.message,
-                            stackTrace = error.stackTrace,
-                            helpButton = null // LocationService 错误暂不提供帮助按钮
                         )
                     }
 

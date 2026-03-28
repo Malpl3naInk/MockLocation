@@ -74,6 +74,9 @@ android {
                 cppFlags("-O3 -fvisibility=hidden -fvisibility-inlines-hidden")
             }
         }
+        ndk {
+            abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
+        }
     }
 
     androidResources {
@@ -123,10 +126,8 @@ android {
 
     applicationVariants.all {
         outputs.all {
-            val abi = (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).filters
-                .find { it.filterType == "ABI" }?.identifier ?: "universal"
-            val name = "MockLocation-build${gitCommitCount()}-${gitCommitHash()}-${abi}.apk"
-            this.outputFileName = name
+            val name = "MockLocation-build${gitCommitCount()}-${gitCommitHash()}.apk"
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = name
         }
     }
 
@@ -142,6 +143,12 @@ android {
         buildConfig = true
     }
 
+    lint {
+        // CI 优化：禁用发布构建的 lint 检查以加速构建
+        // 本地开发时仍可通过 ./gradlew lint 手动运行
+        checkReleaseBuilds = false
+    }
+
     bundle {
         language {
             enableSplit = true
@@ -150,16 +157,7 @@ android {
             enableSplit = true
         }
         abi {
-            enableSplit = true
-        }
-    }
-
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "armeabi-v7a")
-            isUniversalApk = false
+            enableSplit = false
         }
     }
 }
