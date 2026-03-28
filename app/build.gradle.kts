@@ -67,6 +67,18 @@ android {
         versionName = "$versionMajor.$versionMinor.$versionPatch"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Reduce native library size
+        externalNativeBuild {
+            cmake {
+                cppFlags("-O3 -fvisibility=hidden -fvisibility-inlines-hidden")
+            }
+        }
+    }
+
+    androidResources {
+        // Remove unused language resources
+        localeFilters.addAll(listOf("zh", "en"))
     }
 
     signingConfigs {
@@ -100,7 +112,8 @@ android {
             if (isAction) {
                 versionNameSuffix = versionPre + versionBuild
             }
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -110,9 +123,10 @@ android {
 
     applicationVariants.all {
         outputs.all {
-            val name = "MockLocation-build-${gitCommitCount()}-${gitCommitHash()}.apk"
-            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
-                .outputFileName = name
+            val abi = (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).filters
+                .find { it.filterType == "ABI" }?.identifier ?: "universal"
+            val name = "MockLocation-build${gitCommitCount()}-${gitCommitHash()}-${abi}.apk"
+            this.outputFileName = name
         }
     }
 
@@ -126,6 +140,27 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    bundle {
+        language {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = false
+        }
     }
 }
 
