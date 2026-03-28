@@ -48,6 +48,8 @@ import ink.moling.mocklocation.data.local.repository.MockServiceState
 import ink.moling.mocklocation.data.local.repository.MockServiceStatusRepository
 import ink.moling.mocklocation.ui.dialog.DeleteConfirmDialog
 import ink.moling.mocklocation.ui.dialog.ErrorDialog
+import ink.moling.mocklocation.ui.dialog.HelpButtonConfig
+import ink.moling.mocklocation.utils.HelpMessages
 import ink.moling.mocklocation.utils.MockMode
 import kotlinx.coroutines.launch
 
@@ -113,6 +115,14 @@ fun MainScreen(
             title = error.title,
             text = error.message,
             stackTrace = error.stackTrace,
+            helpButton = (
+                if (HelpMessages.isExists(error.title))
+                    HelpButtonConfig(
+                        stringResource(HelpMessages.getHelpMessage(error.title))
+                    )
+                else
+                    error.helpButton
+            ),
             onDismiss = {
                 viewModel.clearError()
                 onStopMockLocation()
@@ -126,6 +136,7 @@ fun MainScreen(
                 title = mockError.type,
                 text = mockError.msg,
                 stackTrace = mockError.stackTrace,
+                helpButton = null,
                 onDismiss = {
                     onStopMockLocation()
                     MockServiceStatusRepository.state.value = MockServiceState.Disabled

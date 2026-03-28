@@ -197,6 +197,12 @@
     <string name="error_dialog_text_stack_trace">堆栈跟踪（长按复制）：</string>
     <string name="error_dialog_toast_copied">堆栈跟踪已复制</string>
     <string name="error_dialog_button_ok">确定</string>
+    <string name="error_dialog_button_help">帮助</string>
+
+    <!-- Error Help Messages -->
+    <string name="error_help_location_disabled">位置服务已禁用。请在系统设置中启用位置服务。</string>
+    <string name="error_help_no_mock_location_app">本应用未被设置为模拟位置应用。请在开发者选项 > 选择模拟位置应用中启用。</string>
+    <string name="error_help_import_failed">导入路线失败。请检查文件格式是否为有效的 JSON。</string>
 
     <!-- ==================== OSS License ==================== -->
     <string name="oss_license_title">开源许可证</string>

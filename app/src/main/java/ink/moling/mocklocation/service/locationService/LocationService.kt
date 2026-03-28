@@ -24,15 +24,13 @@ import ink.moling.mocklocation.service.locationService.controller.RealLocationCo
 import ink.moling.mocklocation.service.locationService.controller.TestProviderManager
 import ink.moling.mocklocation.service.locationService.state.LocationMode
 import ink.moling.mocklocation.service.locationService.state.LocationStateHolder
+import ink.moling.mocklocation.service.overlayService.ACTION_SELECT_POINT
 import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_ALT
-import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_ID
 import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_LAT
 import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_LNG
 import ink.moling.mocklocation.service.overlayService.EXTRA_POINT_NAME
-import ink.moling.mocklocation.service.overlayService.ACTION_SELECT_POINT
 import ink.moling.mocklocation.service.overlayService.state.OverlayStateHolder
 import ink.moling.mocklocation.utils.KalmanFilter
-import ink.moling.mocklocation.utils.MockMode
 import ink.moling.mocklocation.utils.simulators.DynamicRouteSimulator
 import ink.moling.mocklocation.utils.simulators.StaticPointSimulator
 import kotlinx.coroutines.flow.MutableStateFlow

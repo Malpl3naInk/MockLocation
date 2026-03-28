@@ -17,6 +17,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -27,11 +31,22 @@ import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
 
 /**
+ * 帮助按钮配置
+ *
+ * @param text 按钮文本，null 时使用默认文本
+ * @param onClick 点击回调
+ */
+data class HelpButtonConfig(
+    val text: String? = null
+)
+
+/**
  * 错误对话框
- * 
+ *
  * @param title 对话框标题
  * @param text 错误描述文本
  * @param stackTrace 堆栈跟踪信息（可选），长按可复制
+ * @param helpButton 帮助按钮配置（可选），提供时显示帮助按钮
  * @param onDismiss 关闭对话框回调
  */
 @Composable
@@ -39,11 +54,13 @@ fun ErrorDialog(
     title: String,
     text: String,
     stackTrace: String? = null,
+    helpButton: HelpButtonConfig? = null,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     val stackTraceScrollState = rememberScrollState()
     val clipboardManager = LocalClipboardManager.current
+    var errorDetails by remember { mutableStateOf(text) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -67,7 +84,7 @@ fun ErrorDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = text,
+                    text = errorDetails,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
@@ -105,6 +122,20 @@ fun ErrorDialog(
                                 }
                             )
                     )
+                }
+            }
+        },
+        dismissButton = helpButton?.let {
+            {
+                Button(
+                    onClick = {
+                        if (!it.text.isNullOrEmpty()) {
+                            errorDetails = it.text
+                        }
+                    },
+                    colors = ButtonDefaults.outlinedButtonColors()
+                ) {
+                    Text(stringResource(R.string.error_dialog_button_help))
                 }
             }
         },

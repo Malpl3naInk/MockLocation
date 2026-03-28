@@ -206,6 +206,12 @@
     <string name="error_dialog_text_stack_trace">Stack Trace (Long press to copy):</string>
     <string name="error_dialog_toast_copied">Stack trace copied</string>
     <string name="error_dialog_button_ok">OK</string>
+    <string name="error_dialog_button_help">Help</string>
+
+    <!-- Error Help Messages -->
+    <string name="error_help_location_disabled">Location services are disabled. Please enable location in system settings.</string>
+    <string name="error_help_no_mock_location_app">This app is not set as mock location app. Please enable it in Developer Options > Select mock location app.</string>
+    <string name="error_help_import_failed">Failed to import route. Please check the file format is valid JSON.</string>
 
     <!-- ==================== OSS License ==================== -->
     <string name="oss_license_title">Open Source Licenses</string>

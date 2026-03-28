@@ -1,12 +1,11 @@
 package ink.moling.mocklocation.activity.main
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ink.moling.mocklocation.R
+import ink.moling.mocklocation.activity.BaseActivity
 import ink.moling.mocklocation.data.local.PrefsHelper
 import ink.moling.mocklocation.nativelib.NativeLib
 import ink.moling.mocklocation.service.locationService.LocationService
@@ -24,20 +24,13 @@ import ink.moling.mocklocation.ui.dialog.ErrorDialog
 import ink.moling.mocklocation.ui.dialog.RequestPermissionDialog
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
 import ink.moling.mocklocation.ui.theme.ThemeStateHolder
-import ink.moling.mocklocation.utils.LocaleHelper
 import ink.moling.mocklocation.utils.MockMode
 import ink.moling.mocklocation.utils.PermissionHandler
 import ink.moling.mocklocation.utils.logger.CrashHandler
 import ink.moling.mocklocation.utils.logger.Logger
 import ink.moling.mocklocation.utils.logger.LoggerFile
 
-class MainActivity : ComponentActivity() {
-
-    override fun attachBaseContext(newBase: Context?) {
-        // 尽早初始化系统语言（在 setLocale 修改 Locale.getDefault() 之前）
-        newBase?.let { LocaleHelper.initSystemLocale(it) }
-        super.attachBaseContext(newBase?.let { LocaleHelper.setLocale(it) })
-    }
+class MainActivity : BaseActivity() {
     private lateinit var connection: ServiceConnection
     private lateinit var permissionHandler: PermissionHandler
 
@@ -45,6 +38,7 @@ class MainActivity : ComponentActivity() {
         private const val TAG = "MainActivity"
     }
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -128,7 +122,8 @@ class MainActivity : ComponentActivity() {
                             onDismiss = { viewModel.clearError() },
                             title = error.title,
                             text = error.message,
-                            stackTrace = error.stackTrace
+                            stackTrace = error.stackTrace,
+                            helpButton = null // LocationService 错误暂不提供帮助按钮
                         )
                     }
 
@@ -150,14 +145,6 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // 检查语言是否变化，如果变化则重新创建 Activity
-        if (LocaleHelper.hasLanguageChanged(this)) {
-            recreate()
         }
     }
 
