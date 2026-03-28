@@ -78,7 +78,7 @@ android {
 
     androidResources {
         // Remove unused language resources
-        localeFilters.addAll(listOf("zh", "en"))
+        localeFilters.addAll(listOf("zh-rCN", "en"))
     }
 
     signingConfigs {

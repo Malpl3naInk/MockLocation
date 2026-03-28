@@ -42,6 +42,7 @@ import ink.moling.mocklocation.activity.main.MainViewModel
 import ink.moling.mocklocation.activity.waypoint.WaypointActivity
 import ink.moling.mocklocation.data.models.RouteObjectJson
 import ink.moling.mocklocation.data.models.RouteType
+import ink.moling.mocklocation.ui.dialog.HelpButtonConfig
 import ink.moling.mocklocation.utils.extensions.isValid
 import ink.moling.mocklocation.utils.extensions.label
 import kotlinx.coroutines.launch
@@ -79,7 +80,8 @@ fun SheetRoutesView(
         } catch (e: CancellationException) {
             viewModel.showError(
                 title = "Failed to import",
-                message = e.message.orEmpty()
+                message = e.message.orEmpty(),
+                helpButton = HelpButtonConfig(context.getString(R.string.error_help_import_failed))
             )
         } finally {
             importedUri = null

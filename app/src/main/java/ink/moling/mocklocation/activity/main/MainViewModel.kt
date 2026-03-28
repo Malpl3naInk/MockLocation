@@ -16,6 +16,7 @@ import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.service.locationService.LocationService
+import ink.moling.mocklocation.ui.dialog.HelpButtonConfig
 import ink.moling.mocklocation.utils.MockMode
 import ink.moling.mocklocation.utils.enumsToInt
 import ink.moling.mocklocation.utils.intToMockMode
@@ -34,7 +35,8 @@ import kotlinx.coroutines.launch
 data class ErrorState(
     val title: String,
     val message: String,
-    val stackTrace: String? = null
+    val stackTrace: String? = null,
+    val helpButton: HelpButtonConfig? = null
 )
 
 /**
@@ -235,7 +237,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _location.value = location
             }
         }
-        
         // 订阅错误流并更新到 UI State
         viewModelScope.launch {
             binder.errorFlow().collect { error ->
@@ -263,14 +264,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     /**
      * 显示错误对话框
-     * 
+     *
      * @param title 错误标题
      * @param message 错误消息
      * @param stackTrace 堆栈跟踪（可选）
+     * @param helpButton 帮助按钮配置（可选）
      */
-    fun showError(title: String, message: String, stackTrace: String? = null) {
-        _uiState.update { 
-            it.copy(errorState = ErrorState(title, message, stackTrace))
+    fun showError(
+        title: String,
+        message: String,
+        stackTrace: String? = null,
+        helpButton: HelpButtonConfig? = null
+    ) {
+        _uiState.update {
+            it.copy(errorState = ErrorState(title, message, stackTrace, helpButton))
         }
     }
     
