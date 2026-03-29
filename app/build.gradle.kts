@@ -140,7 +140,9 @@ android {
 
     applicationVariants.all {
         outputs.all {
-            val name = "MockLocation-build${gitCommitCount()}-${gitCommitHash()}.apk"
+            // 手动触发构建时使用版本名，其他情况使用 git hash
+            val versionSuffix = customVersionName?.let { "rel$it" } ?: gitCommitHash()
+            val name = "MockLocation-build${gitCommitCount()}-${versionSuffix}.apk"
             (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = name
         }
     }
