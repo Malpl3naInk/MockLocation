@@ -4,7 +4,12 @@ on:
   push:
     branches: [ "main", "master" ]
   pull_request:
-  workflow_dispatch:  # 添加手动触发
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name'
+        required: true
+        type: string
 
 jobs:
   build:
@@ -33,7 +38,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Generate open source license
-        run: ./gradlew licenseReleaseReport --no-daemon --no-parallel --no-configuration-cache
+        run: ./gradlew licenseReleaseReport --no-daemon --parallel --no-configuration-cache
 
       - name: Build Release APK
         env:
@@ -42,12 +47,23 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
+          # 根据触发器类型设置 Gradle 参数
+          # - push/PR: beta 后缀 + git hash (-PACTION -PVERSION_SUFFIX=beta)
+          # - workflow_dispatch: 可自定义 versionName (-PVERSION_SUFFIX= -PVERSION_NAME=x.x.x)
+          # - 本地构建: alpha 后缀 (无 ACTION 参数)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            GRADLE_PARAMS="-PVERSION_NAME=${{ github.event.inputs.version_name }} -PVERSION_SUFFIX="
+          else
+            GRADLE_PARAMS="-PACTION -PVERSION_SUFFIX=beta"
+          fi
+
           ./gradlew assembleRelease \
             -x lint -x test \
             --parallel \
             --build-cache \
             --no-daemon \
-            --configuration-cache
+            --configuration-cache \
+            $GRADLE_PARAMS
 
       - name: Install MinIO client
         run: |
