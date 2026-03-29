@@ -53,6 +53,11 @@ val versionMajor = 1
 val versionMinor = 0
 val versionPatch = 0
 
+// 支持从命令行参数覆盖版本名 (用于手动触发构建)
+// 例如: ./gradlew assembleRelease -PVERSION_NAME=2.0.0
+val customVersionName = findProperty("VERSION_NAME")?.toString()
+val baseVersionName = customVersionName ?: "$versionMajor.$versionMinor.$versionPatch"
+
 android {
     namespace = "ink.moling.mocklocation"
     compileSdk {
@@ -64,7 +69,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = gitCommitCount()
-        versionName = "$versionMajor.$versionMinor.$versionPatch"
+        versionName = baseVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -99,22 +104,31 @@ android {
 
     buildTypes {
         val isAction = project.hasProperty("ACTION")
-        val versionSuffix = findProperty("VERSION_SUFFIX")?.toString() ?: "alpha"
+        val isDispatch = findProperty("VERSION_SUFFIX")?.toString() == ""
 
-        val versionPre = if (isAction) "-$versionSuffix" else ""
-        val versionBuild    = if (isAction) {
-            "+git.${gitCommitHash()}"
-        } else {
-            "+local.${gitCommitCount()}"
+        // 版本后缀规则:
+        // - GitHub Actions 自动构建 (push/PR): beta + git hash
+        // - 本地构建: alpha + local commit count
+        // - 手动触发构建 (workflow_dispatch): 纯净无后缀
+        val versionPre = when {
+            isDispatch -> ""                           // 手动触发: 无后缀
+            isAction -> "-beta"                        // GitHub Actions: beta
+            else -> "-alpha"                           // 本地构建: alpha
         }
+        val versionBuild = when {
+            isDispatch -> ""                           // 手动触发: 无 build 信息
+            isAction -> "+git.${gitCommitHash()}"      // GitHub Actions: git hash
+            else -> "+local.${gitCommitCount()}"       // 本地构建: local commit count
+        }
+
+        val versionSuffix = versionPre + versionBuild
+
         debug {
-            versionNameSuffix = versionPre + versionBuild
+            versionNameSuffix = versionSuffix
         }
         release {
             signingConfig = signingConfigs.getByName("release")
-            if (isAction) {
-                versionNameSuffix = versionPre + versionBuild
-            }
+            versionNameSuffix = versionSuffix
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
