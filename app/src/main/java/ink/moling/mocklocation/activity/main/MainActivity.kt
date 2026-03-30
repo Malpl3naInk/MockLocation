@@ -47,16 +47,20 @@ class MainActivity : BaseActivity() {
         permissionHandler = PermissionHandler(this)
         permissionHandler.checkAndRequestPermissions()
 
-        // 初始化 logger
+        // 初始化 logger（先于 CrashHandler，使崩溃日志能写入文件）
         LoggerFile.init(this)
 
-        // 设置 Crash handler
+        // 设置 Crash handler（在 LoggerFile 初始化之后立即设置）
         val default = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler(default))
 
-        // 测试 JNI
-        val native = NativeLib()
-        Logger.d(TAG, native.stringFromJNI())
+        // 测试 JNI（so 缺失或 ABI 不匹配时会抛 UnsatisfiedLinkError，需捕获避免启动崩溃）
+        try {
+            val native = NativeLib()
+            Logger.d(TAG, native.stringFromJNI())
+        } catch (e: UnsatisfiedLinkError) {
+            Logger.e(TAG, "Failed to load native library", e)
+        }
 
         setContent {
             val viewModel: MainViewModel = viewModel()

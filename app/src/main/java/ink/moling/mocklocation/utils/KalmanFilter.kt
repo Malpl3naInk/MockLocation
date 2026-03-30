@@ -148,6 +148,13 @@ class KalmanFilter(
 
     private fun inverse2x2(m: Array<DoubleArray>): Array<DoubleArray> {
         val det = m[0][0] * m[1][1] - m[0][1] * m[1][0]
+        if (det == 0.0 || det.isNaN()) {
+            reset()
+            return arrayOf(
+                doubleArrayOf(1.0, 0.0),
+                doubleArrayOf(0.0, 1.0)
+            )
+        }
         return arrayOf(
             doubleArrayOf(m[1][1] / det, -m[0][1] / det),
             doubleArrayOf(-m[1][0] / det, m[0][0] / det)
