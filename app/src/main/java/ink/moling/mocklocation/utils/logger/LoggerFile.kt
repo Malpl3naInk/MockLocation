@@ -33,7 +33,9 @@ object LoggerFile {
         ).format(Date())
 
         logFile = File(logDir, "app_$sessionTime.log")
-        logFile.createNewFile()
+        try {
+            logFile.createNewFile()
+        } catch (_: Exception) {}
     }
 
     fun write(level: String, tag: String?, msg: String) {
