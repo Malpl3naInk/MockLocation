@@ -18,7 +18,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.BaseActivity
 import ink.moling.mocklocation.data.local.PrefsHelper
-import ink.moling.mocklocation.nativelib.NativeLib
 import ink.moling.mocklocation.service.locationService.LocationService
 import ink.moling.mocklocation.ui.dialog.RequestPermissionDialog
 import ink.moling.mocklocation.ui.theme.MockLocationTheme
@@ -53,14 +52,6 @@ class MainActivity : BaseActivity() {
         // 设置 Crash handler（在 LoggerFile 初始化之后立即设置）
         val default = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler(default))
-
-        // 测试 JNI（so 缺失或 ABI 不匹配时会抛 UnsatisfiedLinkError，需捕获避免启动崩溃）
-        try {
-            val native = NativeLib()
-            Logger.d(TAG, native.stringFromJNI())
-        } catch (e: UnsatisfiedLinkError) {
-            Logger.e(TAG, "Failed to load native library", e)
-        }
 
         setContent {
             val viewModel: MainViewModel = viewModel()

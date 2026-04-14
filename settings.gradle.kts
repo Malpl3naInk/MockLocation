@@ -25,4 +25,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "MockLocation"
 include(":app")
-include(":native")

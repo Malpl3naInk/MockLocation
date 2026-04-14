@@ -213,9 +213,6 @@ dependencies {
     // LifecycleService
     implementation(libs.androidx.lifecycle.service)
 
-    // Android Native Library
-    implementation(project(":native"))
-
     // Mapbox map service
     implementation(libs.mapbox.ndk27)
     implementation(libs.mapbox.compose.ndk27)
