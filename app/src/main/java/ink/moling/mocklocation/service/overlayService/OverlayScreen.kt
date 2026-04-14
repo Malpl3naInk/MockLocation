@@ -262,13 +262,15 @@ fun OverlayScreen(
                                     OverlayStateHolder.setRandomOffset(featureRandomOffsetEnabled)
                                 }
                             )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.overlay_menu_points)) },
-                                onClick =  {
-                                    isOverlayMenuExpanded = false
-                                    isPointsMenuExpanded = true
-                                }
-                            )
+                            if (overlayState.mockMode == 0) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.overlay_menu_points)) },
+                                    onClick = {
+                                        isOverlayMenuExpanded = false
+                                        isPointsMenuExpanded = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }
