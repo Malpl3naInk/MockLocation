@@ -12,6 +12,7 @@ import android.os.Process
 import android.os.SystemClock
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.Source
+import ink.moling.mocklocation.utils.extensions.isProviderAvailable
 import ink.moling.mocklocation.utils.logger.Logger
 import ink.moling.mocklocation.utils.simulators.LocationSimulator
 import ink.moling.mocklocation.utils.simulators.SimulatedLocation
@@ -108,8 +109,10 @@ class MockLocationController(
 
     private fun injectToSystem(loc: SimulatedLocation) {
         try {
-            injectGps(loc)
-            injectNetwork(loc)
+            if (locationManager.isProviderAvailable(LocationManager.GPS_PROVIDER))
+                injectGps(loc)
+            if (locationManager.isProviderAvailable(LocationManager.NETWORK_PROVIDER))
+                injectNetwork(loc)
         } catch (_: IllegalArgumentException) {
             // is not a test provider → 忽略
         } catch (e: Exception) {

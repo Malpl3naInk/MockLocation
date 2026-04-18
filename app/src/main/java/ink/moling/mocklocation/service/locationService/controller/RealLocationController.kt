@@ -8,6 +8,7 @@ import androidx.annotation.RequiresPermission
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.utils.KalmanFilter
+import ink.moling.mocklocation.utils.extensions.isProviderAvailable
 import ink.moling.mocklocation.utils.logger.Logger
 
 class RealLocationController(
@@ -62,12 +63,14 @@ class RealLocationController(
         Manifest.permission.ACCESS_COARSE_LOCATION
     ])
     fun start() {
-        locationManager.requestLocationUpdates(
-            LocationManager.GPS_PROVIDER, 1000, 0f, listener
-        )
-        locationManager.requestLocationUpdates(
-            LocationManager.NETWORK_PROVIDER, 2000, 0f, listener
-        )
+        if (locationManager.isProviderAvailable(LocationManager.GPS_PROVIDER))
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER, 1000, 0f, listener
+            )
+        if (locationManager.isProviderAvailable(LocationManager.NETWORK_PROVIDER))
+            locationManager.requestLocationUpdates(
+                LocationManager.NETWORK_PROVIDER, 2000, 0f, listener
+            )
     }
 
     fun stop() {

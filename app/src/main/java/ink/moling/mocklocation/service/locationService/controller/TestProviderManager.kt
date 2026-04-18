@@ -4,6 +4,7 @@ import android.location.Criteria
 import android.location.LocationManager
 import android.location.provider.ProviderProperties
 import android.os.Build
+import ink.moling.mocklocation.utils.extensions.isProviderAvailable
 import java.io.PrintWriter
 import java.io.StringWriter
 
@@ -13,12 +14,15 @@ class TestProviderManager(
 ) {
 
     fun setup(): Boolean {
-        removeGps()
-        if (!addGps()) return false
+        if (locationManager.isProviderAvailable(LocationManager.GPS_PROVIDER)) {
+            removeGps()
+            if (!addGps()) return false
+        }
+        if (locationManager.isProviderAvailable(LocationManager.NETWORK_PROVIDER)) {
+            removeNetwork()
+            if (!addNetwork()) return false
+        }
 
-        removeNetwork()
-        if (!addNetwork()) return false
-        
         return true
     }
 
