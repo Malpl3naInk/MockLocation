@@ -17,3 +17,7 @@
 local.properties
 
 open_source_licenses.json
+
+# YukiHookAPI
+/app/src/main/assets/xposed_init
+/app/src/main/resources/META-INF/yukihookapi_init

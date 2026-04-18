@@ -130,6 +130,8 @@ android {
         release {
             signingConfig = signingConfigs.getByName("release")
             versionNameSuffix = versionSuffix
+            // R8 is the default code shrinker for Android Gradle Plugin 7.0+
+            // https://developer.android.com/build/shrink-code
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

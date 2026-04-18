@@ -59,6 +59,23 @@
 # === Open Location Code ===
 -keep class com.google.openlocationcode.** { *; }
 
+# === YukiHookAPI Rules ===
+# Keep generated implementation classes
+-keep class com.highcapable.yukihookapi.YukiHookAPI_Impl { *; }
+-keep class com.highcapable.yukihookapi.hook.xposed.application.ModuleApplication_Impl { *; }
+# Keep YukiHookAPI core classes
+-keep class com.highcapable.yukihookapi.** { *; }
+-keep interface com.highcapable.yukihookapi.** { *; }
+-dontwarn com.highcapable.yukihookapi.**
+
+# === KavaRef Rules ===
+-keep class com.highcapable.kavaref.** { *; }
+-keep interface com.highcapable.kavaref.** { *; }
+-dontwarn com.highcapable.kavaref.**
+
+# === Java Reflection Rules ===
+-dontwarn java.lang.reflect.AnnotatedType
+
 # === Remove logging code in release ===
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);
