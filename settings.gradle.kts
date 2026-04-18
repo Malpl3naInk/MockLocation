@@ -17,9 +17,9 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         // Mapbox Maven repository
-        maven {
-            url = uri("https://api.mapbox.com/downloads/v2/releases/maven")
-        }
+        maven("https://api.mapbox.com/downloads/v2/releases/maven")
+        // XPosed Maven repository
+        maven("https://api.xposed.info/")
     }
 }
 

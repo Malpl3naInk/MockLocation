@@ -230,4 +230,13 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    // YukiHookAPI 基础依赖
+    implementation(libs.yukihookapi.api)
+    // 推荐使用 KavaRef 作为核心反射 API
+    implementation(libs.kavaref.core)
+    implementation(libs.kavaref.extension)
+    // 作为 Xposed 模块使用务必添加，其它情况可选
+    compileOnly(libs.xposed.api)
+    // 作为 Xposed 模块使用务必添加，其它情况可选
+    ksp(libs.yukihookapi.ksp.xposed)
 }
