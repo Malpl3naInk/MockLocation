@@ -92,4 +92,4 @@ jobs:
 
       - name: Upload artifact
         run: |
-          mc cp ./app/build/outputs/apk/release/*.apk myminio/mocklocation-artifacts/
+          mc cp ./app/build/outputs/apk/release/*.apk myminio/workflow-artifacts/
