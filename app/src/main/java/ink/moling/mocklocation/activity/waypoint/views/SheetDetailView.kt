@@ -28,7 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ink.moling.mocklocation.R
 import ink.moling.mocklocation.activity.waypoint.WaypointViewModel
-import ink.moling.mocklocation.utils.WaypointGraph
 
 @Composable
 fun SheetDetailView(
@@ -106,21 +105,19 @@ fun SheetDetailView(
                         Text(stringResource(R.string.waypoint_detail_button_change_location))
                     }
 
-                    if (uiState.selectedDisplayMode == WaypointGraph.CANVAS) {
-                        Button(
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                            ),
-                            onClick = onConnectsEdit
-                        ) {
-                            Icon(
-                                Icons.Outlined.Route,
-                                contentDescription = null,
-                                modifier = Modifier.padding(end = 6.dp)
-                            )
-                            Text(stringResource(R.string.waypoint_detail_button_connections))
-                        }
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        ),
+                        onClick = onConnectsEdit
+                    ) {
+                        Icon(
+                            Icons.Outlined.Route,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                        Text(stringResource(R.string.waypoint_detail_button_connections))
                     }
 
                     Button(

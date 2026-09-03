@@ -155,7 +155,7 @@
     <string name="settings_item_theme_mode">应用主题</string>
     <string name="settings_item_joystick_size">摇杆大小</string>
     <string name="settings_item_random_offset">随机偏移</string>
-    <string name="settings_item_release_repo">发布仓库</string>
+    <string name="settings_item_release_repo">GitHub 仓库</string>
     <string name="settings_item_oss_license">开源许可证</string>
     <string name="settings_item_export_log">导出日志</string>
     <string name="settings_item_crash_test">崩溃测试（长按）</string>

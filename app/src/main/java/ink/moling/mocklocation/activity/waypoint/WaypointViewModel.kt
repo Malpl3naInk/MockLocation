@@ -10,7 +10,6 @@ import ink.moling.mocklocation.data.models.PointType
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RoutePoint
 import ink.moling.mocklocation.data.models.RouteType
-import ink.moling.mocklocation.utils.WaypointGraph
 import ink.moling.mocklocation.utils.WaypointSheet
 import ink.moling.mocklocation.utils.extensions.addConn
 import ink.moling.mocklocation.utils.extensions.isConnected
@@ -41,8 +40,7 @@ data class WaypointUiState(
     val isModified: Boolean = false,
     val selectedWaypointIndex: Int = -1,
 
-    // UI 控制 - 使用枚举替代魔法数字
-    val selectedDisplayMode: WaypointGraph = WaypointGraph.CANVAS,
+    // UI 控制
     val selectedSheetDetail: WaypointSheet = WaypointSheet.POINTS,
 
     // 编辑模式状态（从 Screen 移到 ViewModel）
@@ -422,13 +420,6 @@ class WaypointViewModel(application: Application) : AndroidViewModel(application
     // UI 控制
     // =====================================================
     
-    /**
-     * 设置显示模式
-     */
-    fun setDisplayMode(mode: WaypointGraph) {
-        _uiState.update { it.copy(selectedDisplayMode = mode) }
-    }
-
     /**
      * 设置底部表单详情
      */

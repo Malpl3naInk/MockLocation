@@ -31,11 +31,3 @@ enum class WaypointSheet {
     POINTS,  // 路点列表
     DETAIL   // 详情编辑
 }
-
-/**
- * 路线显示模式枚举
- */
-enum class WaypointGraph {
-    CANVAS,  // Canvas散点图
-    MAP      // Mapbox地图
-}

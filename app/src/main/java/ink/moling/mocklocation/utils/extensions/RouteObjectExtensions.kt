@@ -1,8 +1,10 @@
 package ink.moling.mocklocation.utils.extensions
 
 import com.mapbox.geojson.Feature
+import com.mapbox.geojson.LineString
 import com.mapbox.geojson.MultiLineString
 import com.mapbox.geojson.Point
+import com.google.gson.JsonObject
 import ink.moling.mocklocation.data.models.RouteObject
 import ink.moling.mocklocation.data.models.RoutePoint
 import ink.moling.mocklocation.data.models.RouteType
@@ -173,11 +175,6 @@ fun RouteObject.toMultiLineString(): MultiLineString {
 fun RouteObject.toFeatureList(): List<Feature> =
     points.map { Feature.fromGeometry(Point.fromLngLat(it.lng, it.lat)) }
 
-fun RouteObject.toSelectedFeatureList(selected: Int): List<Feature> =
-    points
-        .filter { it.id == selected }
-        .map { Feature.fromGeometry(Point.fromLngLat(it.lng, it.lat)) }
-
 fun RouteObject.isEmpty(): Boolean {
     return this.points.isEmpty()
 }
@@ -193,4 +190,75 @@ fun RouteObject.centerPoint(): Point {
     val centerLng = (minLng + maxLng) / 2.0
 
     return Point.fromLngLat(centerLng, centerLat)
+}
+
+/**
+ * 将路线的每条 edge（连接关系）转换为带属性的独立 LineString Feature，供地图数据驱动渲染。
+ *
+ * 属性：
+ * - "kind"：两端点类型相同时为对应类型(R/W/L)；不同时为 "X"（由图层 fallback 色处理）
+ * - "dim"：选中某路点后，与该路点不直接相连的边为 true（用于淡化显示）
+ */
+fun RouteObject.toEdgeFeatures(selectedPointId: Int?): List<Feature> {
+    val pointMap = toPointMap()
+    val seenEdges = mutableSetOf<Pair<Int, Int>>()
+    val features = mutableListOf<Feature>()
+
+    for (point in points) {
+        for (neighborId in point.connects) {
+            val edgeKey = minOf(point.id, neighborId) to maxOf(point.id, neighborId)
+            if (seenEdges.add(edgeKey)) {
+                val neighbor = pointMap[neighborId] ?: continue
+
+                val kind = if (point.type == neighbor.type) point.type.name else "X"
+                val dim = selectedPointId != null &&
+                    point.id != selectedPointId && neighborId != selectedPointId
+
+                val properties = JsonObject().apply {
+                    addProperty("kind", kind)
+                    addProperty("dim", dim)
+                }
+                features.add(
+                    Feature.fromGeometry(
+                        LineString.fromLngLats(
+                            listOf(
+                                Point.fromLngLat(point.lng, point.lat),
+                                Point.fromLngLat(neighbor.lng, neighbor.lat)
+                            )
+                        ),
+                        properties
+                    )
+                )
+            }
+        }
+    }
+    return features
+}
+
+/**
+ * 将每个路点转换为带属性的 Point Feature，供地图数据驱动渲染。
+ *
+ * 属性：
+ * - "selected"：该点是否为当前选中路点
+ * - "dim"：选中某路点后，与该点及其直接相连点无关的点为 true（用于淡化显示）
+ */
+fun RouteObject.toPointFeatures(selectedPointId: Int?): List<Feature> {
+    val pointMap = toPointMap()
+    val selected = selectedPointId?.let { pointMap[it] }
+    val relatedIds = selected?.connects ?: emptySet()
+
+    return points.map { point ->
+        val isSelected = point.id == selectedPointId
+        val isRelated = selected != null && (isSelected || point.id in relatedIds)
+        val dim = selected != null && !isRelated
+
+        val properties = JsonObject().apply {
+            addProperty("selected", isSelected)
+            addProperty("dim", dim)
+        }
+        Feature.fromGeometry(
+            Point.fromLngLat(point.lng, point.lat),
+            properties
+        )
+    }
 }

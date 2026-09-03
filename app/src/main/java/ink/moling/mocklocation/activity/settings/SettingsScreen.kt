@@ -306,7 +306,7 @@ fun SettingsScreen() {
                                     .fillMaxWidth()
                                     .clickable {
                                         val intent = Intent(Intent.ACTION_VIEW,
-                                            "https://github.com/Malpl3naInk/MockLocation-releases"
+                                            "https://github.com/Malpl3naInk/MockLocation"
                                                 .toUri()
                                         )
                                         context.startActivity(intent)

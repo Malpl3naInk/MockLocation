@@ -36,10 +36,8 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.MyLocation
-import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,7 +45,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -84,6 +81,9 @@ import com.mapbox.maps.extension.compose.style.layers.generated.CircleLayer
 import com.mapbox.maps.extension.compose.style.layers.generated.LineCapValue
 import com.mapbox.maps.extension.compose.style.layers.generated.LineJoinValue
 import com.mapbox.maps.extension.compose.style.layers.generated.LineLayer
+import com.mapbox.maps.extension.style.expressions.generated.Expression
+import com.mapbox.maps.plugin.gestures.OnMapClickListener
+import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.extension.compose.style.sources.GeoJSONData
 import com.mapbox.maps.extension.compose.style.sources.generated.rememberGeoJsonSourceState
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
@@ -94,21 +94,20 @@ import ink.moling.mocklocation.activity.waypoint.views.SheetPointView
 import ink.moling.mocklocation.data.models.CandidateLocation
 import ink.moling.mocklocation.data.models.Source
 import ink.moling.mocklocation.service.locationService.LocationService
-import ink.moling.mocklocation.ui.components.LatLngScatter
 import ink.moling.mocklocation.ui.components.PillSelection
 import ink.moling.mocklocation.ui.components.PillSelector
 import ink.moling.mocklocation.ui.dialog.AddWaypointDialog
 import ink.moling.mocklocation.ui.dialog.UnsavedChangesDialog
-import ink.moling.mocklocation.utils.WaypointGraph
 import ink.moling.mocklocation.utils.WaypointSheet
 import ink.moling.mocklocation.utils.extensions.centerPoint
 import ink.moling.mocklocation.utils.extensions.isEmpty
-import ink.moling.mocklocation.utils.extensions.toMultiLineString
-import ink.moling.mocklocation.utils.extensions.toSelectedFeatureList
-import ink.moling.mocklocation.utils.logger.Logger
+import ink.moling.mocklocation.utils.extensions.toEdgeFeatures
+import ink.moling.mocklocation.utils.extensions.toPointFeatures
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
-import kotlin.math.abs
-import kotlin.math.sqrt
+
+/** 地图点击命中路点的屏幕像素容差(平方)，约 20px */
+private const val WAYPOINT_HIT_TOLERANCE_PX2 = 20.0 * 20.0
 
 @OptIn(ExperimentalMaterial3Api::class, MapboxDelicateApi::class)
 @Composable
@@ -235,18 +234,16 @@ fun WaypointScreen(
                     Spacer(Modifier.weight(1f))
 
                     if (uiState.selectedSheetDetail == WaypointSheet.POINTS) {
-                        if (uiState.selectedDisplayMode == WaypointGraph.MAP) {
-                            IconButton(onClick = {
-                                viewModel.toggleRouteEditMode(true)
-                                scope.launch {
-                                    scaffoldState.bottomSheetState.hide()
-                                }
-                            }) {
-                                Icon(
-                                    Icons.Outlined.Edit,
-                                    contentDescription = null
-                                )
+                        IconButton(onClick = {
+                            viewModel.toggleRouteEditMode(true)
+                            scope.launch {
+                                scaffoldState.bottomSheetState.hide()
                             }
+                        }) {
+                            Icon(
+                                Icons.Outlined.Edit,
+                                contentDescription = null
+                            )
                         }
 
                         IconButton(onClick = {
@@ -302,23 +299,9 @@ fun WaypointScreen(
                         alignment = Alignment.BottomStart
                     ) },
                     logo = { Logo(Modifier.padding(bottom = 40.dp)) },
-                    attribution = { Attribution(Modifier.padding(bottom = 40.dp)) },
-                    onMapClickListener = { point ->
-                        for (p in uiState.routeObject.points) {
-                            val distance = sqrt(
-                                abs(p.lat - point.latitude()) + abs(p.lng - point.longitude())
-                            )
-                            if (distance < 0.008) {
-                                viewModel.selectWaypoint(
-                                    if (uiState.selectedWaypointIndex == p.id) -1 else p.id
-                                )
-                                break
-                            }
-                        }
-                        true
-                    }
+                    attribution = { Attribution(Modifier.padding(bottom = 40.dp)) }
                 ) {
-                    // 1. Location puck + follow-puck
+                    // 1. Location puck
                     MapEffect(Unit) { mapView ->
                         mapView.location.updateSettings {
                             locationPuck = createDefault2DPuck()
@@ -326,19 +309,73 @@ fun WaypointScreen(
                         }
                     }
 
-                    // 2. GeoJSON sources
+                    // 2. 地图点击 -> 命中最近路点：
+                    //    普通模式：点击切换选中/取消选中
+                    //    连接编辑模式：在已选中路点与命中路点之间切换连接
+                    MapEffect(Unit) { mapView ->
+                        val mapboxMap = mapView.mapboxMap
+                        val listener = OnMapClickListener { point ->
+                            val state = viewModel.uiState.value
+                            val points = state.routeObject.points
+
+                            val tap = mapboxMap.pixelForCoordinate(point)
+                            var hitIndex = -1
+                            var bestDistance = Double.MAX_VALUE
+                            for (i in points.indices) {
+                                val screen = mapboxMap.pixelForCoordinate(
+                                    Point.fromLngLat(points[i].lng, points[i].lat)
+                                )
+                                val dx = screen.x - tap.x
+                                val dy = screen.y - tap.y
+                                val distanceSq = dx * dx + dy * dy
+                                if (distanceSq < bestDistance) {
+                                    bestDistance = distanceSq
+                                    hitIndex = i
+                                }
+                            }
+
+                            if (hitIndex >= 0 && bestDistance <= WAYPOINT_HIT_TOLERANCE_PX2) {
+                                when {
+                                    state.isEditingConnectionMode &&
+                                        state.selectedWaypointIndex != -1 &&
+                                        hitIndex != state.selectedWaypointIndex ->
+                                        viewModel.toggleWaypointConnection(
+                                            state.selectedWaypointIndex, hitIndex
+                                        )
+                                    !state.isEditingConnectionMode && !state.isEditingRouteMode ->
+                                        viewModel.selectWaypoint(
+                                            if (hitIndex == state.selectedWaypointIndex) -1 else hitIndex
+                                        )
+                                }
+                            }
+                            true
+                        }
+                        mapView.gestures.addOnMapClickListener(listener)
+                        try {
+                            awaitCancellation()
+                        } finally {
+                            mapView.gestures.removeOnMapClickListener(listener)
+                        }
+                    }
+
+                    // 3. GeoJSON sources
                     val edgeSource  = rememberGeoJsonSourceState {}
                     val pointSource = rememberGeoJsonSourceState {}
                     var newRouteSource = rememberGeoJsonSourceState {}
 
-                    // 3. Update sources whenever route changes
+                    // 4. Update sources whenever route / selection changes
                     LaunchedEffect(
                         uiState.routeObject,
                         uiState.selectedWaypointIndex
                     ) {
-                        edgeSource.data  = GeoJSONData(uiState.routeObject.toMultiLineString())
+                        val selectedPointId = uiState.routeObject.points
+                            .getOrNull(uiState.selectedWaypointIndex)?.id
+
+                        edgeSource.data  = GeoJSONData(
+                            uiState.routeObject.toEdgeFeatures(selectedPointId)
+                        )
                         pointSource.data = GeoJSONData(
-                            uiState.routeObject.toSelectedFeatureList(uiState.selectedWaypointIndex)
+                            uiState.routeObject.toPointFeatures(selectedPointId)
                         )
                     }
 
@@ -365,10 +402,24 @@ fun WaypointScreen(
                         }
                     }
 
-                    // 4. Line layer — each edge as an independent segment, supports branches
+                    // 5. Line layer — 每条边按端点类型着色；选中时未关联的边淡化
                     LineLayer(sourceState = edgeSource) {
                         lineWidth = DoubleValue(4.0)
-                        lineColor = ColorValue(Color(0xFF2F7AC6))
+                        lineColor = ColorValue(
+                            Expression.match(
+                                Expression.get("kind"),
+                                Expression.literal("R") to Expression.literal("#2196F3"),
+                                Expression.literal("W") to Expression.literal("#FF9800"),
+                                Expression.literal("L") to Expression.literal("#4CAF50"),
+                                fallback = Expression.literal("#2196F3")
+                            )
+                        )
+                        lineOpacity = DoubleValue(
+                            Expression.switchCase(
+                                Expression.get("dim") to Expression.literal(0.2),
+                                fallback = Expression.literal(1.0)
+                            )
+                        )
                         lineCap   = LineCapValue.ROUND
                         lineJoin  = LineJoinValue.ROUND
                     }
@@ -387,15 +438,37 @@ fun WaypointScreen(
                         }
                     }
 
-                    // 5. Circle layer — renders selected node
+                    // 6. Circle layer — 全部路点常显；
+                    //    选中点放大并加琥珀色高亮环；未关联路点淡化
                     CircleLayer(sourceState = pointSource) {
-                        circleRadius      = DoubleValue(6.0)
-                        circleColor       = ColorValue(Color(0xFF2F7AC6))
-                        circleStrokeWidth = DoubleValue(2.0)
-                        circleStrokeColor = ColorValue(Color.White)
+                        circleColor = ColorValue(Color(0xFF2F7AC6))
+                        circleRadius = DoubleValue(
+                            Expression.switchCase(
+                                Expression.get("selected") to Expression.literal(7.5),
+                                fallback = Expression.literal(6.0)
+                            )
+                        )
+                        circleOpacity = DoubleValue(
+                            Expression.switchCase(
+                                Expression.get("dim") to Expression.literal(0.2),
+                                fallback = Expression.literal(1.0)
+                            )
+                        )
+                        circleStrokeColor = ColorValue(
+                            Expression.switchCase(
+                                Expression.get("selected") to Expression.literal("#FFB300"),
+                                fallback = Expression.literal("#FFFFFF")
+                            )
+                        )
+                        circleStrokeWidth = DoubleValue(
+                            Expression.switchCase(
+                                Expression.get("selected") to Expression.literal(3.0),
+                                fallback = Expression.literal(1.5)
+                            )
+                        )
                     }
 
-                    // 6. Move default camera location
+                    // 7. Move default camera location
                     LaunchedEffect(uiState.routeObject, currentLocation) {
                         if (mapInitialized || currentLocation.source == Source.DEFAULT)
                             return@LaunchedEffect
@@ -427,37 +500,6 @@ fun WaypointScreen(
                             .size(72.dp)
                             .padding(bottom = 36.dp)
                     )
-                }
-            }
-
-            if (uiState.selectedDisplayMode == WaypointGraph.CANVAS) {
-                Column(
-                    modifier = Modifier.background(MaterialTheme.colorScheme.background)
-                ) {
-                    Spacer(Modifier.weight(0.2f))
-
-                    LatLngScatter(
-                        modifier = Modifier.fillMaxHeight(0.7f),
-                        routeObject = uiState.routeObject,
-                        highlightPointId = uiState.selectedWaypointIndex.let {
-                            uiState.routeObject.points.getOrNull(it)?.id
-                        },
-                        currentLocation = Pair(
-                            currentLocation.lat,
-                            currentLocation.lng
-                        ),
-                        onPointClick = { index, _ ->
-                            if (uiState.isEditingConnectionMode) {
-                                Logger.d("WaypointScreen", "Clicked: $index, Selected: ${uiState.selectedWaypointIndex}")
-                                viewModel.toggleWaypointConnection(uiState.selectedWaypointIndex, index)
-                            } else {
-                                val isWaypointSelected = index == uiState.selectedWaypointIndex
-                                viewModel.selectWaypoint(if (isWaypointSelected) -1 else index)
-                            }
-                        }
-                    )
-
-                    Spacer(Modifier.weight(0.1f))
                 }
             }
 
@@ -581,10 +623,7 @@ fun WaypointScreen(
                                 Icon(
                                     Icons.Outlined.Save,
                                     contentDescription = null,
-                                    tint = when (uiState.selectedDisplayMode) {
-                                        WaypointGraph.MAP -> Color.Black
-                                        else -> LocalContentColor.current
-                                    }
+                                    tint = Color.Black
                                 )
                             }
                         }
@@ -592,38 +631,18 @@ fun WaypointScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.CenterEnd
                         ) {
-                            PillSelector(
-                                items = listOf(
-                                    PillSelection(Icons.Outlined.Route, stringResource(R.string.waypoint_pill_route)),
-                                    PillSelection(Icons.Outlined.Map, stringResource(R.string.waypoint_pill_map))
-                                ),
-                                selectedIndex = if (uiState.selectedDisplayMode == WaypointGraph.CANVAS) 0 else 1,
-                                onSelectedChange = {
-                                    viewModel.setDisplayMode(if (it == 0) WaypointGraph.CANVAS else WaypointGraph.MAP)
-                                    if (uiState.isMenuExpanded) viewModel.toggleMenuExpanded()
-                                }
-                            )
-                        }
-
-                        if (uiState.selectedDisplayMode == WaypointGraph.MAP) {
-                            Box(
+                            IconButton(
                                 modifier = Modifier
-                                    .fillMaxWidth(),
-                                contentAlignment = Alignment.CenterEnd
+                                    .padding(end = 6.dp),
+                                onClick = { viewModel.toggleMenuExpanded() }
                             ) {
-                                IconButton(
-                                    modifier = Modifier
-                                        .padding(end = 6.dp),
-                                    onClick = { viewModel.toggleMenuExpanded() }
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.Menu,
-                                        contentDescription = null,
-                                        tint = Color.Black
-                                    )
-                                }
+                                Icon(
+                                    Icons.Outlined.Menu,
+                                    contentDescription = null,
+                                    tint = Color.Black
+                                )
                             }
                         }
                     }

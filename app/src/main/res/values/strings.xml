@@ -158,7 +158,7 @@
     <string name="settings_item_speed_presets">Speed presets</string>
     <string name="settings_item_joystick_size">Joystick Size</string>
     <string name="settings_item_random_offset">Random offset</string>
-    <string name="settings_item_release_repo">Release repo</string>
+    <string name="settings_item_release_repo">GitHub repo</string>
     <string name="settings_item_oss_license">Open Source License</string>
     <string name="settings_item_export_log">Export log</string>
     <string name="settings_item_crash_test">Crash test (Long press)</string>
