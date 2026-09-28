@@ -4,11 +4,9 @@
 
 **一款开源 Android 位置模拟（虚拟定位）工具** —— 支持点位模拟、路线模拟与悬浮摇杆实时控制，基于 Jetpack Compose + Mapbox 构建。
 
-[![Release](https://img.shields.io/badge/Release-Latest-orange?style=for-the-badge)](https://github.com/Malpl3naInk/MockLocation/releases)
+[![Release](https://img.shields.io/github/v/release/Malpl3naInk/MockLocation?style=for-the-badge)](https://github.com/Malpl3naInk/MockLocation/releases)
 [![Android CI](https://img.shields.io/github/actions/workflow/status/Malpl3naInk/MockLocation/build-android.yml?style=for-the-badge&label=Android%20CI)](https://github.com/Malpl3naInk/MockLocation/actions/workflows/build-android.yml)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)](LICENSE)
-[![Language: Kotlin](https://img.shields.io/badge/Language-Kotlin-purple?style=for-the-badge)](https://kotlinlang.org/)
-[![Platform: Android](https://img.shields.io/badge/Platform-Android-green?style=for-the-badge)](https://www.android.com/)
 [![minSdk: 26](https://img.shields.io/badge/minSdk-26-3DDC84?style=for-the-badge)](https://developer.android.com/studio)
 
 </div>
