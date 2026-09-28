@@ -1,12 +1,15 @@
-name: Android CI
+name: Release Build
 
 on:
-  push:
-    branches: [ "main", "master" ]
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name (e.g. 2.0.0)'
+        required: true
+        type: string
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
 
     steps:
@@ -40,7 +43,8 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          # push/PR 自动构建: beta 后缀 + git hash (-PACTION -PVERSION_SUFFIX=beta)
+          # 手动触发 release 构建: 纯净无后缀版本 (-PVERSION_SUFFIX= -PVERSION_NAME=x.x.x)
+          # 对应 build.gradle.kts 中 isDispatch=true 分支 (无 -PACTION)
         run: |
           ./gradlew assembleRelease \
             -x lint -x test \
@@ -48,8 +52,8 @@ jobs:
             --build-cache \
             --no-daemon \
             --configuration-cache \
-            -PACTION \
-            -PVERSION_SUFFIX=beta
+            -PVERSION_NAME=${{ github.event.inputs.version_name }} \
+            -PVERSION_SUFFIX=
 
       - name: Install MinIO client
         run: |
@@ -63,7 +67,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p 56393 ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-      
+
       - name: Create Tunnel
         run: |
           ssh -p 56393 -f -N \

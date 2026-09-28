@@ -52,7 +52,7 @@ fun gitCommitCount(): Int {
 // ===== Version Base =====
 val versionMajor = 1
 val versionMinor = 0
-val versionPatch = 0
+val versionPatch = 1
 
 // 支持从命令行参数覆盖版本名 (用于手动触发构建)
 // 例如: ./gradlew assembleRelease -PVERSION_NAME=2.0.0
