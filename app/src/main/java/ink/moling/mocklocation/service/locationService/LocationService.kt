@@ -143,6 +143,21 @@ class LocationService : Service() {
     }
 
     /**
+     * 悬浮窗因缺少 SYSTEM_ALERT_WINDOW 权限而无法显示时的用户提示
+     *
+     * 位置模拟本身不受影响，只是没有悬浮摇杆可用。
+     */
+    private fun reportOverlayPermissionMissing() {
+        _errorState.value = ErrorInfo(
+            "Overlay Permission Required",
+            "The floating joystick could not be shown because the \"Display over other apps\" " +
+                "permission is not granted. Location mocking keeps working without it; " +
+                "grant the permission in system settings to use the joystick.",
+            ""
+        )
+    }
+
+    /**
      * 切换摇杆可见性
      * 
      * @param isVisible 新的可见性状态
@@ -191,8 +206,10 @@ class LocationService : Service() {
 
             // 设置显示模式
             overlayCtrl.setMode(0)
-            // 启动悬浮控件
-            overlayCtrl.start()
+            // 启动悬浮控件（缺少悬浮窗权限时会失败，此时仅提示用户，不影响位置模拟）
+            if (!overlayCtrl.start()) {
+                reportOverlayPermissionMissing()
+            }
             
             // 停止真实位置监听，重置卡尔曼滤波器
             realCtrl.stop()
@@ -238,8 +255,10 @@ class LocationService : Service() {
 
             // 设置显示模式
             overlayCtrl.setMode(1)
-            // 启动悬浮控件
-            overlayCtrl.start()
+            // 启动悬浮控件（缺少悬浮窗权限时会失败，此时仅提示用户，不影响位置模拟）
+            if (!overlayCtrl.start()) {
+                reportOverlayPermissionMissing()
+            }
 
             // 停止真实位置监听，重置卡尔曼滤波器
             realCtrl.stop()
